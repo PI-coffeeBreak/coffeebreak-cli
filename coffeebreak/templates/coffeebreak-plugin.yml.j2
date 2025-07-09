@@ -1,0 +1,78 @@
+plugin:
+  name: "{{ plugin_name }}"
+  version: "{{ version | default('1.0.0') }}"
+  description: "{{ description | default('A CoffeeBreak plugin') }}"
+  author: "{{ author | default('Plugin Developer') }}"
+  homepage: "{{ homepage | default('') }}"
+  tags: {{ tags | default(['plugin']) | list }}
+
+compatibility:
+  coffeebreak_core: ">=1.0.0"
+  {% if node_version %}node_version: "{{ node_version }}"{% endif %}
+  {% if python_version %}python_version: "{{ python_version }}"{% endif %}
+
+dependencies:
+  services:
+    - database
+    - mongodb
+  {% if npm_packages %}
+  npm_packages:
+    {% for package in npm_packages %}
+    - "{{ package }}"
+    {% endfor %}
+  {% endif %}
+  {% if python_packages %}
+  python_packages:
+    {% for package in python_packages %}
+    - "{{ package }}"
+    {% endfor %}
+  {% endif %}
+
+development:
+  mount_paths:
+    - "./src:/app/plugins/{{ plugin_name }}/src"
+    - "./assets:/app/plugins/{{ plugin_name }}/assets"
+  environment:
+    COFFEEBREAK_DEBUG: true
+    PLUGIN_DEV_MODE: true
+    HOT_RELOAD_ENABLED: true
+  hot_reload: true
+  watch_extensions: [".js", ".jsx", ".ts", ".tsx", ".css", ".scss", ".py"]
+
+{% if api_endpoints %}
+api_endpoints:
+  {% for endpoint in api_endpoints %}
+  - path: "{{ endpoint.path }}"
+    methods: {{ endpoint.methods | list }}
+    {% if endpoint.authentication %}authentication: {{ endpoint.authentication }}{% endif %}
+    {% if endpoint.permissions %}permissions: {{ endpoint.permissions | list }}{% endif %}
+  {% endfor %}
+{% endif %}
+
+{% if frontend_routes %}
+frontend_routes:
+  {% for route in frontend_routes %}
+  - path: "{{ route.path }}"
+    component: "{{ route.component }}"
+    {% if route.title %}title: "{{ route.title }}"{% endif %}
+    {% if route.permissions %}permissions: {{ route.permissions | list }}{% endif %}
+  {% endfor %}
+{% endif %}
+
+build:
+  hooks:
+    pre_build: "./scripts/validate.sh"
+    build: "./scripts/build.sh"
+    post_build: "./scripts/package.sh"
+    test: "./scripts/test.sh"
+  output_directory: "./dist"
+  assets_directory: "./assets"
+  include_files:
+    - "README.md"
+    - "LICENSE"
+  exclude_patterns:
+    - "*.log"
+    - "node_modules"
+    - "__pycache__"
+    - "*.pyc"
+    - ".git"

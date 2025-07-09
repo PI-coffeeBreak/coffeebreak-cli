@@ -1,0 +1,174 @@
+.TH COFFEEBREAK-PLUGIN.YML 5 "2024-06-29" "coffeebreak-cli 0.1.0" "File Formats"
+.SH NAME
+coffeebreak-plugin.yml \- CoffeeBreak plugin configuration file
+.SH DESCRIPTION
+The coffeebreak-plugin.yml file defines the configuration for CoffeeBreak plugins. It specifies plugin metadata, dependencies, and build settings.
+.SH FORMAT
+The file is written in YAML format and contains the following sections:
+.SH SECTIONS
+.TP
+.B plugin
+Main plugin configuration
+.RS
+.TP
+.B name
+Plugin name (string)
+.TP
+.B version
+Plugin version (string)
+.TP
+.B description
+Plugin description (string)
+.TP
+.B author
+Plugin author (string)
+.TP
+.B email
+Author email (string)
+.TP
+.B homepage
+Plugin homepage URL (string)
+.TP
+.B license
+Plugin license (string)
+.TP
+.B keywords
+Plugin keywords (list)
+.TP
+.B entry_point
+Main plugin entry point (string)
+.TP
+.B dependencies
+Plugin dependencies (map)
+.TP
+.B dev_dependencies
+Development dependencies (map)
+.RE
+.TP
+.B build
+Build configuration
+.RS
+.TP
+.B output_dir
+Build output directory (string)
+.TP
+.B include
+Files to include in build (list)
+.TP
+.B exclude
+Files to exclude from build (list)
+.TP
+.B scripts
+Build scripts (map)
+.RE
+.TP
+.B manifest
+Plugin manifest configuration
+.RS
+.TP
+.B routes
+Plugin routes (list)
+.TP
+.B services
+Plugin services (list)
+.TP
+.B schemas
+Plugin schemas (list)
+.TP
+.B exceptions
+Plugin exceptions (list)
+.TP
+.B permissions
+Required permissions (list)
+.RE
+.TP
+.B development
+Development settings
+.RS
+.TP
+.B hot_reload
+Enable hot reload (boolean)
+.TP
+.B debug
+Enable debug mode (boolean)
+.TP
+.B test_command
+Test command (string)
+.TP
+.B lint_command
+Lint command (string)
+.RE
+.SH EXAMPLE
+.nf
+plugin:
+  name: my-awesome-plugin
+  version: 1.0.0
+  description: An awesome CoffeeBreak plugin
+  author: Developer Name
+  email: developer@example.com
+  homepage: https://github.com/developer/my-awesome-plugin
+  license: MIT
+  keywords:
+  - coffeebreak
+  - plugin
+  - awesome
+  entry_point: main.py
+  dependencies:
+    requests: ">=2.25.0"
+    pyyaml: ">=5.4.0"
+  dev_dependencies:
+    pytest: ">=6.0.0"
+    black: ">=21.0.0"
+
+build:
+  output_dir: dist
+  include:
+  - "*.py"
+  - "templates/"
+  - "static/"
+  - "README.md"
+  exclude:
+  - "tests/"
+  - "*.pyc"
+  - "__pycache__/"
+  scripts:
+    pre_build: python setup.py check
+    post_build: python -m zipfile -c plugin.zip dist/
+
+manifest:
+  routes:
+  - path: /api/my-plugin
+    handler: handlers.api_handler
+  - path: /my-plugin/dashboard
+    handler: handlers.dashboard_handler
+  services:
+  - name: my_service
+    class: services.MyService
+  schemas:
+  - name: my_schema
+    file: schemas/my_schema.json
+  exceptions:
+  - name: MyPluginError
+    class: exceptions.MyPluginError
+  permissions:
+  - read_data
+  - write_data
+
+development:
+  hot_reload: true
+  debug: true
+  test_command: pytest tests/
+  lint_command: black --check .
+.fi
+.SH FILES
+.TP
+.I coffeebreak-plugin.yml
+Plugin configuration file (plugin root)
+.TP
+.I ~/.coffeebreak/plugins/
+User plugin directory
+.SH SEE ALSO
+.BR coffeebreak (1),
+.BR coffeebreak.yml (5)
+.SH BUGS
+Report bugs at: https://github.com/PI-coffeeBreak/coffeebreak-cli/issues

@@ -1,0 +1,196 @@
+.TH COFFEEBREAK.YML 5 "2024-06-29" "coffeebreak-cli 0.1.0" "File Formats"
+.SH NAME
+coffeebreak.yml \- CoffeeBreak project configuration file
+.SH DESCRIPTION
+The coffeebreak.yml file is the main configuration file for CoffeeBreak projects. It defines project metadata, repositories, environments, and dependencies.
+.SH FORMAT
+The file is written in YAML format and contains the following sections:
+.SH SECTIONS
+.TP
+.B coffeebreak
+Main project configuration
+.RS
+.TP
+.B version
+Project version (string)
+.TP
+.B organization
+GitHub organization name (string)
+.TP
+.B repositories
+List of repositories to manage
+.RS
+.TP
+.B name
+Repository name (string)
+.TP
+.B url
+Repository URL (string)
+.TP
+.B path
+Local path for repository (string)
+.TP
+.B branch
+Default branch (string, default: main)
+.TP
+.B startup_command
+Command to start the service (list)
+.RE
+.RE
+.TP
+.B environments
+Environment-specific configurations
+.RS
+.TP
+.B dev
+Development environment settings
+.RS
+.TP
+.B docker_network
+Docker network name (string)
+.TP
+.B auto_start_deps
+Auto-start dependencies (boolean)
+.TP
+.B hot_reload
+Enable hot reload (boolean)
+.RE
+.TP
+.B production
+Production environment settings
+.RS
+.TP
+.B domain_required
+Require domain configuration (boolean)
+.TP
+.B ssl_required
+Require SSL certificates (boolean)
+.TP
+.B backup_enabled
+Enable backup system (boolean)
+.RE
+.RE
+.TP
+.B dependencies
+Service dependency configurations
+.RS
+.TP
+.B profiles
+Named dependency profiles
+.RS
+.TP
+.B minimal
+Minimal set of dependencies (list)
+.TP
+.B full
+Full set of dependencies (list)
+.TP
+.B plugin-dev
+Plugin development dependencies (list)
+.RE
+.TP
+.B services
+Service definitions
+.RS
+.TP
+.B image
+Docker image name (string)
+.TP
+.B container_name
+Container name (string)
+.TP
+.B ports
+Port mappings (list)
+.TP
+.B environment
+Environment variables (map)
+.TP
+.B volumes
+Volume mappings (list)
+.TP
+.B depends_on
+Service dependencies (list)
+.TP
+.B healthcheck
+Health check configuration (map)
+.RE
+.RE
+.SH EXAMPLE
+.nf
+coffeebreak:
+  version: 1.0.0
+  organization: PI-coffeeBreak
+  repositories:
+  - name: core
+    url: https://github.com/PI-coffeeBreak/core.git
+    path: ./core
+    branch: main
+    startup_command:
+    - ./cb.sh
+    - dev
+  - name: frontend
+    url: https://github.com/PI-coffeeBreak/frontend.git
+    path: ./frontend
+    branch: main
+    startup_command:
+    - npm
+    - run
+    - dev
+
+environments:
+  dev:
+    docker_network: coffeebreak-dev
+    auto_start_deps: true
+    hot_reload: true
+  production:
+    domain_required: true
+    ssl_required: true
+    backup_enabled: true
+
+dependencies:
+  profiles:
+    minimal:
+    - database
+    - mongodb
+    full:
+    - database
+    - mongodb
+    - rabbitmq
+    - keycloak-db
+    - keycloak
+    plugin-dev:
+    - database
+    - mongodb
+    - rabbitmq
+  services:
+    database:
+      image: postgres:17.4-alpine3.21
+      container_name: coffeebreak-db
+      ports:
+      - 5432:5432
+      environment:
+        POSTGRES_DB: coffeebreak_dev
+        POSTGRES_USER: coffeebreak
+        POSTGRES_PASSWORD: dev_password
+      volumes:
+      - coffeebreak_db_data:/var/lib/postgresql/data
+      healthcheck:
+        test:
+        - CMD-SHELL
+        - pg_isready -U coffeebreak
+        interval: 5s
+        retries: 5
+.fi
+.SH FILES
+.TP
+.I coffeebreak.yml
+Project configuration file (project root)
+.TP
+.I ~/.coffeebreak/config.yml
+User-specific configuration file
+.SH SEE ALSO
+.BR coffeebreak (1),
+.BR coffeebreak-plugin.yml (5),
+.BR docker-compose.yml (5)
+.SH BUGS
+Report bugs at: https://github.com/PI-coffeeBreak/coffeebreak-cli/issues

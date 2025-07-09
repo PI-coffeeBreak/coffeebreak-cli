@@ -1,0 +1,165 @@
+.TH COFFEEBREAK 1 "2024-06-29" "coffeebreak-cli 0.1.0" "User Commands"
+.SH NAME
+coffeebreak \- Development and deployment automation tool for CoffeeBreak projects
+.SH SYNOPSIS
+.B coffeebreak
+[\fIOPTIONS\fR] \fICOMMAND\fR [\fIARGS\fR]...
+.SH DESCRIPTION
+CoffeeBreak CLI is a comprehensive development and deployment automation tool designed to streamline the development workflow for CoffeeBreak projects. It provides commands for environment setup, dependency management, plugin development, and production deployment.
+.SH OPTIONS
+.TP
+.BR \-v ", " \-\-verbose
+Enable verbose output
+.TP
+.BR \-\-dry\-run
+Show what would be done without executing
+.TP
+.BR \-\-log\-file " " \fIFILE\fR
+Log to file in addition to console
+.TP
+.BR \-h ", " \-\-help
+Show help message and exit
+.TP
+.BR \-\-version
+Show version and exit
+.SH COMMANDS
+.TP
+.B init
+Initialize CoffeeBreak environments
+.RS
+.TP
+.B dev
+Initialize full development environment
+.TP
+.B production
+Initialize production environment
+.RE
+.TP
+.B dev
+Start development environment (auto-detects context)
+.RS
+.TP
+.BR \-\-profile " " \fIPROFILE\fR
+Dependency profile to use (full, minimal, plugin-dev)
+.TP
+.BR \-\-services " " \fISERVICES\fR
+Comma-separated list of specific services to start
+.TP
+.BR \-\-skip\-clone
+Skip repository cloning
+.TP
+.BR \-\-skip\-deps
+Skip dependency startup
+.TP
+.BR \-\-stop
+Stop the development environment
+.TP
+.BR \-\-status
+Show environment status
+.RE
+.TP
+.B plugin
+Plugin development commands
+.RS
+.TP
+.B create
+Create a new plugin project
+.TP
+.B init
+Initialize plugin in existing directory
+.TP
+.B build
+Build plugin package
+.TP
+.B test
+Run plugin tests
+.TP
+.B validate
+Validate plugin configuration
+.RE
+.TP
+.B deps
+Dependency management commands
+.RS
+.TP
+.B start
+Start dependency services
+.TP
+.B stop
+Stop dependency services
+.TP
+.B status
+Show dependency status
+.TP
+.B logs
+Show dependency logs
+.TP
+.B health
+Show health status
+.RE
+.TP
+.B production
+Production deployment commands
+.RS
+.TP
+.B deploy
+Deploy to production
+.TP
+.B status
+Show production status
+.TP
+.B backup
+Manage backups
+.TP
+.B monitor
+Show monitoring dashboard
+.RE
+.SH CONFIGURATION
+CoffeeBreak CLI uses YAML configuration files:
+.TP
+.B coffeebreak.yml
+Main project configuration file
+.TP
+.B coffeebreak-plugin.yml
+Plugin-specific configuration file
+.SH EXAMPLES
+.TP
+Initialize a new development environment:
+.B coffeebreak init dev
+.TP
+Start development environment with minimal dependencies:
+.B coffeebreak dev --profile minimal
+.TP
+Create a new plugin:
+.B coffeebreak plugin create my-plugin
+.TP
+Show current environment status:
+.B coffeebreak dev --status
+.TP
+Deploy to production:
+.B coffeebreak production deploy
+.SH FILES
+.TP
+.I coffeebreak.yml
+Main configuration file
+.TP
+.I coffeebreak-plugin.yml
+Plugin configuration file
+.TP
+.I ~/.coffeebreak/
+User configuration directory
+.SH ENVIRONMENT VARIABLES
+.TP
+.B COFFEEBREAK_VERBOSE
+Enable verbose output (equivalent to --verbose)
+.TP
+.B COFFEEBREAK_DRY_RUN
+Enable dry-run mode (equivalent to --dry-run)
+.SH SEE ALSO
+.BR coffeebreak.yml (5),
+.BR docker (1),
+.BR docker-compose (1)
+.SH BUGS
+Report bugs at: https://github.com/PI-coffeeBreak/coffeebreak-cli/issues
+.SH AUTHOR
+CoffeeBreak Development Team <coffeebreak@aettua.pt>

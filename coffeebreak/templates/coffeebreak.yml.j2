@@ -1,0 +1,143 @@
+coffeebreak:
+  version: "{{ version | default('1.0.0') }}"
+  organization: "{{ organization | default('PI-coffeeBreak') }}"
+  repositories:
+    - name: "core"
+      url: "https://github.com/{{ organization | default('PI-coffeeBreak') }}/core.git"
+      path: "./core"
+      branch: "main"
+      startup_command: ["./cb.sh", "dev", "--port=8000"]
+    - name: "frontend"
+      url: "https://github.com/{{ organization | default('PI-coffeeBreak') }}/frontend.git"
+      path: "./frontend"
+      branch: "main"
+      startup_command: ["npm", "run", "dev"]
+    - name: "event-app"
+      url: "https://github.com/{{ organization | default('PI-coffeeBreak') }}/event-app.git"
+      path: "./event-app"
+      branch: "main"
+      startup_command: ["npm", "run", "dev"]
+
+environments:
+  dev:
+    docker_network: "{{ dev_network | default('coffeebreak-dev') }}"
+    auto_start_deps: true
+    hot_reload: true
+  
+  production:
+    domain_required: true
+    ssl_required: true
+    backup_enabled: true
+
+dependencies:
+  profiles:
+    minimal:
+      - database
+      - mongodb
+    full:
+      - database
+      - mongodb
+      - rabbitmq
+      - keycloak-db
+      - keycloak
+    plugin-dev:
+      - database
+      - mongodb
+      - rabbitmq
+  
+  services:
+    database:
+      image: "postgres:17.4-alpine3.21"
+      container_name: "coffeebreak-db"
+      ports: ["5432:5432"]
+      environment:
+        POSTGRES_DB: coffeebreak_dev
+        POSTGRES_USER: coffeebreak
+        POSTGRES_PASSWORD: dev_password
+      volumes:
+        - "coffeebreak_db_data:/var/lib/postgresql/data"
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U coffeebreak"]
+        interval: "5s"
+        retries: 5
+    
+    mongodb:
+      image: "mongo:8.0.5"
+      container_name: "coffeebreak-mongo"
+      ports: ["27017:27017"]
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: coffeebreak
+        MONGO_INITDB_ROOT_PASSWORD: dev_password
+      volumes:
+        - "coffeebreak_mongo_data:/data/db"
+      healthcheck:
+        test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"]
+        interval: "10s"
+        retries: 5
+    
+    rabbitmq:
+      image: "rabbitmq:4.0.8-management-alpine"
+      container_name: "coffeebreak-mq"
+      ports: ["5672:5672", "15672:15672"]
+      environment:
+        RABBITMQ_DEFAULT_USER: coffeebreak
+        RABBITMQ_DEFAULT_PASS: dev_password
+      volumes:
+        - "coffeebreak_rabbitmq_data:/var/lib/rabbitmq"
+      healthcheck:
+        test: ["CMD", "rabbitmq-diagnostics", "ping"]
+        interval: "10s"
+        retries: 5
+    
+    keycloak-db:
+      image: "postgres:17.4-alpine3.21"
+      container_name: "coffeebreak-keycloak-db"
+      ports: ["5433:5432"]
+      environment:
+        POSTGRES_DB: keycloak_dev
+        POSTGRES_USER: keycloak
+        POSTGRES_PASSWORD: dev_password
+      volumes:
+        - "coffeebreak_keycloak_data:/var/lib/postgresql/data"
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U keycloak"]
+        interval: "5s"
+        retries: 5
+    
+    keycloak:
+      image: "quay.io/keycloak/keycloak:26.1.4"
+      container_name: "coffeebreak-keycloak"
+      command: ["start-dev", "--import-realm"]
+      ports: ["8080:8080", "8443:8443", "9000:9000"]
+      environment:
+        # Database configuration
+        KC_DB: postgres
+        KC_DB_URL: jdbc:postgresql://coffeebreak-keycloak-db:5432/keycloak_dev
+        KC_DB_USERNAME: keycloak
+        KC_DB_PASSWORD: dev_password
+        # Health and metrics
+        KC_HEALTH_ENABLED: "true"
+        KC_METRICS_ENABLED: "true"
+        # Network configuration
+        KC_HOSTNAME: localhost
+        KC_HTTP_ENABLED: "true"
+        KC_HTTPS: "true"
+        KC_PROXY_HEADERS: forwarded
+        PROXY_ADDRESS_FORWARDING: "true"
+        # Admin configuration
+        KEYCLOAK_ADMIN: admin
+        KEYCLOAK_ADMIN_PASSWORD: dev_password
+        # Import configuration
+        KEYCLOAK_IMPORT: /opt/keycloak/data/import
+      volumes:
+        - "{{ working_dir }}/keycloak/exports:/opt/keycloak/data/import:ro"
+        - "{{ working_dir }}/keycloak/themes:/opt/keycloak/themes:ro"
+        - "{{ working_dir }}/keycloak/providers:/opt/keycloak/providers:ro"
+      depends_on:
+        - keycloak-db
+      healthcheck:
+        test: ["CMD-SHELL", "curl -f http://localhost:9000/health || exit 1"]
+        interval: "10s"
+        timeout: "5s"
+        retries: 3
+        start_period: "30s"

@@ -1,0 +1,1 @@
+"""Templates for generating configuration files."""
