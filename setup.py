@@ -2,6 +2,7 @@
 
 from setuptools import setup, find_packages
 import os
+import sys
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -9,13 +10,17 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
+# Import version and author from package
+sys.path.insert(0, os.path.join(here, "coffeebreak"))
+from coffeebreak import __version__, __author__
+
 setup(
     name="coffeebreak-cli",
-    version="0.1.0",
+    version=__version__,
     description="CoffeeBreak development and deployment automation tool",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="CoffeeBreak Development Team",
+    author=__author__,
     author_email="coffeebreak@aettua.pt",
     keywords="development deployment automation cli",
     packages=find_packages(),
@@ -40,8 +45,7 @@ setup(
         "dev": [
             "pytest>=7.0.0",
             "pytest-cov>=4.0.0",
-            "black>=22.0.0",
-            "flake8>=5.0.0",
+            "ruff>=0.12.0",
             "mypy>=0.991",
         ],
     },
