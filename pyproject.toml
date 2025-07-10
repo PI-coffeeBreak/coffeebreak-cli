@@ -55,3 +55,18 @@ exclude = ["build/", "dist/"]
 [[tool.mypy.overrides]]
 module = ["docker.*", "git.*", "yaml.*", "jinja2.*", "cryptography.*"]
 ignore_missing_imports = true
+
+[project]
+name = "coffeebreak"
+version = "0.1.0"
+description = "CoffeeBreak CLI"
+dependencies = [
+    # your runtime dependencies here
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "watchdog",
+    # add other dev dependencies here
+]
