@@ -60,13 +60,15 @@ ignore_missing_imports = true
 name = "coffeebreak"
 version = "0.1.0"
 description = "CoffeeBreak CLI"
-dependencies = [
-    # your runtime dependencies here
+dependencies = []
+requires-python = ">=3.8"
+readme = "README.md"
+authors = [
 ]
+license = {text = "MIT"}
 
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "watchdog",
-    # add other dev dependencies here
+    "watchdog"
 ]
