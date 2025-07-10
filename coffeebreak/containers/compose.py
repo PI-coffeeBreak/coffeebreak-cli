@@ -203,10 +203,13 @@ class DockerComposeOrchestrator:
         except Exception as e:
             raise DockerError(f"Failed to start services: {e}")
     
-    def stop_services(self) -> bool:
+    def stop_services(self, service_names: Optional[List[str]] = None) -> bool:
         """
         Stop services using Docker Compose.
         
+        Args:
+            service_names: Optional list of specific services to stop (None for all)
+            
         Returns:
             bool: True if services stopped successfully
         """
@@ -216,7 +219,12 @@ class DockerComposeOrchestrator:
                     print(f"Compose file not found: {self.compose_file}")
                 return True  # Nothing to stop
             
-            cmd = ['docker-compose', '-f', self.compose_file, 'down']
+            if service_names:
+                # Stop specific services
+                cmd = ['docker-compose', '-f', self.compose_file, 'stop'] + service_names
+            else:
+                # Stop all services
+                cmd = ['docker-compose', '-f', self.compose_file, 'down']
             
             if self.verbose:
                 print(f"Stopping services: {' '.join(cmd)}")

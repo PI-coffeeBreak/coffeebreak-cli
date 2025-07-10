@@ -3,9 +3,8 @@
 from .detector import EnvironmentDetector
 from .development import DevelopmentEnvironment
 from .production import ProductionEnvironment
-
-# Note: PluginEnvironment removed to avoid circular import
-# Import it directly from .plugin when needed
+# Do NOT import PluginEnvironment here to avoid circular imports.
+# Import it directly from coffeebreak.environments.plugin where needed.
 
 __all__ = [
     'EnvironmentDetector',

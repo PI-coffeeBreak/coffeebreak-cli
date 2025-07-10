@@ -199,6 +199,59 @@ class DependencyManager:
             bool: True if all services stopped successfully
         """
         try:
+            if self.use_compose and self.compose_orchestrator.is_compose_available():
+                return self.compose_orchestrator.stop_services()
+            else:
+                return self._stop_all_services_with_docker_api()
+        except Exception as e:
+            raise DependencyManagerError(f"Failed to stop all services: {e}")
+    
+    def stop_services(self, service_names: List[str]) -> bool:
+        """
+        Stop specific dependency services.
+        
+        Args:
+            service_names: List of service names to stop
+            
+        Returns:
+            bool: True if all services stopped successfully
+        """
+        try:
+            if self.use_compose and self.compose_orchestrator.is_compose_available():
+                return self.compose_orchestrator.stop_services(service_names)
+            else:
+                return self._stop_services_with_docker_api(service_names)
+        except Exception as e:
+            raise DependencyManagerError(f"Failed to stop services: {e}")
+    
+    def _stop_services_with_docker_api(self, service_names: List[str]) -> bool:
+        """Stop specific services using Docker API."""
+        try:
+            deps_config = self.config_manager.get_dependencies_config()
+            services_config = deps_config.get('services', {})
+            
+            if self.verbose:
+                print(f"Stopping {len(service_names)} services")
+            
+            for service_name in service_names:
+                if service_name not in services_config:
+                    raise DependencyManagerError(f"Service '{service_name}' not configured")
+                
+                container_name = services_config[service_name].get('container_name')
+                
+                if self.verbose:
+                    print(f"Stopping service '{service_name}'...")
+                
+                self.container_manager.stop_container(container_name)
+            
+            if self.verbose:
+                print(f"✓ Successfully stopped {len(service_names)} services")
+            
+            return True
+            
+        except Exception as e:
+            raise DependencyManagerError(f"Error stopping services: {e}")
+        try:
             # Stop health monitoring first
             self.stop_health_monitoring()
             
