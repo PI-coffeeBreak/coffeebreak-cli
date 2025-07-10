@@ -5,9 +5,4 @@ from .scheduler import BackupScheduler
 from .recovery import RecoveryManager
 from .storage import BackupStorage
 
-__all__ = [
-    'BackupManager',
-    'BackupScheduler', 
-    'RecoveryManager',
-    'BackupStorage'
-]
+__all__ = ["BackupManager", "BackupScheduler", "RecoveryManager", "BackupStorage"]

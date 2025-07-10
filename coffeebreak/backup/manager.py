@@ -17,147 +17,149 @@ from .storage import BackupStorage
 
 class BackupManager:
     """Manages backup operations for production deployments."""
-    
-    def __init__(self, 
-                 deployment_type: str = "docker",
-                 verbose: bool = False):
+
+    def __init__(self, deployment_type: str = "docker", verbose: bool = False):
         """
         Initialize backup manager.
-        
+
         Args:
             deployment_type: Type of deployment (docker, standalone)
             verbose: Enable verbose output
         """
         self.deployment_type = deployment_type
         self.verbose = verbose
-        
+
         # Initialize components
-        self.scheduler = BackupScheduler(deployment_type=deployment_type, verbose=verbose)
-        self.recovery = RecoveryManager(deployment_type=deployment_type, verbose=verbose)
+        self.scheduler = BackupScheduler(
+            deployment_type=deployment_type, verbose=verbose
+        )
+        self.recovery = RecoveryManager(
+            deployment_type=deployment_type, verbose=verbose
+        )
         self.storage = BackupStorage(deployment_type=deployment_type, verbose=verbose)
-    
-    def setup_backup_system(self, 
-                           domain: str,
-                           backup_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+
+    def setup_backup_system(
+        self, domain: str, backup_config: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
         Set up comprehensive backup system.
-        
+
         Args:
             domain: Production domain
             backup_config: Optional backup configuration
-            
+
         Returns:
             Dict[str, Any]: Setup results
         """
         try:
             if self.verbose:
                 print(f"Setting up backup system for {domain}")
-            
+
             setup_result = {
-                'success': True,
-                'domain': domain,
-                'deployment_type': self.deployment_type,
-                'components_setup': [],
-                'errors': [],
-                'backup_location': None,
-                'recovery_scripts': []
+                "success": True,
+                "domain": domain,
+                "deployment_type": self.deployment_type,
+                "components_setup": [],
+                "errors": [],
+                "backup_location": None,
+                "recovery_scripts": [],
             }
-            
+
             # Default backup configuration
             config = {
-                'domain': domain,
-                'retention_days': 30,
-                'backup_schedule': '0 2 * * *',  # Daily at 2 AM
-                'full_backup_schedule': '0 3 * * 0',  # Weekly on Sunday at 3 AM
-                'enable_encryption': True,
-                'enable_compression': True,
-                'backup_databases': True,
-                'backup_files': True,
-                'backup_configs': True,
-                'remote_storage': False,
-                'verify_backups': True
+                "domain": domain,
+                "retention_days": 30,
+                "backup_schedule": "0 2 * * *",  # Daily at 2 AM
+                "full_backup_schedule": "0 3 * * 0",  # Weekly on Sunday at 3 AM
+                "enable_encryption": True,
+                "enable_compression": True,
+                "backup_databases": True,
+                "backup_files": True,
+                "backup_configs": True,
+                "remote_storage": False,
+                "verify_backups": True,
             }
-            
+
             if backup_config:
                 config.update(backup_config)
-            
+
             # 1. Setup backup storage
             storage_setup = self.storage.setup_backup_storage(config)
-            if storage_setup['success']:
-                setup_result['components_setup'].append('backup_storage')
-                setup_result['backup_location'] = storage_setup.get('backup_path')
+            if storage_setup["success"]:
+                setup_result["components_setup"].append("backup_storage")
+                setup_result["backup_location"] = storage_setup.get("backup_path")
             else:
-                setup_result['errors'].extend(storage_setup['errors'])
-            
+                setup_result["errors"].extend(storage_setup["errors"])
+
             # 2. Create backup scripts
             scripts_setup = self._create_backup_scripts(domain, config)
-            if scripts_setup['success']:
-                setup_result['components_setup'].append('backup_scripts')
-                setup_result['recovery_scripts'] = scripts_setup.get('scripts', [])
+            if scripts_setup["success"]:
+                setup_result["components_setup"].append("backup_scripts")
+                setup_result["recovery_scripts"] = scripts_setup.get("scripts", [])
             else:
-                setup_result['errors'].extend(scripts_setup['errors'])
-            
+                setup_result["errors"].extend(scripts_setup["errors"])
+
             # 3. Setup backup scheduling
             schedule_setup = self.scheduler.setup_backup_schedule(domain, config)
-            if schedule_setup['success']:
-                setup_result['components_setup'].append('backup_scheduling')
+            if schedule_setup["success"]:
+                setup_result["components_setup"].append("backup_scheduling")
             else:
-                setup_result['errors'].extend(schedule_setup['errors'])
-            
+                setup_result["errors"].extend(schedule_setup["errors"])
+
             # 4. Setup recovery procedures
             recovery_setup = self.recovery.setup_recovery_procedures(domain, config)
-            if recovery_setup['success']:
-                setup_result['components_setup'].append('recovery_procedures')
+            if recovery_setup["success"]:
+                setup_result["components_setup"].append("recovery_procedures")
             else:
-                setup_result['errors'].extend(recovery_setup['errors'])
-            
+                setup_result["errors"].extend(recovery_setup["errors"])
+
             # 5. Create backup verification system
             verification_setup = self._setup_backup_verification(domain, config)
-            if verification_setup['success']:
-                setup_result['components_setup'].append('backup_verification')
+            if verification_setup["success"]:
+                setup_result["components_setup"].append("backup_verification")
             else:
-                setup_result['errors'].extend(verification_setup['errors'])
-            
+                setup_result["errors"].extend(verification_setup["errors"])
+
             # 6. Setup monitoring and alerting
             monitoring_setup = self._setup_backup_monitoring(domain, config)
-            if monitoring_setup['success']:
-                setup_result['components_setup'].append('backup_monitoring')
+            if monitoring_setup["success"]:
+                setup_result["components_setup"].append("backup_monitoring")
             else:
-                setup_result['errors'].extend(monitoring_setup['errors'])
-            
-            setup_result['success'] = len(setup_result['errors']) == 0
-            
+                setup_result["errors"].extend(monitoring_setup["errors"])
+
+            setup_result["success"] = len(setup_result["errors"]) == 0
+
             if self.verbose:
-                if setup_result['success']:
+                if setup_result["success"]:
                     print(f"Backup system setup completed successfully for {domain}")
                     print(f"Components: {', '.join(setup_result['components_setup'])}")
                 else:
-                    print(f"Backup system setup completed with {len(setup_result['errors'])} errors")
-            
+                    print(
+                        f"Backup system setup completed with {len(setup_result['errors'])} errors"
+                    )
+
             return setup_result
-            
+
         except Exception as e:
             raise ConfigurationError(f"Failed to setup backup system: {e}")
-    
-    def _create_backup_scripts(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _create_backup_scripts(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Create backup scripts."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'scripts': []
-        }
-        
+        setup_result = {"success": True, "errors": [], "scripts": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
                 backup_dir = f"/opt/coffeebreak/backups"
             else:
                 scripts_dir = "./scripts"
                 backup_dir = "./backups"
-            
+
             os.makedirs(scripts_dir, exist_ok=True)
             os.makedirs(backup_dir, exist_ok=True)
-            
+
             # Main backup script
             backup_script = f"""#!/bin/bash
 # CoffeeBreak Backup Script
@@ -169,9 +171,9 @@ set -euo pipefail
 DOMAIN="{domain}"
 BACKUP_DIR="{backup_dir}"
 LOG_FILE="/var/log/coffeebreak/backup.log"
-RETENTION_DAYS={config.get('retention_days', 30)}
-ENABLE_ENCRYPTION={str(config.get('enable_encryption', True)).lower()}
-ENABLE_COMPRESSION={str(config.get('enable_compression', True)).lower()}
+RETENTION_DAYS={config.get("retention_days", 30)}
+ENABLE_ENCRYPTION={str(config.get("enable_encryption", True)).lower()}
+ENABLE_COMPRESSION={str(config.get("enable_compression", True)).lower()}
 
 # Create log directory
 mkdir -p "$(dirname "$LOG_FILE")"
@@ -406,21 +408,21 @@ main() {{
     mkdir -p "$BACKUP_DIR"/{{postgresql,mongodb,files,configs}}
     
     # Perform backups based on configuration
-    if [ "{config.get('backup_databases', True)}" = "True" ]; then
+    if [ "{config.get("backup_databases", True)}" = "True" ]; then
         backup_postgresql
         backup_mongodb
     fi
     
-    if [ "{config.get('backup_files', True)}" = "True" ]; then
+    if [ "{config.get("backup_files", True)}" = "True" ]; then
         backup_files
     fi
     
-    if [ "{config.get('backup_configs', True)}" = "True" ]; then
+    if [ "{config.get("backup_configs", True)}" = "True" ]; then
         backup_configs
     fi
     
     # Verify backups if enabled
-    if [ "{config.get('verify_backups', True)}" = "True" ]; then
+    if [ "{config.get("verify_backups", True)}" = "True" ]; then
         verify_backups
     fi
     
@@ -455,41 +457,40 @@ case "${{1:-incremental}}" in
         ;;
 esac
 """
-            
+
             backup_script_path = f"{scripts_dir}/backup.sh"
-            with open(backup_script_path, 'w') as f:
+            with open(backup_script_path, "w") as f:
                 f.write(backup_script)
             os.chmod(backup_script_path, 0o755)
-            
-            setup_result['scripts'].append(backup_script_path)
-            
+
+            setup_result["scripts"].append(backup_script_path)
+
             if self.verbose:
                 print("Backup scripts created")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Backup scripts creation failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Backup scripts creation failed: {e}")
+
         return setup_result
-    
-    def _setup_backup_verification(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_backup_verification(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup backup verification system."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             # Backup verification script
             verify_script = f"""#!/bin/bash
 # CoffeeBreak Backup Verification Script
 
-BACKUP_DIR="{config.get('backup_dir', '/opt/coffeebreak/backups')}"
+BACKUP_DIR="{config.get("backup_dir", "/opt/coffeebreak/backups")}"
 LOG_FILE="/var/log/coffeebreak/backup-verify.log"
 
 # Function to log with timestamp
@@ -625,41 +626,40 @@ main() {{
 
 main "$@"
 """
-            
+
             verify_script_path = f"{scripts_dir}/verify-backup.sh"
-            with open(verify_script_path, 'w') as f:
+            with open(verify_script_path, "w") as f:
                 f.write(verify_script)
             os.chmod(verify_script_path, 0o755)
-            
+
             if self.verbose:
                 print("Backup verification system configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Backup verification setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Backup verification setup failed: {e}")
+
         return setup_result
-    
-    def _setup_backup_monitoring(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_backup_monitoring(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup backup monitoring and alerting."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             # Backup monitoring script
             monitor_script = f"""#!/bin/bash
 # CoffeeBreak Backup Monitoring Script
 
-BACKUP_DIR="{config.get('backup_dir', '/opt/coffeebreak/backups')}"
+BACKUP_DIR="{config.get("backup_dir", "/opt/coffeebreak/backups")}"
 LOG_FILE="/var/log/coffeebreak/backup-monitor.log"
-ALERT_EMAIL="{config.get('alert_email', 'admin@localhost')}"
+ALERT_EMAIL="{config.get("alert_email", "admin@localhost")}"
 MAX_BACKUP_AGE_HOURS=25  # Alert if no backup in 25 hours
 
 # Function to log with timestamp
@@ -813,33 +813,37 @@ main() {{
 
 main "$@"
 """
-            
+
             monitor_script_path = f"{scripts_dir}/monitor-backup.sh"
-            with open(monitor_script_path, 'w') as f:
+            with open(monitor_script_path, "w") as f:
                 f.write(monitor_script)
             os.chmod(monitor_script_path, 0o755)
-            
+
             # Setup cron job for backup monitoring
             cron_entry = f"0 */6 * * * {monitor_script_path}"
-            
+
             try:
-                current_crontab = subprocess.run(['crontab', '-l'], 
-                                               capture_output=True, text=True)
-                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
+                current_crontab = subprocess.run(
+                    ["crontab", "-l"], capture_output=True, text=True
+                )
+                crontab_content = (
+                    current_crontab.stdout if current_crontab.returncode == 0 else ""
+                )
             except:
                 crontab_content = ""
-            
+
             if "monitor-backup.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\n" + cron_entry + "\n"
-                process = subprocess.Popen(['crontab', '-'], 
-                                         stdin=subprocess.PIPE, text=True)
+                process = subprocess.Popen(
+                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
+                )
                 process.communicate(input=new_crontab)
-            
+
             if self.verbose:
                 print("Backup monitoring configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Backup monitoring setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Backup monitoring setup failed: {e}")
+
         return setup_result

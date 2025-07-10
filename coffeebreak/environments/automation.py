@@ -88,7 +88,9 @@ class DevEnvironmentAutomation:
 
         return running
 
-    def _save_process_info(self, service: str, pid: int, command: List[str], cwd: str, log_file: str = None):
+    def _save_process_info(
+        self, service: str, pid: int, command: List[str], cwd: str, log_file: str = None
+    ):
         """Save process information."""
         try:
             import json
@@ -111,7 +113,7 @@ class DevEnvironmentAutomation:
                 "cwd": cwd,
                 "started_at": datetime.now().isoformat(),
             }
-            
+
             # Add log file path if provided
             if log_file:
                 pids[service]["log_file"] = log_file
@@ -132,14 +134,14 @@ class DevEnvironmentAutomation:
                     line = process.stdout.readline()
                     if not line:
                         break
-                    
+
                     # Write to log file immediately
                     log.write(line)
                     log.flush()
-                    
+
                     # Also store in a buffer for live logs to pick up
                     # The live logs will read from stdout as before
-                    
+
         except Exception as e:
             if self.verbose:
                 print(f"Error in log tee for {name}: {e}")
@@ -520,7 +522,9 @@ class DevEnvironmentAutomation:
             try:
                 connection_info = self.dependency_manager.generate_connection_info()
                 if self.verbose and connection_info:
-                    print(f"    Generated connection info for {len(connection_info)} services")
+                    print(
+                        f"    Generated connection info for {len(connection_info)} services"
+                    )
             except Exception as e:
                 if self.verbose:
                     print(f"    Warning: Could not generate connection info: {e}")
@@ -624,8 +628,12 @@ class DevEnvironmentAutomation:
             print(f"      Command error: {e}")
 
     def _start_background_process(
-        self, repo_path: str, command: List[str], name: str, detach: bool = False,
-        env_vars: Optional[Dict[str, str]] = None
+        self,
+        repo_path: str,
+        command: List[str],
+        name: str,
+        detach: bool = False,
+        env_vars: Optional[Dict[str, str]] = None,
     ) -> Optional[int]:
         """Start a background development process with enhanced environment variables."""
         try:
@@ -675,17 +683,19 @@ class DevEnvironmentAutomation:
                     bufsize=1,
                 )
                 print(f"    ✓ {name} started (PID: {process.pid}, logs: {log_file})")
-                
+
                 # Start background thread to tee output to both console and log file
                 log_thread = threading.Thread(
                     target=self._tee_process_output,
                     args=(process, log_file, name),
-                    daemon=True
+                    daemon=True,
                 )
                 log_thread.start()
 
             # Save process info with log file path
-            self._save_process_info(name, process.pid, command, repo_path, str(log_file))
+            self._save_process_info(
+                name, process.pid, command, repo_path, str(log_file)
+            )
 
             # Store process for later management
             self.processes[name] = process
@@ -696,21 +706,23 @@ class DevEnvironmentAutomation:
             print(f"      ✗ Failed to start {name}: {e}")
             return None
 
-    def _prepare_process_environment(self, env_vars: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    def _prepare_process_environment(
+        self, env_vars: Optional[Dict[str, str]] = None
+    ) -> Dict[str, str]:
         """
         Prepare enhanced environment variables for development processes.
-        
+
         Args:
             env_vars: Additional environment variables to include
-            
+
         Returns:
             Dict[str, str]: Enhanced environment variables
         """
         import os
-        
+
         # Start with current environment
         enhanced_env = os.environ.copy()
-        
+
         # Add virtual environment variables if available
         try:
             venv_env = self._get_virtual_environment_vars()
@@ -718,61 +730,63 @@ class DevEnvironmentAutomation:
         except Exception as e:
             if self.verbose:
                 print(f"    Note: Could not load virtual environment variables: {e}")
-        
+
         # Add development-specific variables
         dev_env = {
-            'NODE_ENV': 'development',
-            'ENVIRONMENT': 'development',
-            'API_BASE_URL': 'http://localhost:8000',
+            "NODE_ENV": "development",
+            "ENVIRONMENT": "development",
+            "API_BASE_URL": "http://localhost:8000",
         }
         enhanced_env.update(dev_env)
-        
+
         # Add passed environment variables (highest priority)
         if env_vars:
             enhanced_env.update(env_vars)
             if self.verbose:
                 print(f"    Added {len(env_vars)} connection environment variables")
-        
+
         return enhanced_env
 
     def _get_virtual_environment_vars(self) -> Dict[str, str]:
         """
         Get virtual environment variables from the project configuration.
-        
+
         Returns:
             Dict[str, str]: Virtual environment variables
         """
         venv_vars = {}
-        
+
         try:
             # Load environment configuration from coffeebreak.yml
             config = self.config_manager.load_config()
-            env_config = config.get('coffeebreak', {}).get('environment', {})
-            
-            if env_config.get('type') == 'venv':
-                venv_path = env_config.get('path')
+            env_config = config.get("coffeebreak", {}).get("environment", {})
+
+            if env_config.get("type") == "venv":
+                venv_path = env_config.get("path")
                 if venv_path:
                     import os
                     from pathlib import Path
-                    
+
                     venv_path = Path(venv_path).resolve()
                     if venv_path.exists():
-                        venv_vars['VIRTUAL_ENV'] = str(venv_path)
-                        venv_vars['PATH'] = f"{venv_path / 'bin'}:{os.environ.get('PATH', '')}"
-                        
+                        venv_vars["VIRTUAL_ENV"] = str(venv_path)
+                        venv_vars["PATH"] = (
+                            f"{venv_path / 'bin'}:{os.environ.get('PATH', '')}"
+                        )
+
                         # Remove PYTHONHOME if present
-                        if 'PYTHONHOME' in venv_vars:
-                            del venv_vars['PYTHONHOME']
-                            
-            elif env_config.get('type') == 'conda':
-                conda_name = env_config.get('name')
+                        if "PYTHONHOME" in venv_vars:
+                            del venv_vars["PYTHONHOME"]
+
+            elif env_config.get("type") == "conda":
+                conda_name = env_config.get("name")
                 if conda_name:
-                    venv_vars['CONDA_DEFAULT_ENV'] = conda_name
-                    
+                    venv_vars["CONDA_DEFAULT_ENV"] = conda_name
+
         except Exception as e:
             if self.verbose:
                 print(f"    Warning: Could not load environment config: {e}")
-                
+
         return venv_vars
 
     def _show_live_logs(self):

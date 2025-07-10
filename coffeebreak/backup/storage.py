@@ -12,217 +12,235 @@ from ..utils.errors import ConfigurationError
 
 class BackupStorage:
     """Manages backup storage configuration and setup."""
-    
-    def __init__(self, 
-                 deployment_type: str = "docker",
-                 verbose: bool = False):
+
+    def __init__(self, deployment_type: str = "docker", verbose: bool = False):
         """
         Initialize backup storage manager.
-        
+
         Args:
             deployment_type: Type of deployment (docker, standalone)
             verbose: Enable verbose output
         """
         self.deployment_type = deployment_type
         self.verbose = verbose
-    
+
     def setup_backup_storage(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Setup backup storage system.
-        
+
         Args:
             config: Backup storage configuration
-            
+
         Returns:
             Dict[str, Any]: Setup results
         """
         setup_result = {
-            'success': True,
-            'errors': [],
-            'backup_path': None,
-            'storage_type': 'local',
-            'storage_info': {}
+            "success": True,
+            "errors": [],
+            "backup_path": None,
+            "storage_type": "local",
+            "storage_info": {},
         }
-        
+
         try:
             # Determine backup directory
-            if self.deployment_type == 'standalone':
-                backup_dir = config.get('backup_dir', '/opt/coffeebreak/backups')
+            if self.deployment_type == "standalone":
+                backup_dir = config.get("backup_dir", "/opt/coffeebreak/backups")
             else:
-                backup_dir = config.get('backup_dir', './backups')
-            
+                backup_dir = config.get("backup_dir", "./backups")
+
             # Setup local storage
             local_setup = self._setup_local_storage(backup_dir, config)
-            if local_setup['success']:
-                setup_result['backup_path'] = local_setup['backup_path']
-                setup_result['storage_info'].update(local_setup['info'])
+            if local_setup["success"]:
+                setup_result["backup_path"] = local_setup["backup_path"]
+                setup_result["storage_info"].update(local_setup["info"])
             else:
-                setup_result['errors'].extend(local_setup['errors'])
-            
+                setup_result["errors"].extend(local_setup["errors"])
+
             # Setup remote storage if configured
-            if config.get('remote_storage', False):
+            if config.get("remote_storage", False):
                 remote_setup = self._setup_remote_storage(backup_dir, config)
-                if remote_setup['success']:
-                    setup_result['storage_type'] = 'hybrid'
-                    setup_result['storage_info'].update(remote_setup['info'])
+                if remote_setup["success"]:
+                    setup_result["storage_type"] = "hybrid"
+                    setup_result["storage_info"].update(remote_setup["info"])
                 else:
-                    setup_result['errors'].extend(remote_setup['errors'])
-            
+                    setup_result["errors"].extend(remote_setup["errors"])
+
             # Setup storage monitoring
             monitoring_setup = self._setup_storage_monitoring(backup_dir, config)
-            if not monitoring_setup['success']:
-                setup_result['errors'].extend(monitoring_setup['errors'])
-            
-            setup_result['success'] = len(setup_result['errors']) == 0
-            
+            if not monitoring_setup["success"]:
+                setup_result["errors"].extend(monitoring_setup["errors"])
+
+            setup_result["success"] = len(setup_result["errors"]) == 0
+
             if self.verbose:
                 print("Backup storage configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Backup storage setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Backup storage setup failed: {e}")
+
         return setup_result
-    
-    def _setup_local_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_local_storage(
+        self, backup_dir: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup local backup storage."""
         setup_result = {
-            'success': True,
-            'errors': [],
-            'backup_path': backup_dir,
-            'info': {}
+            "success": True,
+            "errors": [],
+            "backup_path": backup_dir,
+            "info": {},
         }
-        
+
         try:
             # Create backup directory structure
             backup_path = Path(backup_dir)
             backup_path.mkdir(parents=True, exist_ok=True)
-            
+
             # Create subdirectories for different backup types
-            subdirs = ['postgresql', 'mongodb', 'files', 'configs', 'logs']
+            subdirs = ["postgresql", "mongodb", "files", "configs", "logs"]
             for subdir in subdirs:
                 (backup_path / subdir).mkdir(exist_ok=True)
-            
+
             # Set appropriate permissions
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 # Create coffeebreak user if it doesn't exist
                 try:
-                    subprocess.run(['id', 'coffeebreak'], 
-                                 capture_output=True, check=True)
+                    subprocess.run(
+                        ["id", "coffeebreak"], capture_output=True, check=True
+                    )
                 except subprocess.CalledProcessError:
                     # User doesn't exist, create it
-                    subprocess.run(['useradd', '--system', '--no-create-home', 
-                                  '--shell', '/bin/false', 'coffeebreak'], 
-                                 capture_output=True)
-                
+                    subprocess.run(
+                        [
+                            "useradd",
+                            "--system",
+                            "--no-create-home",
+                            "--shell",
+                            "/bin/false",
+                            "coffeebreak",
+                        ],
+                        capture_output=True,
+                    )
+
                 # Set ownership and permissions
-                shutil.chown(backup_dir, user='coffeebreak', group='coffeebreak')
+                shutil.chown(backup_dir, user="coffeebreak", group="coffeebreak")
                 os.chmod(backup_dir, 0o750)
-                
+
                 # Set permissions for subdirectories
                 for subdir in subdirs:
                     subdir_path = backup_path / subdir
-                    shutil.chown(str(subdir_path), user='coffeebreak', group='coffeebreak')
+                    shutil.chown(
+                        str(subdir_path), user="coffeebreak", group="coffeebreak"
+                    )
                     os.chmod(str(subdir_path), 0o750)
-            
+
             # Get storage information
             storage_info = self._get_storage_info(backup_dir)
-            setup_result['info'] = storage_info
-            
+            setup_result["info"] = storage_info
+
             # Create backup configuration file
             backup_config = {
-                'backup_dir': backup_dir,
-                'created': str(Path().cwd()),
-                'deployment_type': self.deployment_type,
-                'retention_days': config.get('retention_days', 30),
-                'encryption_enabled': config.get('enable_encryption', True),
-                'compression_enabled': config.get('enable_compression', True)
+                "backup_dir": backup_dir,
+                "created": str(Path().cwd()),
+                "deployment_type": self.deployment_type,
+                "retention_days": config.get("retention_days", 30),
+                "encryption_enabled": config.get("enable_encryption", True),
+                "compression_enabled": config.get("enable_compression", True),
             }
-            
-            config_file = backup_path / 'backup-config.json'
-            with open(config_file, 'w') as f:
+
+            config_file = backup_path / "backup-config.json"
+            with open(config_file, "w") as f:
                 json.dump(backup_config, f, indent=2)
-            
-            if self.deployment_type == 'standalone':
-                shutil.chown(str(config_file), user='coffeebreak', group='coffeebreak')
+
+            if self.deployment_type == "standalone":
+                shutil.chown(str(config_file), user="coffeebreak", group="coffeebreak")
                 os.chmod(str(config_file), 0o640)
-            
+
             if self.verbose:
                 print(f"Local backup storage created: {backup_dir}")
-                print(f"Available space: {storage_info.get('available_gb', 'unknown')} GB")
-            
+                print(
+                    f"Available space: {storage_info.get('available_gb', 'unknown')} GB"
+                )
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Local storage setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Local storage setup failed: {e}")
+
         return setup_result
-    
-    def _setup_remote_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_remote_storage(
+        self, backup_dir: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup remote backup storage."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'info': {}
-        }
-        
+        setup_result = {"success": True, "errors": [], "info": {}}
+
         try:
-            remote_type = config.get('remote_storage_type', 's3')
-            
-            if remote_type == 's3':
+            remote_type = config.get("remote_storage_type", "s3")
+
+            if remote_type == "s3":
                 s3_setup = self._setup_s3_storage(backup_dir, config)
                 setup_result.update(s3_setup)
-            elif remote_type == 'rsync':
+            elif remote_type == "rsync":
                 rsync_setup = self._setup_rsync_storage(backup_dir, config)
                 setup_result.update(rsync_setup)
-            elif remote_type == 'sftp':
+            elif remote_type == "sftp":
                 sftp_setup = self._setup_sftp_storage(backup_dir, config)
                 setup_result.update(sftp_setup)
             else:
-                setup_result['success'] = False
-                setup_result['errors'].append(f"Unsupported remote storage type: {remote_type}")
-            
+                setup_result["success"] = False
+                setup_result["errors"].append(
+                    f"Unsupported remote storage type: {remote_type}"
+                )
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Remote storage setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Remote storage setup failed: {e}")
+
         return setup_result
-    
-    def _setup_s3_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_s3_storage(
+        self, backup_dir: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup S3-compatible storage."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'info': {'remote_type': 's3'}
-        }
-        
+        setup_result = {"success": True, "errors": [], "info": {"remote_type": "s3"}}
+
         try:
             # Check if AWS CLI is available
-            result = subprocess.run(['which', 'aws'], capture_output=True)
+            result = subprocess.run(["which", "aws"], capture_output=True)
             if result.returncode != 0:
                 # Try to install AWS CLI
                 try:
-                    if subprocess.run(['which', 'pip3'], capture_output=True).returncode == 0:
-                        subprocess.run(['pip3', 'install', 'awscli'], check=True)
+                    if (
+                        subprocess.run(
+                            ["which", "pip3"], capture_output=True
+                        ).returncode
+                        == 0
+                    ):
+                        subprocess.run(["pip3", "install", "awscli"], check=True)
                     else:
                         raise Exception("AWS CLI not available and pip3 not found")
                 except Exception as e:
-                    setup_result['errors'].append(f"Failed to install AWS CLI: {e}")
+                    setup_result["errors"].append(f"Failed to install AWS CLI: {e}")
                     return setup_result
-            
+
             # Create S3 sync script
-            s3_bucket = config.get('s3_bucket')
-            s3_region = config.get('s3_region', 'us-east-1')
-            s3_prefix = config.get('s3_prefix', 'coffeebreak-backups')
-            
+            s3_bucket = config.get("s3_bucket")
+            s3_region = config.get("s3_region", "us-east-1")
+            s3_prefix = config.get("s3_prefix", "coffeebreak-backups")
+
             if not s3_bucket:
-                setup_result['errors'].append("S3 bucket not specified in configuration")
+                setup_result["errors"].append(
+                    "S3 bucket not specified in configuration"
+                )
                 return setup_result
-            
-            if self.deployment_type == 'standalone':
+
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             s3_sync_script = f"""#!/bin/bash
 # CoffeeBreak S3 Backup Sync Script
 
@@ -290,68 +308,72 @@ main() {{
 
 main "$@"
 """
-            
+
             s3_script_path = f"{scripts_dir}/s3-sync.sh"
             os.makedirs(scripts_dir, exist_ok=True)
-            
-            with open(s3_script_path, 'w') as f:
+
+            with open(s3_script_path, "w") as f:
                 f.write(s3_sync_script)
             os.chmod(s3_script_path, 0o755)
-            
+
             # Setup S3 sync cron job
             cron_entry = f"0 */6 * * * {s3_script_path} sync"
-            
+
             try:
-                current_crontab = subprocess.run(['crontab', '-l'], 
-                                               capture_output=True, text=True)
-                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
+                current_crontab = subprocess.run(
+                    ["crontab", "-l"], capture_output=True, text=True
+                )
+                crontab_content = (
+                    current_crontab.stdout if current_crontab.returncode == 0 else ""
+                )
             except:
                 crontab_content = ""
-            
+
             if "s3-sync.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\\n" + cron_entry + "\\n"
-                process = subprocess.Popen(['crontab', '-'], 
-                                         stdin=subprocess.PIPE, text=True)
+                process = subprocess.Popen(
+                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
+                )
                 process.communicate(input=new_crontab)
-            
-            setup_result['info'].update({
-                'bucket': s3_bucket,
-                'region': s3_region,
-                'prefix': s3_prefix,
-                'sync_script': s3_script_path
-            })
-            
+
+            setup_result["info"].update(
+                {
+                    "bucket": s3_bucket,
+                    "region": s3_region,
+                    "prefix": s3_prefix,
+                    "sync_script": s3_script_path,
+                }
+            )
+
             if self.verbose:
                 print(f"S3 storage configured: s3://{s3_bucket}/{s3_prefix}")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"S3 storage setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"S3 storage setup failed: {e}")
+
         return setup_result
-    
-    def _setup_rsync_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_rsync_storage(
+        self, backup_dir: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup rsync-based remote storage."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'info': {'remote_type': 'rsync'}
-        }
-        
+        setup_result = {"success": True, "errors": [], "info": {"remote_type": "rsync"}}
+
         try:
-            rsync_host = config.get('rsync_host')
-            rsync_path = config.get('rsync_path')
-            rsync_user = config.get('rsync_user', 'backup')
-            
+            rsync_host = config.get("rsync_host")
+            rsync_path = config.get("rsync_path")
+            rsync_user = config.get("rsync_user", "backup")
+
             if not rsync_host or not rsync_path:
-                setup_result['errors'].append("Rsync host and path must be specified")
+                setup_result["errors"].append("Rsync host and path must be specified")
                 return setup_result
-            
-            if self.deployment_type == 'standalone':
+
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             rsync_script = f"""#!/bin/bash
 # CoffeeBreak Rsync Backup Sync Script
 
@@ -416,52 +438,54 @@ main() {{
 
 main "$@"
 """
-            
+
             rsync_script_path = f"{scripts_dir}/rsync-sync.sh"
             os.makedirs(scripts_dir, exist_ok=True)
-            
-            with open(rsync_script_path, 'w') as f:
+
+            with open(rsync_script_path, "w") as f:
                 f.write(rsync_script)
             os.chmod(rsync_script_path, 0o755)
-            
-            setup_result['info'].update({
-                'host': rsync_host,
-                'path': rsync_path,
-                'user': rsync_user,
-                'sync_script': rsync_script_path
-            })
-            
+
+            setup_result["info"].update(
+                {
+                    "host": rsync_host,
+                    "path": rsync_path,
+                    "user": rsync_user,
+                    "sync_script": rsync_script_path,
+                }
+            )
+
             if self.verbose:
-                print(f"Rsync storage configured: {rsync_user}@{rsync_host}:{rsync_path}")
-            
+                print(
+                    f"Rsync storage configured: {rsync_user}@{rsync_host}:{rsync_path}"
+                )
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Rsync storage setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Rsync storage setup failed: {e}")
+
         return setup_result
-    
-    def _setup_sftp_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_sftp_storage(
+        self, backup_dir: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup SFTP-based remote storage."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'info': {'remote_type': 'sftp'}
-        }
-        
+        setup_result = {"success": True, "errors": [], "info": {"remote_type": "sftp"}}
+
         try:
-            sftp_host = config.get('sftp_host')
-            sftp_path = config.get('sftp_path')
-            sftp_user = config.get('sftp_user', 'backup')
-            
+            sftp_host = config.get("sftp_host")
+            sftp_path = config.get("sftp_path")
+            sftp_user = config.get("sftp_user", "backup")
+
             if not sftp_host or not sftp_path:
-                setup_result['errors'].append("SFTP host and path must be specified")
+                setup_result["errors"].append("SFTP host and path must be specified")
                 return setup_result
-            
-            if self.deployment_type == 'standalone':
+
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             sftp_script = f"""#!/bin/bash
 # CoffeeBreak SFTP Backup Sync Script
 
@@ -537,52 +561,53 @@ main() {{
 
 main "$@"
 """
-            
+
             sftp_script_path = f"{scripts_dir}/sftp-sync.sh"
             os.makedirs(scripts_dir, exist_ok=True)
-            
-            with open(sftp_script_path, 'w') as f:
+
+            with open(sftp_script_path, "w") as f:
                 f.write(sftp_script)
             os.chmod(sftp_script_path, 0o755)
-            
-            setup_result['info'].update({
-                'host': sftp_host,
-                'path': sftp_path,
-                'user': sftp_user,
-                'sync_script': sftp_script_path
-            })
-            
+
+            setup_result["info"].update(
+                {
+                    "host": sftp_host,
+                    "path": sftp_path,
+                    "user": sftp_user,
+                    "sync_script": sftp_script_path,
+                }
+            )
+
             if self.verbose:
                 print(f"SFTP storage configured: {sftp_user}@{sftp_host}:{sftp_path}")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"SFTP storage setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"SFTP storage setup failed: {e}")
+
         return setup_result
-    
-    def _setup_storage_monitoring(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_storage_monitoring(
+        self, backup_dir: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup storage monitoring and alerts."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             # Storage monitoring script
             monitoring_script = f"""#!/bin/bash
 # CoffeeBreak Storage Monitoring Script
 
 BACKUP_DIR="{backup_dir}"
 LOG_FILE="/var/log/coffeebreak/storage-monitor.log"
-ALERT_EMAIL="{config.get('alert_email', 'admin@localhost')}"
-WARNING_THRESHOLD={config.get('storage_warning_percent', 80)}
-CRITICAL_THRESHOLD={config.get('storage_critical_percent', 90)}
+ALERT_EMAIL="{config.get("alert_email", "admin@localhost")}"
+WARNING_THRESHOLD={config.get("storage_warning_percent", 80)}
+CRITICAL_THRESHOLD={config.get("storage_critical_percent", 90)}
 
 # Function to log with timestamp
 log_message() {{
@@ -707,63 +732,66 @@ main() {{
 
 main "$@"
 """
-            
+
             monitoring_script_path = f"{scripts_dir}/storage-monitor.sh"
             os.makedirs(scripts_dir, exist_ok=True)
-            
-            with open(monitoring_script_path, 'w') as f:
+
+            with open(monitoring_script_path, "w") as f:
                 f.write(monitoring_script)
             os.chmod(monitoring_script_path, 0o755)
-            
+
             # Setup cron job for storage monitoring
             cron_entry = f"0 */4 * * * {monitoring_script_path}"
-            
+
             try:
-                current_crontab = subprocess.run(['crontab', '-l'], 
-                                               capture_output=True, text=True)
-                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
+                current_crontab = subprocess.run(
+                    ["crontab", "-l"], capture_output=True, text=True
+                )
+                crontab_content = (
+                    current_crontab.stdout if current_crontab.returncode == 0 else ""
+                )
             except:
                 crontab_content = ""
-            
+
             if "storage-monitor.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\\n" + cron_entry + "\\n"
-                process = subprocess.Popen(['crontab', '-'], 
-                                         stdin=subprocess.PIPE, text=True)
+                process = subprocess.Popen(
+                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
+                )
                 process.communicate(input=new_crontab)
-            
+
             if self.verbose:
                 print("Storage monitoring configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Storage monitoring setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Storage monitoring setup failed: {e}")
+
         return setup_result
-    
+
     def _get_storage_info(self, backup_dir: str) -> Dict[str, Any]:
         """Get storage information for backup directory."""
         try:
             # Get disk usage information
-            result = subprocess.run(['df', backup_dir], 
-                                  capture_output=True, text=True)
-            
+            result = subprocess.run(["df", backup_dir], capture_output=True, text=True)
+
             if result.returncode == 0:
-                lines = result.stdout.strip().split('\\n')
+                lines = result.stdout.strip().split("\\n")
                 if len(lines) >= 2:
                     fields = lines[1].split()
-                    
+
                     return {
-                        'filesystem': fields[0],
-                        'total_kb': int(fields[1]),
-                        'used_kb': int(fields[2]),
-                        'available_kb': int(fields[3]),
-                        'total_gb': round(int(fields[1]) / 1024 / 1024, 2),
-                        'used_gb': round(int(fields[2]) / 1024 / 1024, 2),
-                        'available_gb': round(int(fields[3]) / 1024 / 1024, 2),
-                        'usage_percent': fields[4]
+                        "filesystem": fields[0],
+                        "total_kb": int(fields[1]),
+                        "used_kb": int(fields[2]),
+                        "available_kb": int(fields[3]),
+                        "total_gb": round(int(fields[1]) / 1024 / 1024, 2),
+                        "used_gb": round(int(fields[2]) / 1024 / 1024, 2),
+                        "available_gb": round(int(fields[3]) / 1024 / 1024, 2),
+                        "usage_percent": fields[4],
                     }
-            
-            return {'error': 'Could not get storage information'}
-            
+
+            return {"error": "Could not get storage information"}
+
         except Exception as e:
-            return {'error': f'Failed to get storage info: {e}'}
+            return {"error": f"Failed to get storage info: {e}"}

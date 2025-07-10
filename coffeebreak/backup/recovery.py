@@ -13,90 +13,92 @@ from ..utils.errors import ConfigurationError
 
 class RecoveryManager:
     """Manages backup recovery and disaster recovery procedures."""
-    
-    def __init__(self, 
-                 deployment_type: str = "docker",
-                 verbose: bool = False):
+
+    def __init__(self, deployment_type: str = "docker", verbose: bool = False):
         """
         Initialize recovery manager.
-        
+
         Args:
             deployment_type: Type of deployment (docker, standalone)
             verbose: Enable verbose output
         """
         self.deployment_type = deployment_type
         self.verbose = verbose
-    
-    def setup_recovery_procedures(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def setup_recovery_procedures(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Setup recovery procedures and disaster recovery plans.
-        
+
         Args:
             domain: Production domain
             config: Recovery configuration
-            
+
         Returns:
             Dict[str, Any]: Setup results
         """
         setup_result = {
-            'success': True,
-            'errors': [],
-            'recovery_scripts': [],
-            'disaster_recovery_plan': None
+            "success": True,
+            "errors": [],
+            "recovery_scripts": [],
+            "disaster_recovery_plan": None,
         }
-        
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
                 recovery_dir = "/opt/coffeebreak/recovery"
             else:
                 scripts_dir = "./scripts"
                 recovery_dir = "./recovery"
-            
+
             os.makedirs(scripts_dir, exist_ok=True)
             os.makedirs(recovery_dir, exist_ok=True)
-            
+
             # Create recovery scripts
             scripts_result = self._create_recovery_scripts(domain, config, scripts_dir)
-            if scripts_result['success']:
-                setup_result['recovery_scripts'] = scripts_result['scripts']
+            if scripts_result["success"]:
+                setup_result["recovery_scripts"] = scripts_result["scripts"]
             else:
-                setup_result['errors'].extend(scripts_result['errors'])
-            
+                setup_result["errors"].extend(scripts_result["errors"])
+
             # Create disaster recovery plan
-            dr_plan_result = self._create_disaster_recovery_plan(domain, config, recovery_dir)
-            if dr_plan_result['success']:
-                setup_result['disaster_recovery_plan'] = dr_plan_result['plan_file']
+            dr_plan_result = self._create_disaster_recovery_plan(
+                domain, config, recovery_dir
+            )
+            if dr_plan_result["success"]:
+                setup_result["disaster_recovery_plan"] = dr_plan_result["plan_file"]
             else:
-                setup_result['errors'].extend(dr_plan_result['errors'])
-            
+                setup_result["errors"].extend(dr_plan_result["errors"])
+
             # Create recovery documentation
-            docs_result = self._create_recovery_documentation(domain, config, recovery_dir)
-            if not docs_result['success']:
-                setup_result['errors'].extend(docs_result['errors'])
-            
-            setup_result['success'] = len(setup_result['errors']) == 0
-            
+            docs_result = self._create_recovery_documentation(
+                domain, config, recovery_dir
+            )
+            if not docs_result["success"]:
+                setup_result["errors"].extend(docs_result["errors"])
+
+            setup_result["success"] = len(setup_result["errors"]) == 0
+
             if self.verbose:
                 print("Recovery procedures configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Recovery procedures setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Recovery procedures setup failed: {e}")
+
         return setup_result
-    
-    def _create_recovery_scripts(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
+
+    def _create_recovery_scripts(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> Dict[str, Any]:
         """Create recovery scripts for different scenarios."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'scripts': []
-        }
-        
+        setup_result = {"success": True, "errors": [], "scripts": []}
+
         try:
-            backup_dir = config.get('backup_dir', '/opt/coffeebreak/backups')
-            
+            backup_dir = config.get("backup_dir", "/opt/coffeebreak/backups")
+
             # Main recovery script
             recovery_script = f"""#!/bin/bash
 # CoffeeBreak Recovery Script
@@ -566,14 +568,14 @@ main() {{
 
 main "$@"
 """
-            
+
             recovery_script_path = f"{scripts_dir}/recovery.sh"
-            with open(recovery_script_path, 'w') as f:
+            with open(recovery_script_path, "w") as f:
                 f.write(recovery_script)
             os.chmod(recovery_script_path, 0o755)
-            
-            setup_result['scripts'].append(recovery_script_path)
-            
+
+            setup_result["scripts"].append(recovery_script_path)
+
             # Quick recovery script for emergencies
             quick_recovery_script = f"""#!/bin/bash
 # CoffeeBreak Quick Recovery Script - Emergency Use Only
@@ -605,28 +607,26 @@ RECOVERY_MODE=auto "$RECOVERY_SCRIPT" full latest
 
 echo "Emergency recovery completed. Please verify system functionality."
 """
-            
+
             quick_recovery_script_path = f"{scripts_dir}/emergency-recovery.sh"
-            with open(quick_recovery_script_path, 'w') as f:
+            with open(quick_recovery_script_path, "w") as f:
                 f.write(quick_recovery_script)
             os.chmod(quick_recovery_script_path, 0o755)
-            
-            setup_result['scripts'].append(quick_recovery_script_path)
-            
+
+            setup_result["scripts"].append(quick_recovery_script_path)
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Recovery scripts creation failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Recovery scripts creation failed: {e}")
+
         return setup_result
-    
-    def _create_disaster_recovery_plan(self, domain: str, config: Dict[str, Any], recovery_dir: str) -> Dict[str, Any]:
+
+    def _create_disaster_recovery_plan(
+        self, domain: str, config: Dict[str, Any], recovery_dir: str
+    ) -> Dict[str, Any]:
         """Create disaster recovery plan documentation."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'plan_file': None
-        }
-        
+        setup_result = {"success": True, "errors": [], "plan_file": None}
+
         try:
             # Disaster recovery plan content
             dr_plan = f"""# CoffeeBreak Disaster Recovery Plan
@@ -637,14 +637,14 @@ echo "Emergency recovery completed. Please verify system functionality."
 This document outlines the disaster recovery procedures for the CoffeeBreak application deployment at {domain}.
 
 ## Recovery Objectives
-- **Recovery Time Objective (RTO)**: {config.get('rto_hours', 4)} hours
-- **Recovery Point Objective (RPO)**: {config.get('rpo_hours', 1)} hour
-- **Backup Retention**: {config.get('retention_days', 30)} days
+- **Recovery Time Objective (RTO)**: {config.get("rto_hours", 4)} hours
+- **Recovery Point Objective (RPO)**: {config.get("rpo_hours", 1)} hour
+- **Backup Retention**: {config.get("retention_days", 30)} days
 
 ## Emergency Contacts
-- Primary Administrator: {config.get('admin_email', 'admin@' + domain)}
-- Secondary Contact: {config.get('secondary_email', 'backup-admin@' + domain)}
-- Hosting Provider: {config.get('hosting_contact', 'N/A')}
+- Primary Administrator: {config.get("admin_email", "admin@" + domain)}
+- Secondary Contact: {config.get("secondary_email", "backup-admin@" + domain)}
+- Hosting Provider: {config.get("hosting_contact", "N/A")}
 
 ## Pre-Disaster Preparation Checklist
 - [ ] Verify backup automation is functioning
@@ -794,26 +794,27 @@ This plan should be reviewed and updated:
 **Last Updated**: {datetime.now().isoformat()}
 **Next Review Date**: {(datetime.now().replace(month=datetime.now().month + 3)).isoformat()[:10]}
 """
-            
+
             plan_file_path = f"{recovery_dir}/disaster-recovery-plan.md"
-            with open(plan_file_path, 'w') as f:
+            with open(plan_file_path, "w") as f:
                 f.write(dr_plan)
-            
-            setup_result['plan_file'] = plan_file_path
-            
+
+            setup_result["plan_file"] = plan_file_path
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Disaster recovery plan creation failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(
+                f"Disaster recovery plan creation failed: {e}"
+            )
+
         return setup_result
-    
-    def _create_recovery_documentation(self, domain: str, config: Dict[str, Any], recovery_dir: str) -> Dict[str, Any]:
+
+    def _create_recovery_documentation(
+        self, domain: str, config: Dict[str, Any], recovery_dir: str
+    ) -> Dict[str, Any]:
         """Create additional recovery documentation."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Recovery checklist
             checklist = f"""# CoffeeBreak Recovery Checklist
@@ -863,20 +864,20 @@ journalctl -u coffeebreak-* --since "1 hour ago"
 tail -f /var/log/coffeebreak/*.log
 ```
 """
-            
-            with open(f"{recovery_dir}/recovery-checklist.md", 'w') as f:
+
+            with open(f"{recovery_dir}/recovery-checklist.md", "w") as f:
                 f.write(checklist)
-            
+
             # Recovery runbook
             runbook = f"""# CoffeeBreak Recovery Runbook
 # Domain: {domain}
 
 ## Emergency Contacts
-- Primary: {config.get('admin_email', 'admin@' + domain)}
-- Secondary: {config.get('secondary_email', 'backup-admin@' + domain)}
+- Primary: {config.get("admin_email", "admin@" + domain)}
+- Secondary: {config.get("secondary_email", "backup-admin@" + domain)}
 
 ## Critical Information
-- Backup Location: {config.get('backup_dir', '/opt/coffeebreak/backups')}
+- Backup Location: {config.get("backup_dir", "/opt/coffeebreak/backups")}
 - Recovery Scripts: /opt/coffeebreak/bin/
 - Log Files: /var/log/coffeebreak/
 
@@ -992,12 +993,14 @@ systemctl restart coffeebreak-*
 2. If data loss is detected, immediately contact stakeholders
 3. If security breach is suspected, follow security incident procedures
 """
-            
-            with open(f"{recovery_dir}/recovery-runbook.md", 'w') as f:
+
+            with open(f"{recovery_dir}/recovery-runbook.md", "w") as f:
                 f.write(runbook)
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Recovery documentation creation failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(
+                f"Recovery documentation creation failed: {e}"
+            )
+
         return setup_result

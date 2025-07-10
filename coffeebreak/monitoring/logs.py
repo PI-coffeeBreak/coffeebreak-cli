@@ -10,54 +10,50 @@ from ..utils.errors import ConfigurationError
 
 class LogManager:
     """Manages log aggregation and processing."""
-    
+
     def __init__(self, deployment_type: str = "docker", verbose: bool = False):
         """Initialize log manager."""
         self.deployment_type = deployment_type
         self.verbose = verbose
-    
-    def setup_log_aggregation(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def setup_log_aggregation(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup log aggregation system."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Setup log rotation
             rotation_setup = self._setup_log_rotation(config)
-            if not rotation_setup['success']:
-                setup_result['errors'].extend(rotation_setup['errors'])
-            
+            if not rotation_setup["success"]:
+                setup_result["errors"].extend(rotation_setup["errors"])
+
             # Setup centralized logging
-            if config.get('enable_log_aggregation', True):
+            if config.get("enable_log_aggregation", True):
                 centralized_setup = self._setup_centralized_logging(domain, config)
-                if not centralized_setup['success']:
-                    setup_result['errors'].extend(centralized_setup['errors'])
-            
+                if not centralized_setup["success"]:
+                    setup_result["errors"].extend(centralized_setup["errors"])
+
             # Setup log monitoring
             monitoring_setup = self._setup_log_monitoring(config)
-            if not monitoring_setup['success']:
-                setup_result['errors'].extend(monitoring_setup['errors'])
-            
-            setup_result['success'] = len(setup_result['errors']) == 0
-            
+            if not monitoring_setup["success"]:
+                setup_result["errors"].extend(monitoring_setup["errors"])
+
+            setup_result["success"] = len(setup_result["errors"]) == 0
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Log aggregation setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Log aggregation setup failed: {e}")
+
         return setup_result
-    
+
     def _setup_log_rotation(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup log rotation configuration."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
-            log_retention_days = config.get('log_retention_days', 30)
-            
+            log_retention_days = config.get("log_retention_days", 30)
+
             # Create logrotate configuration
             logrotate_config = f"""
 /var/log/coffeebreak/*.log {{
@@ -88,27 +84,26 @@ class LogManager:
     endscript
 }}
 """
-            
+
             # Write logrotate configuration
-            with open('/etc/logrotate.d/coffeebreak', 'w') as f:
+            with open("/etc/logrotate.d/coffeebreak", "w") as f:
                 f.write(logrotate_config)
-            
+
             if self.verbose:
                 print("Log rotation configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Log rotation setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Log rotation setup failed: {e}")
+
         return setup_result
-    
-    def _setup_centralized_logging(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_centralized_logging(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup centralized logging with rsyslog."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Configure rsyslog for CoffeeBreak
             rsyslog_config = f"""
@@ -126,30 +121,27 @@ $UDPServerAddress 127.0.0.1
 # Stop processing after CoffeeBreak logs
 & stop
 """
-            
+
             # Write rsyslog configuration
-            with open('/etc/rsyslog.d/49-coffeebreak.conf', 'w') as f:
+            with open("/etc/rsyslog.d/49-coffeebreak.conf", "w") as f:
                 f.write(rsyslog_config)
-            
+
             # Restart rsyslog
-            subprocess.run(['systemctl', 'restart', 'rsyslog'], check=True)
-            
+            subprocess.run(["systemctl", "restart", "rsyslog"], check=True)
+
             if self.verbose:
                 print("Centralized logging configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Centralized logging setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Centralized logging setup failed: {e}")
+
         return setup_result
-    
+
     def _setup_log_monitoring(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup log monitoring and alerting."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Create log monitoring script
             log_monitor_script = """#!/bin/bash
@@ -207,40 +199,44 @@ for log_file in "$LOG_DIR"/*.log; do
     fi
 done
 """
-            
+
             # Write log monitoring script
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 script_path = "/opt/coffeebreak/bin/log-monitor.sh"
             else:
                 script_path = "./log-monitor.sh"
-            
+
             os.makedirs(os.path.dirname(script_path), exist_ok=True)
-            
-            with open(script_path, 'w') as f:
+
+            with open(script_path, "w") as f:
                 f.write(log_monitor_script)
             os.chmod(script_path, 0o755)
-            
+
             # Setup cron job for log monitoring
             cron_entry = f"*/5 * * * * {script_path}"
-            
+
             try:
-                current_crontab = subprocess.run(['crontab', '-l'], 
-                                               capture_output=True, text=True)
-                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
+                current_crontab = subprocess.run(
+                    ["crontab", "-l"], capture_output=True, text=True
+                )
+                crontab_content = (
+                    current_crontab.stdout if current_crontab.returncode == 0 else ""
+                )
             except:
                 crontab_content = ""
-            
+
             if "log-monitor.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\n" + cron_entry + "\n"
-                process = subprocess.Popen(['crontab', '-'], 
-                                         stdin=subprocess.PIPE, text=True)
+                process = subprocess.Popen(
+                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
+                )
                 process.communicate(input=new_crontab)
-            
+
             if self.verbose:
                 print("Log monitoring configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Log monitoring setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Log monitoring setup failed: {e}")
+
         return setup_result

@@ -12,75 +12,71 @@ from ..utils.errors import ConfigurationError
 
 class AutoScaler:
     """Manages automatic scaling of CoffeeBreak infrastructure."""
-    
-    def __init__(self, 
-                 deployment_type: str = "docker",
-                 verbose: bool = False):
+
+    def __init__(self, deployment_type: str = "docker", verbose: bool = False):
         """
         Initialize auto-scaler.
-        
+
         Args:
             deployment_type: Type of deployment (docker, standalone)
             verbose: Enable verbose output
         """
         self.deployment_type = deployment_type
         self.verbose = verbose
-    
+
     def setup_auto_scaling(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Setup auto-scaling system.
-        
+
         Args:
             domain: Production domain
             config: Scaling configuration
-            
+
         Returns:
             Dict[str, Any]: Setup results
         """
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             # Create scaling scripts
             scripts_result = self._create_scaling_scripts(domain, config, scripts_dir)
-            if not scripts_result['success']:
-                setup_result['errors'].extend(scripts_result['errors'])
-            
+            if not scripts_result["success"]:
+                setup_result["errors"].extend(scripts_result["errors"])
+
             # Setup scaling policies
             policies_result = self._setup_scaling_policies(domain, config, scripts_dir)
-            if not policies_result['success']:
-                setup_result['errors'].extend(policies_result['errors'])
-            
+            if not policies_result["success"]:
+                setup_result["errors"].extend(policies_result["errors"])
+
             # Setup scaling monitoring
-            monitoring_result = self._setup_scaling_monitoring(domain, config, scripts_dir)
-            if not monitoring_result['success']:
-                setup_result['errors'].extend(monitoring_result['errors'])
-            
-            setup_result['success'] = len(setup_result['errors']) == 0
-            
+            monitoring_result = self._setup_scaling_monitoring(
+                domain, config, scripts_dir
+            )
+            if not monitoring_result["success"]:
+                setup_result["errors"].extend(monitoring_result["errors"])
+
+            setup_result["success"] = len(setup_result["errors"]) == 0
+
             if self.verbose:
                 print("Auto-scaling configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Auto-scaling setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Auto-scaling setup failed: {e}")
+
         return setup_result
-    
-    def _create_scaling_scripts(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
+
+    def _create_scaling_scripts(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> Dict[str, Any]:
         """Create scaling management scripts."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Main scaling script
             scaling_script = f"""#!/bin/bash
@@ -90,13 +86,13 @@ set -euo pipefail
 
 DOMAIN="{domain}"
 LOG_FILE="/var/log/coffeebreak/scaling.log"
-MIN_INSTANCES={config.get('min_instances', 1)}
-MAX_INSTANCES={config.get('max_instances', 5)}
-CPU_SCALE_UP_THRESHOLD={config.get('cpu_threshold', 70)}
-CPU_SCALE_DOWN_THRESHOLD={config.get('cpu_scale_down_threshold', 30)}
-MEMORY_SCALE_UP_THRESHOLD={config.get('memory_threshold', 80)}
-MEMORY_SCALE_DOWN_THRESHOLD={config.get('memory_scale_down_threshold', 40)}
-SCALE_COOLDOWN={config.get('scale_cooldown', 300)}  # 5 minutes
+MIN_INSTANCES={config.get("min_instances", 1)}
+MAX_INSTANCES={config.get("max_instances", 5)}
+CPU_SCALE_UP_THRESHOLD={config.get("cpu_threshold", 70)}
+CPU_SCALE_DOWN_THRESHOLD={config.get("cpu_scale_down_threshold", 30)}
+MEMORY_SCALE_UP_THRESHOLD={config.get("memory_threshold", 80)}
+MEMORY_SCALE_DOWN_THRESHOLD={config.get("memory_scale_down_threshold", 40)}
+SCALE_COOLDOWN={config.get("scale_cooldown", 300)}  # 5 minutes
 
 # Function to log with timestamp
 log_message() {{
@@ -443,129 +439,139 @@ main() {{
 
 main "$@"
 """
-            
+
             scaling_script_path = f"{scripts_dir}/scale.sh"
-            with open(scaling_script_path, 'w') as f:
+            with open(scaling_script_path, "w") as f:
                 f.write(scaling_script)
             os.chmod(scaling_script_path, 0o755)
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Scaling scripts creation failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Scaling scripts creation failed: {e}")
+
         return setup_result
-    
-    def _setup_scaling_policies(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
+
+    def _setup_scaling_policies(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> Dict[str, Any]:
         """Setup scaling policies and configuration."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Create scaling policy configuration
             scaling_config = {
-                "scaling_policy": config.get('scaling_policy', 'adaptive'),
-                "min_instances": config.get('min_instances', 1),
-                "max_instances": config.get('max_instances', 5),
-                "cpu_threshold": config.get('cpu_threshold', 70),
-                "memory_threshold": config.get('memory_threshold', 80),
-                "scale_cooldown": config.get('scale_cooldown', 300),
+                "scaling_policy": config.get("scaling_policy", "adaptive"),
+                "min_instances": config.get("min_instances", 1),
+                "max_instances": config.get("max_instances", 5),
+                "cpu_threshold": config.get("cpu_threshold", 70),
+                "memory_threshold": config.get("memory_threshold", 80),
+                "scale_cooldown": config.get("scale_cooldown", 300),
                 "schedule": [
                     {
                         "hour": 8,
                         "days": [1, 2, 3, 4, 5],
                         "instances": 3,
-                        "description": "Morning peak hours"
+                        "description": "Morning peak hours",
                     },
                     {
                         "hour": 12,
                         "days": [1, 2, 3, 4, 5],
                         "instances": 4,
-                        "description": "Lunch peak hours"
+                        "description": "Lunch peak hours",
                     },
                     {
                         "hour": 18,
                         "days": [1, 2, 3, 4, 5],
                         "instances": 3,
-                        "description": "Evening peak hours"
+                        "description": "Evening peak hours",
                     },
                     {
                         "hour": 22,
                         "days": [1, 2, 3, 4, 5, 6, 7],
                         "instances": 1,
-                        "description": "Night hours"
-                    }
-                ]
+                        "description": "Night hours",
+                    },
+                ],
             }
-            
-            if self.deployment_type == 'standalone':
+
+            if self.deployment_type == "standalone":
                 config_dir = "/opt/coffeebreak/config"
             else:
                 config_dir = "./config"
-            
+
             os.makedirs(config_dir, exist_ok=True)
-            
+
             config_file = f"{config_dir}/scaling-schedule.json"
-            with open(config_file, 'w') as f:
+            with open(config_file, "w") as f:
                 json.dump(scaling_config, f, indent=2)
-            
+
             if self.verbose:
                 print("Scaling policies configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Scaling policies setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Scaling policies setup failed: {e}")
+
         return setup_result
-    
-    def _setup_scaling_monitoring(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
+
+    def _setup_scaling_monitoring(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> Dict[str, Any]:
         """Setup scaling monitoring and automation."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Setup cron job for adaptive scaling
-            if config.get('scaling_policy') == 'adaptive':
+            if config.get("scaling_policy") == "adaptive":
                 cron_entry = f"*/5 * * * * {scripts_dir}/scale.sh adaptive"
-                
+
                 try:
-                    current_crontab = subprocess.run(['crontab', '-l'], 
-                                                   capture_output=True, text=True)
-                    crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
+                    current_crontab = subprocess.run(
+                        ["crontab", "-l"], capture_output=True, text=True
+                    )
+                    crontab_content = (
+                        current_crontab.stdout
+                        if current_crontab.returncode == 0
+                        else ""
+                    )
                 except:
                     crontab_content = ""
-                
+
                 if "scale.sh adaptive" not in crontab_content:
                     new_crontab = crontab_content.rstrip() + "\n" + cron_entry + "\n"
-                    process = subprocess.Popen(['crontab', '-'], 
-                                             stdin=subprocess.PIPE, text=True)
+                    process = subprocess.Popen(
+                        ["crontab", "-"], stdin=subprocess.PIPE, text=True
+                    )
                     process.communicate(input=new_crontab)
-            
+
             # Setup cron job for scheduled scaling
-            if config.get('enable_scheduled_scaling', True):
+            if config.get("enable_scheduled_scaling", True):
                 cron_entry = f"0 * * * * {scripts_dir}/scale.sh scheduled"
-                
+
                 try:
-                    current_crontab = subprocess.run(['crontab', '-l'], 
-                                                   capture_output=True, text=True)
-                    crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
+                    current_crontab = subprocess.run(
+                        ["crontab", "-l"], capture_output=True, text=True
+                    )
+                    crontab_content = (
+                        current_crontab.stdout
+                        if current_crontab.returncode == 0
+                        else ""
+                    )
                 except:
                     crontab_content = ""
-                
+
                 if "scale.sh scheduled" not in crontab_content:
                     new_crontab = crontab_content.rstrip() + "\n" + cron_entry + "\n"
-                    process = subprocess.Popen(['crontab', '-'], 
-                                             stdin=subprocess.PIPE, text=True)
+                    process = subprocess.Popen(
+                        ["crontab", "-"], stdin=subprocess.PIPE, text=True
+                    )
                     process.communicate(input=new_crontab)
-            
+
             if self.verbose:
                 print("Scaling monitoring configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Scaling monitoring setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Scaling monitoring setup failed: {e}")
+
         return setup_result

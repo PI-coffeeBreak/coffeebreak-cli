@@ -12,75 +12,77 @@ from ..utils.errors import ConfigurationError
 
 class MaintenanceManager:
     """Manages automated maintenance tasks and procedures."""
-    
-    def __init__(self, 
-                 deployment_type: str = "docker",
-                 verbose: bool = False):
+
+    def __init__(self, deployment_type: str = "docker", verbose: bool = False):
         """
         Initialize maintenance manager.
-        
+
         Args:
             deployment_type: Type of deployment (docker, standalone)
             verbose: Enable verbose output
         """
         self.deployment_type = deployment_type
         self.verbose = verbose
-    
-    def setup_automated_maintenance(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def setup_automated_maintenance(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Setup automated maintenance system.
-        
+
         Args:
             domain: Production domain
             config: Maintenance configuration
-            
+
         Returns:
             Dict[str, Any]: Setup results
         """
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             # Create maintenance scripts
-            scripts_result = self._create_maintenance_scripts(domain, config, scripts_dir)
-            if not scripts_result['success']:
-                setup_result['errors'].extend(scripts_result['errors'])
-            
+            scripts_result = self._create_maintenance_scripts(
+                domain, config, scripts_dir
+            )
+            if not scripts_result["success"]:
+                setup_result["errors"].extend(scripts_result["errors"])
+
             # Setup maintenance scheduling
-            scheduling_result = self._setup_maintenance_scheduling(domain, config, scripts_dir)
-            if not scheduling_result['success']:
-                setup_result['errors'].extend(scheduling_result['errors'])
-            
+            scheduling_result = self._setup_maintenance_scheduling(
+                domain, config, scripts_dir
+            )
+            if not scheduling_result["success"]:
+                setup_result["errors"].extend(scheduling_result["errors"])
+
             # Setup maintenance windows
-            windows_result = self._setup_maintenance_windows(domain, config, scripts_dir)
-            if not windows_result['success']:
-                setup_result['errors'].extend(windows_result['errors'])
-            
-            setup_result['success'] = len(setup_result['errors']) == 0
-            
+            windows_result = self._setup_maintenance_windows(
+                domain, config, scripts_dir
+            )
+            if not windows_result["success"]:
+                setup_result["errors"].extend(windows_result["errors"])
+
+            setup_result["success"] = len(setup_result["errors"]) == 0
+
             if self.verbose:
                 print("Automated maintenance configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Automated maintenance setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Automated maintenance setup failed: {e}")
+
         return setup_result
-    
-    def _create_maintenance_scripts(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
+
+    def _create_maintenance_scripts(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> Dict[str, Any]:
         """Create automated maintenance scripts."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Main maintenance script
             maintenance_script = f"""#!/bin/bash
@@ -90,8 +92,8 @@ set -euo pipefail
 
 DOMAIN="{domain}"
 LOG_FILE="/var/log/coffeebreak/maintenance.log"
-MAINTENANCE_WINDOW_START="{config.get('maintenance_window', '02:00').split('-')[0]}"
-MAINTENANCE_WINDOW_END="{config.get('maintenance_window', '04:00').split('-')[1] if '-' in config.get('maintenance_window', '02:00-04:00') else '04:00'}"
+MAINTENANCE_WINDOW_START="{config.get("maintenance_window", "02:00").split("-")[0]}"
+MAINTENANCE_WINDOW_END="{config.get("maintenance_window", "04:00").split("-")[1] if "-" in config.get("maintenance_window", "02:00-04:00") else "04:00"}"
 
 # Function to log with timestamp
 log_message() {{
@@ -174,7 +176,7 @@ cleanup_temp_files() {{
     find /tmp -type f -mtime +7 -delete 2>/dev/null || true
     
     # Clean log files older than retention period
-    local log_retention_days={config.get('log_retention_days', 30)}
+    local log_retention_days={config.get("log_retention_days", 30)}
     find /var/log -name "*.log" -mtime +$log_retention_days -delete 2>/dev/null || true
     
     # Clean old deployment artifacts
@@ -502,25 +504,24 @@ main() {{
 
 main "$@"
 """
-            
+
             maintenance_script_path = f"{scripts_dir}/maintenance.sh"
-            with open(maintenance_script_path, 'w') as f:
+            with open(maintenance_script_path, "w") as f:
                 f.write(maintenance_script)
             os.chmod(maintenance_script_path, 0o755)
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Maintenance scripts creation failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Maintenance scripts creation failed: {e}")
+
         return setup_result
-    
-    def _setup_maintenance_scheduling(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
+
+    def _setup_maintenance_scheduling(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> Dict[str, Any]:
         """Setup maintenance task scheduling."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Maintenance scheduling configuration
             maintenance_schedule = [
@@ -530,47 +531,50 @@ main "$@"
                 "0 5 1 * * /opt/coffeebreak/bin/maintenance.sh monthly",  # Monthly on 1st at 5 AM
                 "*/30 * * * * /opt/coffeebreak/bin/maintenance.sh health",  # Health checks every 30 minutes
             ]
-            
+
             # Get current crontab
             try:
-                current_crontab = subprocess.run(['crontab', '-l'], 
-                                               capture_output=True, text=True)
-                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
+                current_crontab = subprocess.run(
+                    ["crontab", "-l"], capture_output=True, text=True
+                )
+                crontab_content = (
+                    current_crontab.stdout if current_crontab.returncode == 0 else ""
+                )
             except:
                 crontab_content = ""
-            
+
             # Add new maintenance entries
             new_entries = []
             for entry in maintenance_schedule:
                 if "maintenance.sh" in entry and entry not in crontab_content:
                     new_entries.append(entry)
-            
+
             if new_entries:
                 new_crontab = crontab_content.rstrip()
                 if new_crontab:
                     new_crontab += "\\n"
                 new_crontab += "\\n".join(new_entries) + "\\n"
-                
-                process = subprocess.Popen(['crontab', '-'], 
-                                         stdin=subprocess.PIPE, text=True)
+
+                process = subprocess.Popen(
+                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
+                )
                 process.communicate(input=new_crontab)
-            
+
             if self.verbose:
                 print("Maintenance scheduling configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Maintenance scheduling setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Maintenance scheduling setup failed: {e}")
+
         return setup_result
-    
-    def _setup_maintenance_windows(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
+
+    def _setup_maintenance_windows(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> Dict[str, Any]:
         """Setup maintenance windows and policies."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Create maintenance window configuration
             maintenance_config = {
@@ -581,42 +585,44 @@ main "$@"
                         "end_time": "04:00",
                         "days": [1, 2, 3, 4, 5, 6, 7],
                         "allowed_operations": ["cleanup", "health_checks", "backups"],
-                        "description": "Daily maintenance window"
+                        "description": "Daily maintenance window",
                     },
                     {
-                        "name": "weekly_maintenance", 
+                        "name": "weekly_maintenance",
                         "start_time": "01:00",
                         "end_time": "05:00",
                         "days": [7],  # Sunday
                         "allowed_operations": ["updates", "optimization", "restarts"],
-                        "description": "Weekly maintenance window"
-                    }
+                        "description": "Weekly maintenance window",
+                    },
                 ],
                 "emergency_procedures": {
                     "max_downtime_minutes": 15,
                     "notification_channels": ["email", "webhook"],
                     "rollback_timeout_minutes": 5,
-                    "health_check_retries": 3
+                    "health_check_retries": 3,
                 },
                 "maintenance_policies": {
-                    "require_approval": config.get('require_maintenance_approval', False),
+                    "require_approval": config.get(
+                        "require_maintenance_approval", False
+                    ),
                     "auto_rollback_on_failure": True,
                     "max_concurrent_operations": 1,
-                    "pre_maintenance_backup": True
-                }
+                    "pre_maintenance_backup": True,
+                },
             }
-            
-            if self.deployment_type == 'standalone':
+
+            if self.deployment_type == "standalone":
                 config_dir = "/opt/coffeebreak/config"
             else:
                 config_dir = "./config"
-            
+
             os.makedirs(config_dir, exist_ok=True)
-            
+
             config_file = f"{config_dir}/maintenance-config.json"
-            with open(config_file, 'w') as f:
+            with open(config_file, "w") as f:
                 json.dump(maintenance_config, f, indent=2)
-            
+
             # Create maintenance window checker script
             window_checker_script = f"""#!/bin/bash
 # CoffeeBreak Maintenance Window Checker
@@ -695,17 +701,17 @@ main() {{
 
 main "$@"
 """
-            
+
             window_checker_path = f"{scripts_dir}/maintenance-window.sh"
-            with open(window_checker_path, 'w') as f:
+            with open(window_checker_path, "w") as f:
                 f.write(window_checker_script)
             os.chmod(window_checker_path, 0o755)
-            
+
             if self.verbose:
                 print("Maintenance windows configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Maintenance windows setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Maintenance windows setup failed: {e}")
+
         return setup_result

@@ -1,8 +1,9 @@
 """Keycloak configuration templates."""
 
+
 def get_dockerfile_content() -> str:
     """Get Keycloak Dockerfile content."""
-    return '''# 🔹 Step 1: Build Keycloak with custom settings
+    return """# 🔹 Step 1: Build Keycloak with custom settings
 FROM quay.io/keycloak/keycloak:26.1.4 AS builder
 
 # Enable health and metrics support
@@ -66,7 +67,7 @@ EXPOSE 9000
 
 # Start Keycloak in PRODUCTION mode with development theme caching disabled
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--optimized", "--proxy-headers", "forwarded", "--import-realm"]
-'''
+"""
 
 
 def get_realm_config() -> dict:
@@ -105,8 +106,8 @@ def get_realm_config() -> dict:
                     "tls.client.certificate.bound.access.tokens": "false",
                     "saml.authnstatement": "false",
                     "display.on.consent.screen": "false",
-                    "saml.onetimeuse.condition": "false"
-                }
+                    "saml.onetimeuse.condition": "false",
+                },
             },
             {
                 "id": "coffeebreak-client",
@@ -115,8 +116,8 @@ def get_realm_config() -> dict:
                 "publicClient": True,
                 "redirectUris": ["*"],
                 "webOrigins": ["*"],
-                "protocol": "openid-connect"
-            }
+                "protocol": "openid-connect",
+            },
         ],
         "users": [
             {
@@ -126,21 +127,17 @@ def get_realm_config() -> dict:
                 "email": "admin@coffeebreak.local",
                 "emailVerified": True,
                 "credentials": [
-                    {
-                        "type": "password",
-                        "value": "admin123",
-                        "temporary": False
-                    }
-                ]
+                    {"type": "password", "value": "admin123", "temporary": False}
+                ],
             }
-        ]
+        ],
     }
 
 
 def get_theme_files() -> dict:
     """Get Keycloak theme files as a dictionary of filename -> content."""
     return {
-        "theme.properties": '''parent=base
+        "theme.properties": """parent=base
 import=common/keycloak
 
 styles=css/styles.css
@@ -151,9 +148,8 @@ meta=viewport==width=device-width,initial-scale=1
 kcHtmlClass=login-pf
 kcLoginClass=login-pf-page
 kcBodyClass=login-pf-page
-''',
-        
-        "resources/css/styles.css": '''/* CoffeeBreak Custom Login Theme */
+""",
+        "resources/css/styles.css": """/* CoffeeBreak Custom Login Theme */
 .login-pf-page {
     background: linear-gradient(135deg, #8B4513, #D2691E);
 }
@@ -177,9 +173,8 @@ kcBodyClass=login-pf-page
     background-color: #A0522D;
     border-color: #A0522D;
 }
-''',
-        
-        "resources/js/script.js": '''// CoffeeBreak Custom Login Scripts
+""",
+        "resources/js/script.js": """// CoffeeBreak Custom Login Scripts
 console.log("CoffeeBreak Keycloak Theme Loaded");
-'''
+""",
     }

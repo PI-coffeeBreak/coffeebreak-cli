@@ -5,8 +5,8 @@ from .manager import SecretManager
 from .rotation import SecretRotationManager, RotationSchedule
 
 __all__ = [
-    'SecretGenerator',
-    'SecretManager', 
-    'SecretRotationManager',
-    'RotationSchedule'
+    "SecretGenerator",
+    "SecretManager",
+    "SecretRotationManager",
+    "RotationSchedule",
 ]

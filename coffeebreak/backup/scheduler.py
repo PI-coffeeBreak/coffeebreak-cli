@@ -10,71 +10,71 @@ from ..utils.errors import ConfigurationError
 
 class BackupScheduler:
     """Manages backup scheduling and automation."""
-    
-    def __init__(self, 
-                 deployment_type: str = "docker",
-                 verbose: bool = False):
+
+    def __init__(self, deployment_type: str = "docker", verbose: bool = False):
         """
         Initialize backup scheduler.
-        
+
         Args:
             deployment_type: Type of deployment (docker, standalone)
             verbose: Enable verbose output
         """
         self.deployment_type = deployment_type
         self.verbose = verbose
-    
-    def setup_backup_schedule(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def setup_backup_schedule(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Setup automated backup scheduling.
-        
+
         Args:
             domain: Production domain
             config: Backup configuration
-            
+
         Returns:
             Dict[str, Any]: Setup results
         """
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'scheduled_jobs': []
-        }
-        
+        setup_result = {"success": True, "errors": [], "scheduled_jobs": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             # Create scheduler script
-            scheduler_script = self._create_scheduler_script(domain, config, scripts_dir)
-            
+            scheduler_script = self._create_scheduler_script(
+                domain, config, scripts_dir
+            )
+
             # Setup cron jobs
             cron_setup = self._setup_cron_jobs(domain, config, scripts_dir)
-            if cron_setup['success']:
-                setup_result['scheduled_jobs'] = cron_setup['jobs']
+            if cron_setup["success"]:
+                setup_result["scheduled_jobs"] = cron_setup["jobs"]
             else:
-                setup_result['errors'].extend(cron_setup['errors'])
-            
+                setup_result["errors"].extend(cron_setup["errors"])
+
             # Setup systemd timers (for standalone deployments)
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 timer_setup = self._setup_systemd_timers(domain, config, scripts_dir)
-                if not timer_setup['success']:
-                    setup_result['errors'].extend(timer_setup['errors'])
-            
-            setup_result['success'] = len(setup_result['errors']) == 0
-            
+                if not timer_setup["success"]:
+                    setup_result["errors"].extend(timer_setup["errors"])
+
+            setup_result["success"] = len(setup_result["errors"]) == 0
+
             if self.verbose:
                 print("Backup scheduling configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Backup scheduling setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Backup scheduling setup failed: {e}")
+
         return setup_result
-    
-    def _create_scheduler_script(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> str:
+
+    def _create_scheduler_script(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> str:
         """Create backup scheduler script."""
         scheduler_script = f"""#!/bin/bash
 # CoffeeBreak Backup Scheduler Script
@@ -118,7 +118,7 @@ run_backup() {{
 
 # Function to check system load before backup
 check_system_load() {{
-    local max_load="{config.get('max_load_threshold', 2.0)}"
+    local max_load="{config.get("max_load_threshold", 2.0)}"
     local current_load=$(uptime | awk -F'load average:' '{{ print $2 }}' | awk '{{ print $1 }}' | sed 's/,//')
     
     if (( $(echo "$current_load > $max_load" | bc -l) )); then
@@ -143,8 +143,8 @@ check_system_load() {{
 
 # Function to check disk space before backup
 check_disk_space() {{
-    local backup_dir="{config.get('backup_dir', '/opt/coffeebreak/backups')}"
-    local min_space_gb="{config.get('min_free_space_gb', 5)}"
+    local backup_dir="{config.get("backup_dir", "/opt/coffeebreak/backups")}"
+    local min_space_gb="{config.get("min_free_space_gb", 5)}"
     
     # Get available space in GB
     local available_gb=$(df "$backup_dir" | tail -1 | awk '{{print int($4/1024/1024)}}')
@@ -220,86 +220,95 @@ case "${{1:-incremental}}" in
         ;;
 esac
 """
-        
+
         scheduler_script_path = f"{scripts_dir}/backup-scheduler.sh"
-        with open(scheduler_script_path, 'w') as f:
+        with open(scheduler_script_path, "w") as f:
             f.write(scheduler_script)
         os.chmod(scheduler_script_path, 0o755)
-        
+
         return scheduler_script_path
-    
-    def _setup_cron_jobs(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
+
+    def _setup_cron_jobs(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> Dict[str, Any]:
         """Setup cron jobs for backup scheduling."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'jobs': []
-        }
-        
+        setup_result = {"success": True, "errors": [], "jobs": []}
+
         try:
             # Default schedules
-            incremental_schedule = config.get('backup_schedule', '0 2 * * *')  # Daily at 2 AM
-            full_schedule = config.get('full_backup_schedule', '0 3 * * 0')  # Weekly on Sunday at 3 AM
-            
+            incremental_schedule = config.get(
+                "backup_schedule", "0 2 * * *"
+            )  # Daily at 2 AM
+            full_schedule = config.get(
+                "full_backup_schedule", "0 3 * * 0"
+            )  # Weekly on Sunday at 3 AM
+
             # Cron entries
             cron_entries = [
                 f"# CoffeeBreak incremental backup",
                 f"{incremental_schedule} {scripts_dir}/backup-scheduler.sh incremental",
-                f"# CoffeeBreak full backup", 
+                f"# CoffeeBreak full backup",
                 f"{full_schedule} {scripts_dir}/backup-scheduler.sh full",
                 f"# CoffeeBreak backup verification",
                 f"0 4 * * * {scripts_dir}/verify-backup.sh",
                 f"# CoffeeBreak backup monitoring",
-                f"0 */6 * * * {scripts_dir}/monitor-backup.sh"
+                f"0 */6 * * * {scripts_dir}/monitor-backup.sh",
             ]
-            
+
             # Get current crontab
             try:
-                current_crontab = subprocess.run(['crontab', '-l'], 
-                                               capture_output=True, text=True)
-                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
+                current_crontab = subprocess.run(
+                    ["crontab", "-l"], capture_output=True, text=True
+                )
+                crontab_content = (
+                    current_crontab.stdout if current_crontab.returncode == 0 else ""
+                )
             except:
                 crontab_content = ""
-            
+
             # Add new entries if they don't exist
             new_entries = []
             for entry in cron_entries:
-                if "backup-scheduler.sh" in entry or "verify-backup.sh" in entry or "monitor-backup.sh" in entry:
+                if (
+                    "backup-scheduler.sh" in entry
+                    or "verify-backup.sh" in entry
+                    or "monitor-backup.sh" in entry
+                ):
                     if entry not in crontab_content:
                         new_entries.append(entry)
-                        setup_result['jobs'].append(entry)
+                        setup_result["jobs"].append(entry)
                 else:
                     new_entries.append(entry)  # Comments
-            
+
             if new_entries:
                 # Create new crontab
                 new_crontab = crontab_content.rstrip()
                 if new_crontab:
                     new_crontab += "\\n"
                 new_crontab += "\\n".join(new_entries) + "\\n"
-                
+
                 # Install new crontab
-                process = subprocess.Popen(['crontab', '-'], 
-                                         stdin=subprocess.PIPE, text=True)
+                process = subprocess.Popen(
+                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
+                )
                 process.communicate(input=new_crontab)
-                
+
                 if process.returncode != 0:
-                    setup_result['success'] = False
-                    setup_result['errors'].append("Failed to install crontab")
-            
+                    setup_result["success"] = False
+                    setup_result["errors"].append("Failed to install crontab")
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Cron setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Cron setup failed: {e}")
+
         return setup_result
-    
-    def _setup_systemd_timers(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
+
+    def _setup_systemd_timers(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str
+    ) -> Dict[str, Any]:
         """Setup systemd timers for backup scheduling."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Create systemd service files
             service_content = f"""[Unit]
@@ -313,51 +322,63 @@ User=root
 StandardOutput=journal
 StandardError=journal
 """
-            
-            with open('/etc/systemd/system/coffeebreak-backup@.service', 'w') as f:
+
+            with open("/etc/systemd/system/coffeebreak-backup@.service", "w") as f:
                 f.write(service_content)
-            
+
             # Create timer for incremental backups
             incremental_timer = f"""[Unit]
 Description=CoffeeBreak Incremental Backup Timer
 Requires=coffeebreak-backup@incremental.service
 
 [Timer]
-OnCalendar={config.get('backup_schedule', 'daily')}
+OnCalendar={config.get("backup_schedule", "daily")}
 Persistent=true
 
 [Install]
 WantedBy=timers.target
 """
-            
-            with open('/etc/systemd/system/coffeebreak-backup-incremental.timer', 'w') as f:
+
+            with open(
+                "/etc/systemd/system/coffeebreak-backup-incremental.timer", "w"
+            ) as f:
                 f.write(incremental_timer)
-            
+
             # Create timer for full backups
             full_timer = f"""[Unit]
 Description=CoffeeBreak Full Backup Timer
 Requires=coffeebreak-backup@full.service
 
 [Timer]
-OnCalendar={config.get('full_backup_schedule', 'weekly')}
+OnCalendar={config.get("full_backup_schedule", "weekly")}
 Persistent=true
 
 [Install]
 WantedBy=timers.target
 """
-            
-            with open('/etc/systemd/system/coffeebreak-backup-full.timer', 'w') as f:
+
+            with open("/etc/systemd/system/coffeebreak-backup-full.timer", "w") as f:
                 f.write(full_timer)
-            
+
             # Reload systemd and enable timers
-            subprocess.run(['systemctl', 'daemon-reload'], check=True)
-            subprocess.run(['systemctl', 'enable', 'coffeebreak-backup-incremental.timer'], check=True)
-            subprocess.run(['systemctl', 'enable', 'coffeebreak-backup-full.timer'], check=True)
-            subprocess.run(['systemctl', 'start', 'coffeebreak-backup-incremental.timer'], check=True)
-            subprocess.run(['systemctl', 'start', 'coffeebreak-backup-full.timer'], check=True)
-            
+            subprocess.run(["systemctl", "daemon-reload"], check=True)
+            subprocess.run(
+                ["systemctl", "enable", "coffeebreak-backup-incremental.timer"],
+                check=True,
+            )
+            subprocess.run(
+                ["systemctl", "enable", "coffeebreak-backup-full.timer"], check=True
+            )
+            subprocess.run(
+                ["systemctl", "start", "coffeebreak-backup-incremental.timer"],
+                check=True,
+            )
+            subprocess.run(
+                ["systemctl", "start", "coffeebreak-backup-full.timer"], check=True
+            )
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Systemd timer setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Systemd timer setup failed: {e}")
+
         return setup_result

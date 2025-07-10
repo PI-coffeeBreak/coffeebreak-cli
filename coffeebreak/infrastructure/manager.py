@@ -17,148 +17,161 @@ from .maintenance import MaintenanceManager
 
 class InfrastructureManager:
     """Manages infrastructure automation and orchestration."""
-    
-    def __init__(self, 
-                 deployment_type: str = "docker",
-                 verbose: bool = False):
+
+    def __init__(self, deployment_type: str = "docker", verbose: bool = False):
         """
         Initialize infrastructure manager.
-        
+
         Args:
             deployment_type: Type of deployment (docker, standalone)
             verbose: Enable verbose output
         """
         self.deployment_type = deployment_type
         self.verbose = verbose
-        
+
         # Initialize components
-        self.deployment = DeploymentOrchestrator(deployment_type=deployment_type, verbose=verbose)
+        self.deployment = DeploymentOrchestrator(
+            deployment_type=deployment_type, verbose=verbose
+        )
         self.scaling = AutoScaler(deployment_type=deployment_type, verbose=verbose)
-        self.maintenance = MaintenanceManager(deployment_type=deployment_type, verbose=verbose)
-    
-    def setup_infrastructure_automation(self, 
-                                       domain: str,
-                                       infrastructure_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        self.maintenance = MaintenanceManager(
+            deployment_type=deployment_type, verbose=verbose
+        )
+
+    def setup_infrastructure_automation(
+        self, domain: str, infrastructure_config: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
         Set up comprehensive infrastructure automation.
-        
+
         Args:
             domain: Production domain
             infrastructure_config: Optional infrastructure configuration
-            
+
         Returns:
             Dict[str, Any]: Setup results
         """
         try:
             if self.verbose:
                 print(f"Setting up infrastructure automation for {domain}")
-            
+
             setup_result = {
-                'success': True,
-                'domain': domain,
-                'deployment_type': self.deployment_type,
-                'components_setup': [],
-                'errors': [],
-                'automation_scripts': [],
-                'orchestration_endpoints': []
+                "success": True,
+                "domain": domain,
+                "deployment_type": self.deployment_type,
+                "components_setup": [],
+                "errors": [],
+                "automation_scripts": [],
+                "orchestration_endpoints": [],
             }
-            
+
             # Default infrastructure configuration
             config = {
-                'domain': domain,
-                'enable_zero_downtime_deployment': True,
-                'enable_auto_scaling': True,
-                'enable_automated_maintenance': True,
-                'enable_health_monitoring': True,
-                'enable_rollback_automation': True,
-                'deployment_strategy': 'rolling',  # rolling, blue-green, canary
-                'scaling_policy': 'adaptive',  # adaptive, scheduled, manual
-                'maintenance_window': '02:00-04:00',
-                'max_instances': 5,
-                'min_instances': 1,
-                'cpu_threshold': 70,
-                'memory_threshold': 80,
-                'health_check_interval': 30,
-                'deployment_timeout': 600
+                "domain": domain,
+                "enable_zero_downtime_deployment": True,
+                "enable_auto_scaling": True,
+                "enable_automated_maintenance": True,
+                "enable_health_monitoring": True,
+                "enable_rollback_automation": True,
+                "deployment_strategy": "rolling",  # rolling, blue-green, canary
+                "scaling_policy": "adaptive",  # adaptive, scheduled, manual
+                "maintenance_window": "02:00-04:00",
+                "max_instances": 5,
+                "min_instances": 1,
+                "cpu_threshold": 70,
+                "memory_threshold": 80,
+                "health_check_interval": 30,
+                "deployment_timeout": 600,
             }
-            
+
             if infrastructure_config:
                 config.update(infrastructure_config)
-            
+
             # 1. Setup deployment orchestration
-            deployment_setup = self.deployment.setup_deployment_orchestration(domain, config)
-            if deployment_setup['success']:
-                setup_result['components_setup'].append('deployment_orchestration')
-                setup_result['automation_scripts'].extend(deployment_setup.get('scripts', []))
+            deployment_setup = self.deployment.setup_deployment_orchestration(
+                domain, config
+            )
+            if deployment_setup["success"]:
+                setup_result["components_setup"].append("deployment_orchestration")
+                setup_result["automation_scripts"].extend(
+                    deployment_setup.get("scripts", [])
+                )
             else:
-                setup_result['errors'].extend(deployment_setup['errors'])
-            
+                setup_result["errors"].extend(deployment_setup["errors"])
+
             # 2. Setup auto-scaling
-            if config['enable_auto_scaling']:
+            if config["enable_auto_scaling"]:
                 scaling_setup = self.scaling.setup_auto_scaling(domain, config)
-                if scaling_setup['success']:
-                    setup_result['components_setup'].append('auto_scaling')
+                if scaling_setup["success"]:
+                    setup_result["components_setup"].append("auto_scaling")
                 else:
-                    setup_result['errors'].extend(scaling_setup['errors'])
-            
+                    setup_result["errors"].extend(scaling_setup["errors"])
+
             # 3. Setup automated maintenance
-            if config['enable_automated_maintenance']:
-                maintenance_setup = self.maintenance.setup_automated_maintenance(domain, config)
-                if maintenance_setup['success']:
-                    setup_result['components_setup'].append('automated_maintenance')
+            if config["enable_automated_maintenance"]:
+                maintenance_setup = self.maintenance.setup_automated_maintenance(
+                    domain, config
+                )
+                if maintenance_setup["success"]:
+                    setup_result["components_setup"].append("automated_maintenance")
                 else:
-                    setup_result['errors'].extend(maintenance_setup['errors'])
-            
+                    setup_result["errors"].extend(maintenance_setup["errors"])
+
             # 4. Setup infrastructure monitoring
             monitoring_setup = self._setup_infrastructure_monitoring(domain, config)
-            if monitoring_setup['success']:
-                setup_result['components_setup'].append('infrastructure_monitoring')
+            if monitoring_setup["success"]:
+                setup_result["components_setup"].append("infrastructure_monitoring")
             else:
-                setup_result['errors'].extend(monitoring_setup['errors'])
-            
+                setup_result["errors"].extend(monitoring_setup["errors"])
+
             # 5. Setup orchestration API
             api_setup = self._setup_orchestration_api(domain, config)
-            if api_setup['success']:
-                setup_result['components_setup'].append('orchestration_api')
-                setup_result['orchestration_endpoints'] = api_setup.get('endpoints', [])
+            if api_setup["success"]:
+                setup_result["components_setup"].append("orchestration_api")
+                setup_result["orchestration_endpoints"] = api_setup.get("endpoints", [])
             else:
-                setup_result['errors'].extend(api_setup['errors'])
-            
+                setup_result["errors"].extend(api_setup["errors"])
+
             # 6. Create infrastructure management scripts
             scripts_setup = self._create_infrastructure_scripts(domain, config)
-            if scripts_setup['success']:
-                setup_result['components_setup'].append('infrastructure_scripts')
-                setup_result['automation_scripts'].extend(scripts_setup.get('scripts', []))
+            if scripts_setup["success"]:
+                setup_result["components_setup"].append("infrastructure_scripts")
+                setup_result["automation_scripts"].extend(
+                    scripts_setup.get("scripts", [])
+                )
             else:
-                setup_result['errors'].extend(scripts_setup['errors'])
-            
-            setup_result['success'] = len(setup_result['errors']) == 0
-            
+                setup_result["errors"].extend(scripts_setup["errors"])
+
+            setup_result["success"] = len(setup_result["errors"]) == 0
+
             if self.verbose:
-                if setup_result['success']:
-                    print(f"Infrastructure automation setup completed successfully for {domain}")
+                if setup_result["success"]:
+                    print(
+                        f"Infrastructure automation setup completed successfully for {domain}"
+                    )
                     print(f"Components: {', '.join(setup_result['components_setup'])}")
                 else:
-                    print(f"Infrastructure automation setup completed with {len(setup_result['errors'])} errors")
-            
+                    print(
+                        f"Infrastructure automation setup completed with {len(setup_result['errors'])} errors"
+                    )
+
             return setup_result
-            
+
         except Exception as e:
             raise ConfigurationError(f"Failed to setup infrastructure automation: {e}")
-    
-    def _setup_infrastructure_monitoring(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_infrastructure_monitoring(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup infrastructure monitoring and alerting."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             # Infrastructure monitoring script
             monitoring_script = f"""#!/bin/bash
 # CoffeeBreak Infrastructure Monitoring Script
@@ -167,10 +180,10 @@ set -euo pipefail
 
 DOMAIN="{domain}"
 LOG_FILE="/var/log/coffeebreak/infrastructure-monitor.log"
-ALERT_EMAIL="{config.get('alert_email', 'admin@localhost')}"
-HEALTH_CHECK_INTERVAL={config.get('health_check_interval', 30)}
-CPU_THRESHOLD={config.get('cpu_threshold', 70)}
-MEMORY_THRESHOLD={config.get('memory_threshold', 80)}
+ALERT_EMAIL="{config.get("alert_email", "admin@localhost")}"
+HEALTH_CHECK_INTERVAL={config.get("health_check_interval", 30)}
+CPU_THRESHOLD={config.get("cpu_threshold", 70)}
+MEMORY_THRESHOLD={config.get("memory_threshold", 80)}
 
 # Function to log with timestamp
 log_message() {{
@@ -235,7 +248,7 @@ check_service_health() {{
         send_alert "Service Health Check Failed" "The following services are not running: ${{failed_services[*]}}"
         
         # Attempt automatic restart
-        if [ "{config.get('auto_restart_services', True)}" = "True" ]; then
+        if [ "{config.get("auto_restart_services", True)}" = "True" ]; then
             log_message "Attempting automatic service restart"
             for service in "${{failed_services[@]}}"; do
                 systemctl restart "$service" && log_message "Restarted $service" || log_message "Failed to restart $service"
@@ -403,60 +416,64 @@ case "${{1:-monitor}}" in
         ;;
 esac
 """
-            
+
             monitoring_script_path = f"{scripts_dir}/infrastructure-monitor.sh"
             os.makedirs(scripts_dir, exist_ok=True)
-            
-            with open(monitoring_script_path, 'w') as f:
+
+            with open(monitoring_script_path, "w") as f:
                 f.write(monitoring_script)
             os.chmod(monitoring_script_path, 0o755)
-            
+
             # Setup cron job for infrastructure monitoring
             cron_entry = f"*/{config.get('health_check_interval', 30)} * * * * {monitoring_script_path}"
-            
+
             try:
-                current_crontab = subprocess.run(['crontab', '-l'], 
-                                               capture_output=True, text=True)
-                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
+                current_crontab = subprocess.run(
+                    ["crontab", "-l"], capture_output=True, text=True
+                )
+                crontab_content = (
+                    current_crontab.stdout if current_crontab.returncode == 0 else ""
+                )
             except:
                 crontab_content = ""
-            
+
             if "infrastructure-monitor.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\\n" + cron_entry + "\\n"
-                process = subprocess.Popen(['crontab', '-'], 
-                                         stdin=subprocess.PIPE, text=True)
+                process = subprocess.Popen(
+                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
+                )
                 process.communicate(input=new_crontab)
-            
+
             if self.verbose:
                 print("Infrastructure monitoring configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Infrastructure monitoring setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(
+                f"Infrastructure monitoring setup failed: {e}"
+            )
+
         return setup_result
-    
-    def _setup_orchestration_api(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_orchestration_api(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup orchestration API for infrastructure management."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'endpoints': []
-        }
-        
+        setup_result = {"success": True, "errors": [], "endpoints": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             # Orchestration API script
             api_script = f"""#!/bin/bash
 # CoffeeBreak Infrastructure Orchestration API
 
 set -euo pipefail
 
-API_PORT={config.get('orchestration_api_port', 8080)}
+API_PORT={config.get("orchestration_api_port", 8080)}
 LOG_FILE="/var/log/coffeebreak/orchestration-api.log"
 
 # Function to log with timestamp
@@ -643,14 +660,14 @@ main() {{
 
 main "$@"
 """
-            
+
             api_script_path = f"{scripts_dir}/orchestration-api.sh"
-            with open(api_script_path, 'w') as f:
+            with open(api_script_path, "w") as f:
                 f.write(api_script)
             os.chmod(api_script_path, 0o755)
-            
+
             # Create systemd service for orchestration API
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 service_content = f"""[Unit]
 Description=CoffeeBreak Orchestration API
 After=network.target
@@ -667,44 +684,48 @@ StandardError=journal
 [Install]
 WantedBy=multi-user.target
 """
-                
-                with open('/etc/systemd/system/coffeebreak-orchestration.service', 'w') as f:
+
+                with open(
+                    "/etc/systemd/system/coffeebreak-orchestration.service", "w"
+                ) as f:
                     f.write(service_content)
-                
-                subprocess.run(['systemctl', 'daemon-reload'], check=True)
-                subprocess.run(['systemctl', 'enable', 'coffeebreak-orchestration'], check=True)
-                subprocess.run(['systemctl', 'start', 'coffeebreak-orchestration'], check=True)
-            
-            setup_result['endpoints'] = [
+
+                subprocess.run(["systemctl", "daemon-reload"], check=True)
+                subprocess.run(
+                    ["systemctl", "enable", "coffeebreak-orchestration"], check=True
+                )
+                subprocess.run(
+                    ["systemctl", "start", "coffeebreak-orchestration"], check=True
+                )
+
+            setup_result["endpoints"] = [
                 f"http://localhost:{config.get('orchestration_api_port', 8080)}/health",
                 f"http://localhost:{config.get('orchestration_api_port', 8080)}/status/all",
                 f"http://localhost:{config.get('orchestration_api_port', 8080)}/deploy/rolling",
-                f"http://localhost:{config.get('orchestration_api_port', 8080)}/scale/auto"
+                f"http://localhost:{config.get('orchestration_api_port', 8080)}/scale/auto",
             ]
-            
+
             if self.verbose:
                 print("Orchestration API configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Orchestration API setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Orchestration API setup failed: {e}")
+
         return setup_result
-    
-    def _create_infrastructure_scripts(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _create_infrastructure_scripts(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Create infrastructure management scripts."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'scripts': []
-        }
-        
+        setup_result = {"success": True, "errors": [], "scripts": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
             else:
                 scripts_dir = "./scripts"
-            
+
             # Infrastructure status script
             status_script = f"""#!/bin/bash
 # CoffeeBreak Infrastructure Status Script
@@ -775,14 +796,14 @@ echo "Recent Errors (last 10):"
 echo "------------------------"
 journalctl -u coffeebreak-* --since "1 hour ago" --no-pager | grep -i error | tail -10 || echo "No recent errors"
 """
-            
+
             status_script_path = f"{scripts_dir}/infrastructure-status.sh"
-            with open(status_script_path, 'w') as f:
+            with open(status_script_path, "w") as f:
                 f.write(status_script)
             os.chmod(status_script_path, 0o755)
-            
-            setup_result['scripts'].append(status_script_path)
-            
+
+            setup_result["scripts"].append(status_script_path)
+
             # Infrastructure restart script
             restart_script = f"""#!/bin/bash
 # CoffeeBreak Infrastructure Restart Script
@@ -896,19 +917,21 @@ main() {{
 
 main "$@"
 """
-            
+
             restart_script_path = f"{scripts_dir}/infrastructure-restart.sh"
-            with open(restart_script_path, 'w') as f:
+            with open(restart_script_path, "w") as f:
                 f.write(restart_script)
             os.chmod(restart_script_path, 0o755)
-            
-            setup_result['scripts'].append(restart_script_path)
-            
+
+            setup_result["scripts"].append(restart_script_path)
+
             if self.verbose:
                 print("Infrastructure management scripts created")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Infrastructure scripts creation failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(
+                f"Infrastructure scripts creation failed: {e}"
+            )
+
         return setup_result

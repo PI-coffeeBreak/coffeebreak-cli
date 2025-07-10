@@ -6,36 +6,30 @@ MAIN_CONFIG_SCHEMA = {
         "coffeebreak": {
             "type": "object",
             "properties": {
-                "version": {
-                    "type": "string",
-                    "pattern": r"^\d+\.\d+\.\d+$"
-                },
+                "version": {"type": "string", "pattern": r"^\d+\.\d+\.\d+$"},
                 "organization": {
                     "type": "string",
-                    "description": "GitHub organization name"
+                    "description": "GitHub organization name",
                 },
                 "environment": {
                     "type": "object",
                     "properties": {
-                        "type": {
-                            "type": "string",
-                            "enum": ["venv", "conda"]
-                        },
+                        "type": {"type": "string", "enum": ["venv", "conda"]},
                         "path": {
                             "type": "string",
-                            "description": "Path to virtual environment (for venv type)"
+                            "description": "Path to virtual environment (for venv type)",
                         },
                         "name": {
                             "type": "string",
-                            "description": "Environment name (for conda type)"
+                            "description": "Environment name (for conda type)",
                         },
                         "python_path": {
                             "type": "string",
-                            "description": "Path to Python executable"
-                        }
+                            "description": "Path to Python executable",
+                        },
                     },
                     "required": ["type"],
-                    "additionalProperties": False
+                    "additionalProperties": False,
                 },
                 "repositories": {
                     "type": "array",
@@ -44,31 +38,26 @@ MAIN_CONFIG_SCHEMA = {
                         "properties": {
                             "name": {
                                 "type": "string",
-                                "enum": ["core", "frontend", "event-app"]
+                                "enum": ["core", "frontend", "event-app"],
                             },
                             "url": {
                                 "type": "string",
-                                "pattern": r"^(https://github\.com/|git@github\.com:).+\.git$"
+                                "pattern": r"^(https://github\.com/|git@github\.com:).+\.git$",
                             },
-                            "path": {
-                                "type": "string"
-                            },
-                            "branch": {
-                                "type": "string",
-                                "default": "main"
-                            },
+                            "path": {"type": "string"},
+                            "branch": {"type": "string", "default": "main"},
                             "startup_command": {
                                 "type": "array",
-                                "items": {"type": "string"}
-                            }
+                                "items": {"type": "string"},
+                            },
                         },
                         "required": ["name", "url", "path"],
-                        "additionalProperties": False
-                    }
-                }
+                        "additionalProperties": False,
+                    },
+                },
             },
             "required": ["version", "repositories"],
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "environments": {
             "type": "object",
@@ -78,39 +67,24 @@ MAIN_CONFIG_SCHEMA = {
                     "properties": {
                         "docker_network": {
                             "type": "string",
-                            "default": "coffeebreak-dev"
+                            "default": "coffeebreak-dev",
                         },
-                        "auto_start_deps": {
-                            "type": "boolean",
-                            "default": True
-                        },
-                        "hot_reload": {
-                            "type": "boolean",
-                            "default": True
-                        }
+                        "auto_start_deps": {"type": "boolean", "default": True},
+                        "hot_reload": {"type": "boolean", "default": True},
                     },
-                    "additionalProperties": False
+                    "additionalProperties": False,
                 },
                 "production": {
                     "type": "object",
                     "properties": {
-                        "domain_required": {
-                            "type": "boolean",
-                            "default": True
-                        },
-                        "ssl_required": {
-                            "type": "boolean",
-                            "default": True
-                        },
-                        "backup_enabled": {
-                            "type": "boolean",
-                            "default": True
-                        }
+                        "domain_required": {"type": "boolean", "default": True},
+                        "ssl_required": {"type": "boolean", "default": True},
+                        "backup_enabled": {"type": "boolean", "default": True},
                     },
-                    "additionalProperties": False
-                }
+                    "additionalProperties": False,
+                },
             },
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "dependencies": {
             "type": "object",
@@ -118,20 +92,11 @@ MAIN_CONFIG_SCHEMA = {
                 "profiles": {
                     "type": "object",
                     "properties": {
-                        "minimal": {
-                            "type": "array",
-                            "items": {"type": "string"}
-                        },
-                        "full": {
-                            "type": "array",
-                            "items": {"type": "string"}
-                        },
-                        "plugin-dev": {
-                            "type": "array",
-                            "items": {"type": "string"}
-                        }
+                        "minimal": {"type": "array", "items": {"type": "string"}},
+                        "full": {"type": "array", "items": {"type": "string"}},
+                        "plugin-dev": {"type": "array", "items": {"type": "string"}},
                     },
-                    "additionalProperties": False
+                    "additionalProperties": False,
                 },
                 "services": {
                     "type": "object",
@@ -144,55 +109,52 @@ MAIN_CONFIG_SCHEMA = {
                                     "type": "object",
                                     "properties": {
                                         "context": {"type": "string"},
-                                        "dockerfile": {"type": "string"}
+                                        "dockerfile": {"type": "string"},
                                     },
                                     "required": ["context"],
-                                    "additionalProperties": False
+                                    "additionalProperties": False,
                                 },
                                 "container_name": {"type": "string"},
                                 "command": {
                                     "type": "array",
-                                    "items": {"type": "string"}
+                                    "items": {"type": "string"},
                                 },
-                                "ports": {
-                                    "type": "array",
-                                    "items": {"type": "string"}
-                                },
+                                "ports": {"type": "array", "items": {"type": "string"}},
                                 "environment": {
                                     "type": "object",
-                                    "additionalProperties": {"type": "string"}
+                                    "additionalProperties": {"type": "string"},
                                 },
                                 "volumes": {
                                     "type": "array",
-                                    "items": {"type": "string"}
+                                    "items": {"type": "string"},
                                 },
                                 "depends_on": {
                                     "type": "array",
-                                    "items": {"type": "string"}
+                                    "items": {"type": "string"},
                                 },
                                 "healthcheck": {
                                     "type": "object",
                                     "properties": {
                                         "test": {
                                             "type": "array",
-                                            "items": {"type": "string"}
+                                            "items": {"type": "string"},
                                         },
                                         "interval": {"type": "string"},
-                                        "retries": {"type": "integer"}
-                                    }
-                                }
+                                        "retries": {"type": "integer"},
+                                    },
+                                },
                             },
                             "required": ["image"],
-                            "additionalProperties": False
+                            "additionalProperties": False,
                         }
-                    }
-                }
+                    },
+                },
             },
-            "additionalProperties": False
-        }
+            "additionalProperties": False,
+        },
     },
     "required": ["coffeebreak"],
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 PLUGIN_CONFIG_SCHEMA = {
@@ -201,24 +163,15 @@ PLUGIN_CONFIG_SCHEMA = {
         "plugin": {
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": r"^[a-zA-Z0-9_-]+$"
-                },
-                "version": {
-                    "type": "string",
-                    "pattern": r"^\d+\.\d+\.\d+$"
-                },
+                "name": {"type": "string", "pattern": r"^[a-zA-Z0-9_-]+$"},
+                "version": {"type": "string", "pattern": r"^\d+\.\d+\.\d+$"},
                 "description": {"type": "string"},
                 "author": {"type": "string"},
                 "homepage": {"type": "string"},
-                "tags": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                }
+                "tags": {"type": "array", "items": {"type": "string"}},
             },
             "required": ["name", "version"],
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "compatibility": {
             "type": "object",
@@ -226,9 +179,9 @@ PLUGIN_CONFIG_SCHEMA = {
                 "coffeebreak_core": {"type": "string"},
                 "coffeebreak_api": {"type": "string"},
                 "node_version": {"type": "string"},
-                "python_version": {"type": "string"}
+                "python_version": {"type": "string"},
             },
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "dependencies": {
             "type": "object",
@@ -237,49 +190,34 @@ PLUGIN_CONFIG_SCHEMA = {
                     "type": "array",
                     "items": {
                         "type": "string",
-                        "enum": ["database", "mongodb", "rabbitmq", "keycloak", "keycloak-db"]
-                    }
+                        "enum": [
+                            "database",
+                            "mongodb",
+                            "rabbitmq",
+                            "keycloak",
+                            "keycloak-db",
+                        ],
+                    },
                 },
-                "npm_packages": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
-                "python_packages": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
-                "system_requirements": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                }
+                "npm_packages": {"type": "array", "items": {"type": "string"}},
+                "python_packages": {"type": "array", "items": {"type": "string"}},
+                "system_requirements": {"type": "array", "items": {"type": "string"}},
             },
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "development": {
             "type": "object",
             "properties": {
-                "mount_paths": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
+                "mount_paths": {"type": "array", "items": {"type": "string"}},
                 "environment": {
                     "type": "object",
-                    "additionalProperties": {"type": ["string", "boolean"]}
+                    "additionalProperties": {"type": ["string", "boolean"]},
                 },
-                "ports": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
-                "hot_reload": {
-                    "type": "boolean",
-                    "default": True
-                },
-                "watch_extensions": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                }
+                "ports": {"type": "array", "items": {"type": "string"}},
+                "hot_reload": {"type": "boolean", "default": True},
+                "watch_extensions": {"type": "array", "items": {"type": "string"}},
             },
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "api_endpoints": {
             "type": "array",
@@ -291,21 +229,18 @@ PLUGIN_CONFIG_SCHEMA = {
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"]
-                        }
+                            "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+                        },
                     },
                     "authentication": {
                         "type": "string",
-                        "enum": ["required", "optional", "none"]
+                        "enum": ["required", "optional", "none"],
                     },
-                    "permissions": {
-                        "type": "array",
-                        "items": {"type": "string"}
-                    }
+                    "permissions": {"type": "array", "items": {"type": "string"}},
                 },
                 "required": ["path", "methods"],
-                "additionalProperties": False
-            }
+                "additionalProperties": False,
+            },
         },
         "frontend_routes": {
             "type": "array",
@@ -315,14 +250,11 @@ PLUGIN_CONFIG_SCHEMA = {
                     "path": {"type": "string"},
                     "component": {"type": "string"},
                     "title": {"type": "string"},
-                    "permissions": {
-                        "type": "array",
-                        "items": {"type": "string"}
-                    }
+                    "permissions": {"type": "array", "items": {"type": "string"}},
                 },
                 "required": ["path", "component"],
-                "additionalProperties": False
-            }
+                "additionalProperties": False,
+            },
         },
         "configuration": {
             "type": "object",
@@ -335,23 +267,20 @@ PLUGIN_CONFIG_SCHEMA = {
                             "name": {"type": "string"},
                             "type": {
                                 "type": "string",
-                                "enum": ["string", "integer", "boolean", "array"]
+                                "enum": ["string", "integer", "boolean", "array"],
                             },
                             "default": {},
                             "description": {"type": "string"},
-                            "options": {
-                                "type": "array",
-                                "items": {"type": "string"}
-                            },
+                            "options": {"type": "array", "items": {"type": "string"}},
                             "min": {"type": "number"},
-                            "max": {"type": "number"}
+                            "max": {"type": "number"},
                         },
                         "required": ["name", "type"],
-                        "additionalProperties": False
-                    }
+                        "additionalProperties": False,
+                    },
                 }
             },
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "build": {
             "type": "object",
@@ -362,24 +291,18 @@ PLUGIN_CONFIG_SCHEMA = {
                         "pre_build": {"type": "string"},
                         "build": {"type": "string"},
                         "post_build": {"type": "string"},
-                        "test": {"type": "string"}
+                        "test": {"type": "string"},
                     },
-                    "additionalProperties": False
+                    "additionalProperties": False,
                 },
                 "output_directory": {"type": "string"},
                 "assets_directory": {"type": "string"},
-                "include_files": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
-                "exclude_patterns": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                }
+                "include_files": {"type": "array", "items": {"type": "string"}},
+                "exclude_patterns": {"type": "array", "items": {"type": "string"}},
             },
-            "additionalProperties": False
-        }
+            "additionalProperties": False,
+        },
     },
     "required": ["plugin"],
-    "additionalProperties": False
+    "additionalProperties": False,
 }

@@ -13,79 +13,75 @@ from ..utils.errors import ConfigurationError
 
 class DeploymentOrchestrator:
     """Manages zero-downtime deployments and rollbacks."""
-    
-    def __init__(self, 
-                 deployment_type: str = "docker",
-                 verbose: bool = False):
+
+    def __init__(self, deployment_type: str = "docker", verbose: bool = False):
         """
         Initialize deployment orchestrator.
-        
+
         Args:
             deployment_type: Type of deployment (docker, standalone)
             verbose: Enable verbose output
         """
         self.deployment_type = deployment_type
         self.verbose = verbose
-    
-    def setup_deployment_orchestration(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def setup_deployment_orchestration(
+        self, domain: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Setup deployment orchestration system.
-        
+
         Args:
             domain: Production domain
             config: Deployment configuration
-            
+
         Returns:
             Dict[str, Any]: Setup results
         """
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'scripts': []
-        }
-        
+        setup_result = {"success": True, "errors": [], "scripts": []}
+
         try:
-            if self.deployment_type == 'standalone':
+            if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
                 deployment_dir = "/opt/coffeebreak/deployments"
             else:
                 scripts_dir = "./scripts"
                 deployment_dir = "./deployments"
-            
+
             os.makedirs(scripts_dir, exist_ok=True)
             os.makedirs(deployment_dir, exist_ok=True)
-            
+
             # Create deployment scripts
-            scripts_result = self._create_deployment_scripts(domain, config, scripts_dir, deployment_dir)
-            if scripts_result['success']:
-                setup_result['scripts'] = scripts_result['scripts']
+            scripts_result = self._create_deployment_scripts(
+                domain, config, scripts_dir, deployment_dir
+            )
+            if scripts_result["success"]:
+                setup_result["scripts"] = scripts_result["scripts"]
             else:
-                setup_result['errors'].extend(scripts_result['errors'])
-            
+                setup_result["errors"].extend(scripts_result["errors"])
+
             # Setup deployment tracking
             tracking_result = self._setup_deployment_tracking(deployment_dir, config)
-            if not tracking_result['success']:
-                setup_result['errors'].extend(tracking_result['errors'])
-            
-            setup_result['success'] = len(setup_result['errors']) == 0
-            
+            if not tracking_result["success"]:
+                setup_result["errors"].extend(tracking_result["errors"])
+
+            setup_result["success"] = len(setup_result["errors"]) == 0
+
             if self.verbose:
                 print("Deployment orchestration configured")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Deployment orchestration setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Deployment orchestration setup failed: {e}")
+
         return setup_result
-    
-    def _create_deployment_scripts(self, domain: str, config: Dict[str, Any], scripts_dir: str, deployment_dir: str) -> Dict[str, Any]:
+
+    def _create_deployment_scripts(
+        self, domain: str, config: Dict[str, Any], scripts_dir: str, deployment_dir: str
+    ) -> Dict[str, Any]:
         """Create deployment scripts for different strategies."""
-        setup_result = {
-            'success': True,
-            'errors': [],
-            'scripts': []
-        }
-        
+        setup_result = {"success": True, "errors": [], "scripts": []}
+
         try:
             # Main deployment script
             deployment_script = f"""#!/bin/bash
@@ -96,7 +92,7 @@ set -euo pipefail
 DOMAIN="{domain}"
 DEPLOYMENT_DIR="{deployment_dir}"
 LOG_FILE="/var/log/coffeebreak/deployment.log"
-DEPLOYMENT_TIMEOUT={config.get('deployment_timeout', 600)}
+DEPLOYMENT_TIMEOUT={config.get("deployment_timeout", 600)}
 HEALTH_CHECK_INTERVAL=10
 MAX_HEALTH_CHECKS=30
 
@@ -220,10 +216,10 @@ rolling_deployment() {{
     mkdir -p "$staging_dir"
     
     # Deploy new version to staging (implementation depends on deployment method)
-    if [ "{config.get('deployment_method', 'git')}" = "git" ]; then
+    if [ "{config.get("deployment_method", "git")}" = "git" ]; then
         cd "$staging_dir"
         if [ ! -d ".git" ]; then
-            git clone "{config.get('repository_url', 'https://github.com/user/coffeebreak.git')}" .
+            git clone "{config.get("repository_url", "https://github.com/user/coffeebreak.git")}" .
         else
             git fetch origin
         fi
@@ -304,10 +300,10 @@ blue_green_deployment() {{
     mkdir -p "$green_dir"
     
     # Deploy to green environment
-    if [ "{config.get('deployment_method', 'git')}" = "git" ]; then
+    if [ "{config.get("deployment_method", "git")}" = "git" ]; then
         cd "$green_dir"
         if [ ! -d ".git" ]; then
-            git clone "{config.get('repository_url', 'https://github.com/user/coffeebreak.git')}" .
+            git clone "{config.get("repository_url", "https://github.com/user/coffeebreak.git")}" .
         else
             git fetch origin
         fi
@@ -403,10 +399,10 @@ canary_deployment() {{
     local canary_dir="/opt/coffeebreak/canary"
     mkdir -p "$canary_dir"
     
-    if [ "{config.get('deployment_method', 'git')}" = "git" ]; then
+    if [ "{config.get("deployment_method", "git")}" = "git" ]; then
         cd "$canary_dir"
         if [ ! -d ".git" ]; then
-            git clone "{config.get('repository_url', 'https://github.com/user/coffeebreak.git')}" .
+            git clone "{config.get("repository_url", "https://github.com/user/coffeebreak.git")}" .
         else
             git fetch origin
         fi
@@ -429,7 +425,7 @@ canary_deployment() {{
     log_message "Step 3: Monitoring canary deployment"
     
     # Monitor for configurable time period
-    local monitor_duration={config.get('canary_monitor_duration', 300)}
+    local monitor_duration={config.get("canary_monitor_duration", 300)}
     local monitor_end=$(($(date +%s) + monitor_duration))
     
     while [ $(date +%s) -lt $monitor_end ]; do
@@ -557,30 +553,29 @@ main() {{
 
 main "$@"
 """
-            
+
             deployment_script_path = f"{scripts_dir}/deploy.sh"
-            with open(deployment_script_path, 'w') as f:
+            with open(deployment_script_path, "w") as f:
                 f.write(deployment_script)
             os.chmod(deployment_script_path, 0o755)
-            
-            setup_result['scripts'].append(deployment_script_path)
-            
+
+            setup_result["scripts"].append(deployment_script_path)
+
             if self.verbose:
                 print("Deployment scripts created")
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Deployment scripts creation failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Deployment scripts creation failed: {e}")
+
         return setup_result
-    
-    def _setup_deployment_tracking(self, deployment_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _setup_deployment_tracking(
+        self, deployment_dir: str, config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Setup deployment tracking and history."""
-        setup_result = {
-            'success': True,
-            'errors': []
-        }
-        
+        setup_result = {"success": True, "errors": []}
+
         try:
             # Create deployment tracking script
             tracking_script = f"""#!/bin/bash
@@ -665,18 +660,18 @@ main() {{
 
 main "$@"
 """
-            
-            if self.deployment_type == 'standalone':
+
+            if self.deployment_type == "standalone":
                 tracking_script_path = "/opt/coffeebreak/bin/deployment-history.sh"
             else:
                 tracking_script_path = "./scripts/deployment-history.sh"
-            
-            with open(tracking_script_path, 'w') as f:
+
+            with open(tracking_script_path, "w") as f:
                 f.write(tracking_script)
             os.chmod(tracking_script_path, 0o755)
-            
+
         except Exception as e:
-            setup_result['success'] = False
-            setup_result['errors'].append(f"Deployment tracking setup failed: {e}")
-        
+            setup_result["success"] = False
+            setup_result["errors"].append(f"Deployment tracking setup failed: {e}")
+
         return setup_result
