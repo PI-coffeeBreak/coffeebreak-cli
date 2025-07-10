@@ -60,10 +60,16 @@ ignore_missing_imports = true
 name = "coffeebreak"
 version = "0.1.0"
 description = "CoffeeBreak CLI"
-dependencies = []
+dependencies = [
+    "click",
+    "PyYAML",
+    "jinja2",
+    "gitpython"
+]
 requires-python = ">=3.8"
 readme = "README.md"
 authors = [
+    {name = "CoffeeBreak Development Team", email = "team@example.com"}
 ]
 license = {text = "MIT"}
 
