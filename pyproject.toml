@@ -81,3 +81,6 @@ dev = [
     "pytest",
     "watchdog"
 ]
+
+[project.scripts]
+coffeebreak = "coffeebreak.cli:cli"
