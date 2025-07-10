@@ -1,8 +1,18 @@
-"""Main CLI entry point for CoffeeBreak CLI tool."""
+"""Main CLI entry point for CoffeeBreak CLI tool.
+
+This module provides the command-line interface for CoffeeBreak, a development
+and deployment automation tool. It includes commands for environment management,
+dependency handling, plugin development, secrets management, and production deployment.
+
+The CLI is built using Click and provides a hierarchical command structure
+with comprehensive help and error handling.
+"""
 
 import os
+import subprocess
 import click
 from pathlib import Path
+from typing import Optional, List, Dict, Any, Union
 from coffeebreak import __version__
 from coffeebreak.utils.logging import setup_logging
 from coffeebreak.utils.errors import ErrorHandler
@@ -14,8 +24,19 @@ from coffeebreak.utils.errors import ErrorHandler
 @click.option('--dry-run', is_flag=True, help='Show what would be done without executing')
 @click.option('--log-file', help='Log to file in addition to console')
 @click.pass_context
-def cli(ctx, verbose, dry_run, log_file):
-    """CoffeeBreak CLI - Development and deployment automation tool."""
+def cli(ctx: click.Context, verbose: bool, dry_run: bool, log_file: Optional[str]) -> None:
+    """CoffeeBreak CLI - Development and deployment automation tool.
+    
+    CoffeeBreak is a comprehensive tool for managing development environments,
+    dependencies, plugins, and production deployments. It provides a unified
+    interface for common development and deployment tasks.
+    
+    Args:
+        ctx: Click context object containing shared state
+        verbose: Enable verbose output for detailed logging
+        dry_run: Show what would be done without executing commands
+        log_file: Optional path to log file for additional logging
+    """
     ctx.ensure_object(dict)
     ctx.obj['verbose'] = verbose
     ctx.obj['dry_run'] = dry_run
@@ -28,8 +49,12 @@ def cli(ctx, verbose, dry_run, log_file):
 
 @cli.group(context_settings={'help_option_names': ['-h', '--help']})
 @click.pass_context
-def init(ctx):
-    """Initialize CoffeeBreak environments."""
+def init(ctx: click.Context) -> None:
+    """Initialize CoffeeBreak environments.
+    
+    This command group provides subcommands for initializing different types
+    of CoffeeBreak environments, including development and production setups.
+    """
     pass
 
 
@@ -43,8 +68,25 @@ def init(ctx):
 @click.option('--python', metavar='<PATH>',
               help='Path to specific Python executable')
 @click.pass_context
-def dev(ctx, organization, version, venv, conda, python):
-    """Initialize full development environment with Python environment setup."""
+def dev(ctx: click.Context, organization: str, version: str, venv: Optional[str], 
+        conda: Optional[str], python: Optional[str]) -> None:
+    """Initialize full development environment with Python environment setup.
+    
+    This command sets up a complete development environment for CoffeeBreak,
+    including Python environment management (virtual environment or conda),
+    project configuration, and initial dependency setup.
+    
+    Args:
+        ctx: Click context object
+        organization: GitHub organization name for the project
+        version: Project version string
+        venv: Path for virtual environment (mutually exclusive with conda)
+        conda: Name for conda environment (mutually exclusive with venv)
+        python: Path to specific Python executable to use
+    
+    Raises:
+        click.BadParameter: If both venv and conda options are specified
+    """
     click.echo("Initializing CoffeeBreak development environment...")
     
     # Validate mutually exclusive options
@@ -103,16 +145,23 @@ def dev(ctx, organization, version, venv, conda, python):
 @click.option('--info', is_flag=True, help='Show environment information only')
 @click.option('--show-command', is_flag=True, help='Show activation command instead of auto-executing')
 @click.pass_context
-def activate(ctx, shell, info, show_command):
+def activate(ctx: click.Context, shell: Optional[str], info: bool, show_command: bool) -> None:
     """Activate the configured Python environment for the current project.
     
     By default, launches a new shell with the environment activated.
     Use --show-command to see the manual activation command instead.
+    
+    This command supports multiple shell types and can automatically detect
+    the current shell. It handles both virtual environments and conda environments.
+    
+    Args:
+        ctx: Click context object
+        shell: Target shell type (auto-detected if not specified)
+        info: Show environment information without activating
+        show_command: Show activation command instead of executing
     """
     try:
         from coffeebreak.environments.python_env import EnvironmentActivator
-        import subprocess
-        import os
         
         activator = EnvironmentActivator()
         
@@ -217,8 +266,21 @@ def activate(ctx, shell, info, show_command):
 @click.option('--standalone', is_flag=True, help='Setup standalone production installation')
 @click.option('--output-dir', default='.', help='Output directory for production files')
 @click.pass_context
-def production(ctx, docker, domain, ssl_email, standalone, output_dir):
-    """Initialize production environment."""
+def production(ctx: click.Context, docker: bool, domain: Optional[str], ssl_email: Optional[str], 
+               standalone: bool, output_dir: str) -> None:
+    """Initialize production environment.
+    
+    This command sets up a production environment for CoffeeBreak, supporting
+    both Docker-based deployments and standalone server installations.
+    
+    Args:
+        ctx: Click context object
+        docker: Generate Docker production project
+        domain: Production domain name (e.g., example.com)
+        ssl_email: Email address for SSL certificate generation
+        standalone: Setup standalone production installation
+        output_dir: Output directory for production files
+    """
     if ctx.obj['dry_run']:
         click.echo(f"DRY RUN: Would initialize production environment")
         click.echo(f"DRY RUN: Docker mode: {docker}")
@@ -346,121 +408,223 @@ def production(ctx, docker, domain, ssl_email, standalone, output_dir):
 @click.option('--skip-deps', is_flag=True, help='Skip dependency startup')
 @click.option('--detach', '-d', is_flag=True, help='Run in background (detached mode)')
 @click.pass_context
-def start(ctx, profile, services, skip_clone, skip_deps, detach):
-    """Start development environment."""
+def start(ctx: click.Context, profile: Optional[str], services: Optional[str], 
+          skip_clone: bool, skip_deps: bool, detach: bool) -> None:
+    """Start development environment.
     
+    This command starts the complete development environment, including
+    repository cloning, dependency services, and application components.
+    
+    Args:
+        ctx: Click context object
+        profile: Dependency profile to use (full, minimal, plugin-dev)
+        services: Comma-separated list of specific services to start
+        skip_clone: Skip repository cloning step
+        skip_deps: Skip dependency startup step
+        detach: Run in background (detached mode)
+    """
     if ctx.obj['dry_run']:
         click.echo("DRY RUN: Would start development environment")
-        if services:
-            click.echo(f"DRY RUN: Would use services: {services}")
         if profile:
-            click.echo(f"DRY RUN: Would use profile: {profile}")
+            click.echo(f"DRY RUN: Profile: {profile}")
+        if services:
+            click.echo(f"DRY RUN: Services: {services}")
+        if skip_clone:
+            click.echo("DRY RUN: Would skip repository cloning")
+        if skip_deps:
+            click.echo("DRY RUN: Would skip dependency startup")
+        if detach:
+            click.echo("DRY RUN: Would run in detached mode")
         return
     
     try:
-        from coffeebreak.environments.automation import DevEnvironmentAutomation
+        from coffeebreak.config import ConfigManager
+        from coffeebreak.environments import DevelopmentEnvironment
         
-        automation = DevEnvironmentAutomation(verbose=ctx.obj['verbose'])
+        # Initialize managers
+        config_manager = ConfigManager()
+        dev_env = DevelopmentEnvironment(config_manager, verbose=ctx.obj['verbose'])
+        
+        click.echo("Starting CoffeeBreak development environment...")
+        
+        # Parse services list
+        service_list = None
+        if services:
+            service_list = [s.strip() for s in services.split(',') if s.strip()]
         
         # Start development environment
-        services_list = services.split(',') if services else None
-        
-        success = automation.start_development_environment(
+        result = dev_env.start_environment(
             profile=profile,
-            services=services_list,
+            services=service_list,
             skip_clone=skip_clone,
             skip_deps=skip_deps,
             detach=detach
         )
         
-        if success:
-            click.echo("\nDevelopment environment is ready!")
-            click.echo("\nUse 'coffeebreak status' to check status")
-            click.echo("Use 'coffeebreak stop' to stop environment")
-        else:
-            click.echo("\nFailed to start development environment")
-            ctx.exit(1)
+        if result['success']:
+            click.echo("✓ Development environment started successfully!")
             
+            if result.get('services_started'):
+                click.echo(f"\nServices started: {len(result['services_started'])}")
+                if ctx.obj['verbose']:
+                    for service in result['services_started']:
+                        click.echo(f"  - {service}")
+            
+            if result.get('repositories_cloned'):
+                click.echo(f"\nRepositories cloned: {len(result['repositories_cloned'])}")
+                if ctx.obj['verbose']:
+                    for repo in result['repositories_cloned']:
+                        click.echo(f"  - {repo}")
+            
+            if detach:
+                click.echo("\nEnvironment is running in background.")
+                click.echo("Use 'coffeebreak status' to check status")
+                click.echo("Use 'coffeebreak stop' to stop the environment")
+            else:
+                click.echo("\nEnvironment is ready for development!")
+                click.echo("Press Ctrl+C to stop the environment")
+        else:
+            click.echo(f"✗ Failed to start development environment: {result.get('error', 'Unknown error')}")
+            
+            if result.get('errors'):
+                click.echo("\nErrors encountered:")
+                for error in result['errors']:
+                    click.echo(f"  - {error}")
+            
+            ctx.exit(1)
+        
     except Exception as e:
-        ctx.obj['error_handler'].exit_with_error(e, "Development environment")
+        ctx.obj['error_handler'].exit_with_error(e, "Development environment startup")
 
 
 @cli.command()
 @click.pass_context
-def stop(ctx):
-    """Stop development environment."""
+def stop(ctx: click.Context) -> None:
+    """Stop development environment.
+    
+    This command stops all running development environment components,
+    including dependency services and application processes.
+    
+    Args:
+        ctx: Click context object
+    """
     if ctx.obj['dry_run']:
         click.echo("DRY RUN: Would stop development environment")
         return
     
     try:
-        from coffeebreak.environments.automation import DevEnvironmentAutomation
+        from coffeebreak.config import ConfigManager
+        from coffeebreak.environments import DevelopmentEnvironment
         
-        automation = DevEnvironmentAutomation(verbose=ctx.obj['verbose'])
-        success = automation.stop_development_environment()
+        # Initialize managers
+        config_manager = ConfigManager()
+        dev_env = DevelopmentEnvironment(config_manager, verbose=ctx.obj['verbose'])
         
-        if success:
-            click.echo("✓ Development environment stopped")
-        else:
-            click.echo("✗ Failed to stop development environment")
-            ctx.exit(1)
+        click.echo("Stopping CoffeeBreak development environment...")
+        
+        result = dev_env.stop_environment()
+        
+        if result['success']:
+            click.echo("✓ Development environment stopped successfully!")
             
+            if result.get('services_stopped'):
+                click.echo(f"\nServices stopped: {len(result['services_stopped'])}")
+                if ctx.obj['verbose']:
+                    for service in result['services_stopped']:
+                        click.echo(f"  - {service}")
+        else:
+            click.echo(f"✗ Failed to stop development environment: {result.get('error', 'Unknown error')}")
+            
+            if result.get('errors'):
+                click.echo("\nErrors encountered:")
+                for error in result['errors']:
+                    click.echo(f"  - {error}")
+            
+            ctx.exit(1)
+        
     except Exception as e:
-        ctx.obj['error_handler'].exit_with_error(e, "Stop development environment")
+        ctx.obj['error_handler'].exit_with_error(e, "Development environment shutdown")
 
 
 @cli.command()
 @click.pass_context
-def status(ctx):
-    """Show development environment status."""
-    if ctx.obj['dry_run']:
-        click.echo("DRY RUN: Would show development environment status")
-        return
+def status(ctx: click.Context) -> None:
+    """Show development environment status.
     
+    This command displays the current status of all development environment
+    components, including services, repositories, and application processes.
+    
+    Args:
+        ctx: Click context object
+    """
     try:
-        from coffeebreak.environments.automation import DevEnvironmentAutomation
+        from coffeebreak.config import ConfigManager
+        from coffeebreak.environments import DevelopmentEnvironment
         
-        automation = DevEnvironmentAutomation(verbose=ctx.obj['verbose'])
-        env_status = automation.get_environment_status()
+        # Initialize managers
+        config_manager = ConfigManager()
+        dev_env = DevelopmentEnvironment(config_manager, verbose=ctx.obj['verbose'])
         
-        click.echo(f"Environment Type: {env_status['environment_type']}")
-        click.echo(f"Running: {'Yes' if env_status['is_running'] else 'No'}")
+        click.echo("CoffeeBreak Development Environment Status")
+        click.echo("=" * 50)
         
-        if env_status['services']:
-            click.echo("\nServices:")
-            for name, info in env_status['services'].items():
-                status_icon = "OK" if info['healthy'] else "WARN"
-                method = info.get('method', '')
-                method_str = f" ({method})" if method else ""
-                click.echo(f"  [{status_icon}] {name}: {info['status']}{method_str}")
-            
-            # Show overall health status if available
-            overall_health = env_status.get('overall_health')
-            if overall_health:
-                click.echo(f"\nOverall Health: {overall_health.upper()}")
-            
-            # Show monitoring status
-            monitoring_active = env_status.get('monitoring_active', False)
-            monitoring_status = "Active" if monitoring_active else "Inactive"
-            click.echo(f"Health Monitoring: {monitoring_status}")
+        # Get environment status
+        status_info = dev_env.get_environment_status()
         
-        if env_status['repositories']:
-            click.echo("\nRepositories:")
-            for name, info in env_status['repositories'].items():
-                if info.get('is_valid'):
-                    branch = info.get('current_branch', 'unknown')
-                    dirty = " (uncommitted changes)" if info.get('has_uncommitted_changes') else ""
-                    click.echo(f"  [OK] {name}: {branch}{dirty}")
-                else:
-                    click.echo(f"  [ERROR] {name}: {info.get('error', 'invalid')}")
+        # Display overall status
+        if status_info['running']:
+            click.echo("✓ Environment is running")
+        else:
+            click.echo("✗ Environment is not running")
         
-        if env_status['errors']:
-            click.echo("\nErrors:")
-            for error in env_status['errors']:
-                click.echo(f"  [ERROR] {error}")
+        # Display services status
+        if status_info.get('services'):
+            click.echo(f"\nServices ({len(status_info['services'])}):")
+            for service, info in status_info['services'].items():
+                status_icon = "✓" if info['running'] else "✗"
+                status_text = "running" if info['running'] else "stopped"
+                click.echo(f"  {status_icon} {service}: {status_text}")
                 
+                if ctx.obj['verbose'] and info.get('details'):
+                    for detail in info['details']:
+                        click.echo(f"    - {detail}")
+        
+        # Display repositories status
+        if status_info.get('repositories'):
+            click.echo(f"\nRepositories ({len(status_info['repositories'])}):")
+            for repo, info in status_info['repositories'].items():
+                status_icon = "✓" if info['cloned'] else "✗"
+                status_text = "cloned" if info['cloned'] else "not cloned"
+                click.echo(f"  {status_icon} {repo}: {status_text}")
+                
+                if ctx.obj['verbose'] and info.get('path'):
+                    click.echo(f"    Path: {info['path']}")
+        
+        # Display application status
+        if status_info.get('applications'):
+            click.echo(f"\nApplications ({len(status_info['applications'])}):")
+            for app, info in status_info['applications'].items():
+                status_icon = "✓" if info['running'] else "✗"
+                status_text = "running" if info['running'] else "stopped"
+                click.echo(f"  {status_icon} {app}: {status_text}")
+                
+                if ctx.obj['verbose'] and info.get('port'):
+                    click.echo(f"    Port: {info['port']}")
+        
+        # Display summary
+        total_components = (
+            len(status_info.get('services', {})) +
+            len(status_info.get('repositories', {})) +
+            len(status_info.get('applications', {}))
+        )
+        
+        running_components = sum(1 for s in status_info.get('services', {}).values() if s['running'])
+        running_components += sum(1 for a in status_info.get('applications', {}).values() if a['running'])
+        
+        click.echo(f"\nSummary: {running_components}/{total_components} components running")
+        
     except Exception as e:
-        ctx.obj['error_handler'].exit_with_error(e, "Environment status")
+        ctx.obj['error_handler'].exit_with_error(e, "Status check")
 
 
 @cli.command()
@@ -469,84 +633,95 @@ def status(ctx):
 @click.option('--follow', '-f', is_flag=True, help='Follow log output in real-time')
 @click.option('--since', help='Show logs since timestamp (e.g., "1h", "30m", "2023-01-01T10:00:00")')
 @click.pass_context
-def logs(ctx, service, tail, follow, since):
-    """Show logs for development servers."""
+def logs(ctx: click.Context, service: Optional[str], tail: int, follow: bool, since: Optional[str]) -> None:
+    """Show application logs.
     
+    This command displays logs from application components. It can show logs
+    for a specific service or all services, with options for following logs
+    in real-time and filtering by time.
+    
+    Args:
+        ctx: Click context object
+        service: Specific service name to show logs for (optional)
+        tail: Number of lines to show from the end of logs
+        follow: Follow log output in real-time
+        since: Show logs since timestamp (e.g., "1h", "30m", "2023-01-01T10:00:00")
+    """
     if ctx.obj['dry_run']:
-        click.echo(f"DRY RUN: Would show logs for {service or 'all services'}")
+        if service:
+            click.echo(f"DRY RUN: Would show logs for service: {service}")
+        else:
+            click.echo("DRY RUN: Would show logs for all services")
+        if follow:
+            click.echo("DRY RUN: Would follow logs in real-time")
         return
     
     try:
-        import json
-        from pathlib import Path
+        from coffeebreak.config import ConfigManager
+        from coffeebreak.environments import DevelopmentEnvironment
         
-        # Read process information to get log file paths
-        pids_file = Path(".coffeebreak/pids.json")
-        if not pids_file.exists():
-            click.echo("No development servers are running or process file not found.")
-            click.echo("Start the development environment with 'coffeebreak start' first.")
-            return
+        # Initialize managers
+        config_manager = ConfigManager()
+        dev_env = DevelopmentEnvironment(config_manager, verbose=ctx.obj['verbose'])
         
-        with open(pids_file, "r") as f:
-            processes = json.load(f)
-        
-        if not processes:
-            click.echo("No development servers are currently running.")
-            return
-        
-        # If specific service requested, show only that service
         if service:
-            if service not in processes:
-                available_services = ", ".join(processes.keys())
-                click.echo(f"Service '{service}' not found.")
-                click.echo(f"Available services: {available_services}")
+            click.echo(f"Showing logs for service: {service}")
+            
+            # Get logs for specific service
+            logs_result = dev_env.get_service_logs(
+                service_name=service,
+                tail=tail,
+                follow=follow,
+                since=since
+            )
+            
+            if logs_result['success']:
+                if follow:
+                    click.echo(f"Following logs for {service} (Ctrl+C to stop)...")
+                    try:
+                        # Stream logs
+                        for log_line in dev_env.stream_service_logs(service):
+                            click.echo(log_line.rstrip())
+                    except KeyboardInterrupt:
+                        click.echo("\nLog following stopped")
+                else:
+                    click.echo(logs_result['logs'])
+            else:
+                click.echo(f"Failed to get logs: {logs_result.get('error', 'Unknown error')}")
+                ctx.exit(1)
+        else:
+            click.echo("Showing logs for all services...")
+            
+            # Get all running services
+            status_info = dev_env.get_environment_status()
+            running_services = [
+                name for name, info in status_info.get('services', {}).items()
+                if info['running']
+            ]
+            
+            if not running_services:
+                click.echo("No services are currently running")
                 return
             
-            processes = {service: processes[service]}
-        
-        # Show logs for each service
-        for service_name, process_info in processes.items():
-            log_file = process_info.get("log_file")
-            if not log_file:
-                click.echo(f"No log file found for service '{service_name}'")
-                continue
-                
-            log_path = Path(log_file)
-            if not log_path.exists():
-                click.echo(f"Log file does not exist for service '{service_name}': {log_file}")
-                continue
-            
-            if len(processes) > 1:
+            for service_name in running_services:
                 click.echo(f"\n=== Logs for {service_name} ===")
-            
-            if follow:
-                # Follow mode - tail -f equivalent
-                import subprocess
-                try:
-                    subprocess.run(['tail', '-f', str(log_path)], check=True)
-                except KeyboardInterrupt:
-                    click.echo("\nStopped following logs.")
-                    break
-                except subprocess.CalledProcessError as e:
-                    click.echo(f"Error following logs: {e}")
-            else:
-                # Regular mode - show last N lines
-                try:
-                    with open(log_path, 'r') as f:
-                        lines = f.readlines()
-                        
-                    # Apply tail limit
-                    if tail and len(lines) > tail:
-                        lines = lines[-tail:]
-                    
-                    # Print lines
-                    for line in lines:
-                        click.echo(line.rstrip())
-                        
-                except Exception as e:
-                    click.echo(f"Error reading log file: {e}")
-            
-            if len(processes) > 1:
+                
+                logs_result = dev_env.get_service_logs(
+                    service_name=service_name,
+                    tail=min(tail // len(running_services), 20),  # Distribute lines among services
+                    follow=False,
+                    since=since
+                )
+                
+                if logs_result['success']:
+                    logs_content = logs_result['logs'].strip()
+                    if logs_content:
+                        click.echo(logs_content)
+                    else:
+                        click.echo("No recent logs")
+                else:
+                    click.echo(f"Failed to get logs: {logs_result.get('error', 'Unknown error')}")
+                
                 click.echo("")  # Add spacing between services
         
     except Exception as e:
@@ -560,8 +735,22 @@ def logs(ctx, service, tail, follow, since):
 @click.option('--production', is_flag=True, help='Build for production (optimized)')
 @click.option('--docker', is_flag=True, help='Build Docker images')
 @click.pass_context
-def build(ctx, target, output, clean, production, docker):
-    """Build system, plugin, or Docker images."""
+def build(ctx: click.Context, target: Optional[str], output: Optional[str], 
+          clean: bool, production: bool, docker: bool) -> None:
+    """Build system, plugin, or Docker images.
+    
+    This command builds various components of the CoffeeBreak system, including
+    plugins, application components, and Docker images. It supports both
+    development and production build modes.
+    
+    Args:
+        ctx: Click context object
+        target: Specific target to build (plugin name, component, or None for system)
+        output: Output directory for build artifacts
+        clean: Clean build directory before building
+        production: Build for production (optimized)
+        docker: Build Docker images
+    """
     if ctx.obj['dry_run']:
         if target:
             click.echo(f"DRY RUN: Would build target: {target}")
@@ -715,8 +904,26 @@ def build(ctx, target, output, clean, production, docker):
         ctx.obj['error_handler'].exit_with_error(e, "Build process")
 
 
-def _build_component(component: str, output_dir: str, production: bool, verbose: bool) -> dict:
-    """Build a specific component."""
+def _build_component(component: str, output_dir: str, production: bool, verbose: bool) -> Dict[str, Any]:
+    """Build a specific component.
+    
+    This function builds a specific component (frontend, backend, core, etc.)
+    by detecting the build system and running the appropriate build process.
+    
+    Args:
+        component: Name of the component to build
+        output_dir: Output directory for build artifacts
+        production: Whether to build for production (optimized)
+        verbose: Enable verbose output
+    
+    Returns:
+        Dictionary containing build results with keys:
+        - success: Boolean indicating if build was successful
+        - component: Name of the component that was built
+        - artifacts: List of generated artifact paths
+        - build_dir: Path to the build directory
+        - error: Error message if build failed
+    """
     try:
         import os
         import subprocess
@@ -774,8 +981,21 @@ def _build_component(component: str, output_dir: str, production: bool, verbose:
         }
 
 
-def _build_frontend(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> list:
-    """Build frontend component."""
+def _build_frontend(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> List[str]:
+    """Build frontend component.
+    
+    This function builds frontend components by detecting the build system
+    (Node.js, static files, etc.) and running the appropriate build process.
+    
+    Args:
+        component_dir: Directory containing the frontend component
+        build_dir: Output directory for build artifacts
+        production: Whether to build for production (optimized)
+        verbose: Enable verbose output
+    
+    Returns:
+        List of generated artifact paths relative to the build directory
+    """
     import subprocess
     import shutil
     
@@ -845,8 +1065,21 @@ def _build_frontend(component_dir: Path, build_dir: Path, production: bool, verb
     return artifacts
 
 
-def _build_backend(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> list:
-    """Build backend component."""
+def _build_backend(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> List[str]:
+    """Build backend component.
+    
+    This function builds backend components by detecting the technology stack
+    (Python, Node.js, Java, etc.) and running the appropriate build process.
+    
+    Args:
+        component_dir: Directory containing the backend component
+        build_dir: Output directory for build artifacts
+        production: Whether to build for production (optimized)
+        verbose: Enable verbose output
+    
+    Returns:
+        List of generated artifact paths relative to the build directory
+    """
     import subprocess
     import shutil
     import os
@@ -944,8 +1177,21 @@ def _build_backend(component_dir: Path, build_dir: Path, production: bool, verbo
     return artifacts
 
 
-def _build_core(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> list:
-    """Build core component."""
+def _build_core(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> List[str]:
+    """Build core component.
+    
+    This function builds core components by copying all source files and
+    creating a build manifest with metadata about the build.
+    
+    Args:
+        component_dir: Directory containing the core component
+        build_dir: Output directory for build artifacts
+        production: Whether to build for production (optimized)
+        verbose: Enable verbose output
+    
+    Returns:
+        List of generated artifact paths relative to the build directory
+    """
     import shutil
     import json
     
@@ -980,8 +1226,21 @@ def _build_core(component_dir: Path, build_dir: Path, production: bool, verbose:
     return artifacts
 
 
-def _build_generic(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> list:
-    """Build generic component."""
+def _build_generic(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> List[str]:
+    """Build generic component.
+    
+    This function builds generic components by copying all source files
+    without any specific build process.
+    
+    Args:
+        component_dir: Directory containing the generic component
+        build_dir: Output directory for build artifacts
+        production: Whether to build for production (optimized)
+        verbose: Enable verbose output
+    
+    Returns:
+        List of generated artifact paths relative to the build directory
+    """
     import shutil
     
     artifacts = []
@@ -1002,8 +1261,23 @@ def _build_generic(component_dir: Path, build_dir: Path, production: bool, verbo
     return artifacts
 
 
-def _build_docker_images(output_dir: str, production: bool, verbose: bool) -> dict:
-    """Build Docker images for the system."""
+def _build_docker_images(output_dir: str, production: bool, verbose: bool) -> Dict[str, Any]:
+    """Build Docker images for the system.
+    
+    This function builds Docker images for the CoffeeBreak system components
+    (frontend, backend, core) using Docker build commands.
+    
+    Args:
+        output_dir: Output directory for build artifacts
+        production: Whether to build for production (optimized)
+        verbose: Enable verbose output
+    
+    Returns:
+        Dictionary containing build results with keys:
+        - success: Boolean indicating if build was successful
+        - images: List of built image tags
+        - error: Error message if build failed
+    """
     try:
         import subprocess
         
@@ -1054,8 +1328,22 @@ def _build_docker_images(output_dir: str, production: bool, verbose: bool) -> di
 @click.option('--skip-validation', is_flag=True, help='Skip pre-deployment validation')
 @click.option('--skip-backup', is_flag=True, help='Skip pre-deployment backup')
 @click.pass_context
-def deploy(ctx, environment, strategy, timeout, force, skip_validation, skip_backup):
-    """Deploy to configured production."""
+def deploy(ctx: click.Context, environment: str, strategy: str, timeout: int, 
+           force: bool, skip_validation: bool, skip_backup: bool) -> None:
+    """Deploy to configured production.
+    
+    This command deploys the CoffeeBreak system to the configured production
+    environment using the specified deployment strategy and options.
+    
+    Args:
+        ctx: Click context object
+        environment: Target environment (production, staging)
+        strategy: Deployment strategy (rolling, blue-green, canary)
+        timeout: Deployment timeout in seconds
+        force: Force deployment even if validation fails
+        skip_validation: Skip pre-deployment validation
+        skip_backup: Skip pre-deployment backup
+    """
     if ctx.obj['dry_run']:
         click.echo(f"DRY RUN: Would deploy to {environment}")
         click.echo(f"DRY RUN: Strategy: {strategy}")
@@ -1180,7 +1468,13 @@ def deploy(ctx, environment, strategy, timeout, force, skip_validation, skip_bac
 
 @cli.group(context_settings={'help_option_names': ['-h', '--help']})
 @click.pass_context
-def deps(ctx):
+def deps(ctx: click.Context) -> None:
+    """Manage development dependencies.
+    
+    This command group provides subcommands for managing development
+    dependencies, including starting/stopping services, viewing logs,
+    and managing environment configuration.
+    """
     """Dependency container management."""
     pass
 
@@ -1189,64 +1483,51 @@ def deps(ctx):
 @click.option('--profile', help='Use specific dependency profile')
 @click.argument('services', nargs=-1)
 @click.pass_context
-def start(ctx, profile, services):
-    """Start dependency containers."""
+def start(ctx: click.Context, profile: Optional[str], services: tuple) -> None:
+    """Start dependency services.
+    
+    This command starts dependency services (databases, message queues, etc.)
+    using Docker containers. It can start all services or specific ones.
+    
+    Args:
+        ctx: Click context object
+        profile: Use specific dependency profile
+        services: List of specific services to start
+    """
+    """Start dependency services."""
     if ctx.obj['dry_run']:
-        click.echo("DRY RUN: Would start dependency containers")
         if profile:
-            click.echo(f"DRY RUN: Would use profile: {profile}")
-        if services:
+            click.echo(f"DRY RUN: Would start dependency profile: {profile}")
+        elif services:
             click.echo(f"DRY RUN: Would start services: {', '.join(services)}")
+        else:
+            click.echo("DRY RUN: Would start default dependency profile")
         return
     
     try:
         from coffeebreak.config import ConfigManager
-        from coffeebreak.containers import DependencyManager
+        from coffeebreak.containers.dependencies import DependencyManager
         
-        # Initialize managers
+        # Initialize components
         config_manager = ConfigManager()
-        dependency_manager = DependencyManager(config_manager, verbose=ctx.obj['verbose'])
+        deps_manager = DependencyManager(config_manager, verbose=ctx.obj['verbose'])
         
-        # Convert services tuple to list
-        services_list = list(services) if services else None
-        
-        # Start dependencies
-        if profile:
-            click.echo(f"Starting dependencies with profile: {profile}")
-            result = dependency_manager.start_profile(profile)
-        elif services_list:
-            click.echo(f"Starting services: {', '.join(services_list)}")
-            result = dependency_manager.start_services(services_list)
+        if services:
+            # Start specific services
+            click.echo(f"Starting services: {', '.join(services)}")
+            success = deps_manager.start_services(list(services))
         else:
-            click.echo("Starting all dependency containers...")
-            result = dependency_manager.start_all_services()
+            # Start profile
+            profile_name = profile or 'full'
+            click.echo(f"Starting dependency profile: {profile_name}")
+            success = deps_manager.start_profile(profile_name)
         
-        if result['success']:
-            started_count = len(result.get('started_services', []))
-            click.echo(f"✓ Successfully started {started_count} services")
-            
-            if result.get('started_services'):
-                click.echo("\nStarted services:")
-                for service in result['started_services']:
-                    click.echo(f"  - {service}")
-            
-            # Start health monitoring
-            if dependency_manager.start_health_monitoring():
-                click.echo("✓ Health monitoring started")
-            else:
-                click.echo("⚠ Health monitoring could not be started")
-            
-            click.echo("\nUse 'coffeebreak deps status' to check service health")
+        if success:
+            click.echo("✓ Dependencies started successfully")
         else:
-            click.echo(f"✗ Failed to start services: {result.get('error', 'Unknown error')}")
-            
-            if result.get('failed_services'):
-                click.echo("\nFailed services:")
-                for service, error in result['failed_services'].items():
-                    click.echo(f"  - {service}: {error}")
-            
+            click.echo("✗ Failed to start dependencies")
             ctx.exit(1)
-        
+            
     except Exception as e:
         ctx.obj['error_handler'].exit_with_error(e, "Dependency startup")
 
@@ -1256,52 +1537,35 @@ def start(ctx, profile, services):
 @click.option('--all', is_flag=True, help='Stop all containers (default)')
 @click.pass_context
 def stop(ctx, services, all):
-    """Stop dependency containers."""
+    """Stop dependency services."""
     if ctx.obj['dry_run']:
         if services:
             click.echo(f"DRY RUN: Would stop services: {', '.join(services)}")
         else:
-            click.echo("DRY RUN: Would stop all dependency containers")
+            click.echo("DRY RUN: Would stop all dependency services")
         return
     
     try:
         from coffeebreak.config import ConfigManager
-        from coffeebreak.containers import DependencyManager
+        from coffeebreak.containers.dependencies import DependencyManager
         
-        # Initialize managers
+        # Initialize components
         config_manager = ConfigManager()
-        dependency_manager = DependencyManager(config_manager, verbose=ctx.obj['verbose'])
+        deps_manager = DependencyManager(config_manager, verbose=ctx.obj['verbose'])
         
-        # Convert services tuple to list
-        services_list = list(services) if services else None
-        
-        # Stop dependencies
-        if services_list:
-            click.echo(f"Stopping services: {', '.join(services_list)}")
-            result = dependency_manager.stop_services(services_list)
+        if services:
+            # Stop specific services
+            click.echo(f"Stopping services: {', '.join(services)}")
+            success = deps_manager.stop_services(list(services))
         else:
-            click.echo("Stopping all dependency containers...")
-            result = dependency_manager.stop_all_services()
+            # Stop all services
+            click.echo("Stopping all dependency services...")
+            success = deps_manager.stop_all_services()
         
-        # Stop health monitoring first
-        dependency_manager.stop_health_monitoring()
-        
-        if result['success']:
-            stopped_count = len(result.get('stopped_services', []))
-            click.echo(f"✓ Successfully stopped {stopped_count} services")
-            
-            if result.get('stopped_services'):
-                click.echo("\nStopped services:")
-                for service in result['stopped_services']:
-                    click.echo(f"  - {service}")
+        if success:
+            click.echo("✓ Dependencies stopped successfully")
         else:
-            click.echo(f"✗ Failed to stop services: {result.get('error', 'Unknown error')}")
-            
-            if result.get('failed_services'):
-                click.echo("\nFailed to stop:")
-                for service, error in result['failed_services'].items():
-                    click.echo(f"  - {service}: {error}")
-            
+            click.echo("✗ Failed to stop dependencies")
             ctx.exit(1)
         
     except Exception as e:
