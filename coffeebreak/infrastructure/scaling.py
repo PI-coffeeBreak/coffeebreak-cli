@@ -95,13 +95,13 @@ log_message() {{
 send_alert() {{
     local subject="$1"
     local message="$2"
-    
+
     log_message "ALERT: $subject"
-    
+
     if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
         /opt/coffeebreak/bin/notify.sh "$subject" "$message"
     fi
-    
+
     logger -t coffeebreak-scaling "ALERT: $subject - $message"
 }}
 
@@ -121,31 +121,31 @@ get_resource_metrics() {{
     # Get CPU usage
     local cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{{print $2}}' | sed 's/%us,//' | cut -d'%' -f1)
     cpu_usage=${{cpu_usage%.*}}  # Remove decimals
-    
+
     # Get memory usage
     local memory_usage=$(free | awk 'NR==2{{printf "%.0f", $3*100/$2 }}')
-    
+
     # Get load average
     local load_average=$(uptime | awk -F'load average:' '{{ print $2 }}' | awk '{{ print $1 }}' | sed 's/,//')
-    
+
     echo "$cpu_usage,$memory_usage,$load_average"
 }}
 
 # Function to check if scaling is on cooldown
 is_scaling_on_cooldown() {{
     local cooldown_file="/tmp/coffeebreak-scaling-cooldown"
-    
+
     if [ -f "$cooldown_file" ]; then
         local last_scale=$(cat "$cooldown_file")
         local current_time=$(date +%s)
         local time_diff=$((current_time - last_scale))
-        
+
         if [ $time_diff -lt $SCALE_COOLDOWN ]; then
             log_message "Scaling on cooldown ($((SCALE_COOLDOWN - time_diff)) seconds remaining)"
             return 0
         fi
     fi
-    
+
     return 1
 }}
 
@@ -159,23 +159,23 @@ set_scaling_cooldown() {{
 scale_up() {{
     local target_instances="$1"
     local current_instances=$(get_current_instances)
-    
+
     if [ "$target_instances" -le "$current_instances" ]; then
         log_message "Target instances ($target_instances) not greater than current ($current_instances), skipping scale up"
         return 0
     fi
-    
+
     if [ "$target_instances" -gt "$MAX_INSTANCES" ]; then
         target_instances=$MAX_INSTANCES
         log_message "Target instances capped at maximum: $MAX_INSTANCES"
     fi
-    
+
     log_message "Scaling up from $current_instances to $target_instances instances"
-    
+
     if [ "{self.deployment_type}" = "docker" ]; then
         # Scale Docker services
         local services=("coffeebreak-api" "coffeebreak-frontend" "coffeebreak-events")
-        
+
         for service in "${{services[@]}}"; do
             log_message "Scaling Docker service: $service"
             docker service scale "$service=$target_instances" || log_message "WARNING: Failed to scale $service"
@@ -183,18 +183,18 @@ scale_up() {{
     else
         # Scale standalone services (create additional service instances)
         local additional_instances=$((target_instances - current_instances))
-        
+
         for i in $(seq 1 $additional_instances); do
             local instance_num=$((current_instances + i))
-            
+
             # Create additional service instances
             log_message "Creating additional service instance: $instance_num"
-            
+
             # This would involve creating new systemd services or process instances
             # Implementation depends on specific architecture
         done
     fi
-    
+
     set_scaling_cooldown
     send_alert "Scaled Up" "Scaled from $current_instances to $target_instances instances"
 }}
@@ -203,23 +203,23 @@ scale_up() {{
 scale_down() {{
     local target_instances="$1"
     local current_instances=$(get_current_instances)
-    
+
     if [ "$target_instances" -ge "$current_instances" ]; then
         log_message "Target instances ($target_instances) not less than current ($current_instances), skipping scale down"
         return 0
     fi
-    
+
     if [ "$target_instances" -lt "$MIN_INSTANCES" ]; then
         target_instances=$MIN_INSTANCES
         log_message "Target instances raised to minimum: $MIN_INSTANCES"
     fi
-    
+
     log_message "Scaling down from $current_instances to $target_instances instances"
-    
+
     if [ "{self.deployment_type}" = "docker" ]; then
         # Scale Docker services
         local services=("coffeebreak-api" "coffeebreak-frontend" "coffeebreak-events")
-        
+
         for service in "${{services[@]}}"; do
             log_message "Scaling Docker service: $service"
             docker service scale "$service=$target_instances" || log_message "WARNING: Failed to scale $service"
@@ -227,18 +227,18 @@ scale_down() {{
     else
         # Scale down standalone services
         local instances_to_remove=$((current_instances - target_instances))
-        
+
         for i in $(seq 1 $instances_to_remove); do
             local instance_num=$((current_instances - i + 1))
-            
+
             # Remove service instances
             log_message "Removing service instance: $instance_num"
-            
+
             # This would involve stopping and removing systemd services
             # Implementation depends on specific architecture
         done
     fi
-    
+
     set_scaling_cooldown
     send_alert "Scaled Down" "Scaled from $current_instances to $target_instances instances"
 }}
@@ -246,50 +246,50 @@ scale_down() {{
 # Function to perform adaptive scaling
 adaptive_scaling() {{
     log_message "Performing adaptive scaling evaluation"
-    
+
     if is_scaling_on_cooldown; then
         return 0
     fi
-    
+
     local metrics=$(get_resource_metrics)
     local cpu_usage=$(echo "$metrics" | cut -d',' -f1)
     local memory_usage=$(echo "$metrics" | cut -d',' -f2)
     local load_average=$(echo "$metrics" | cut -d',' -f3)
     local current_instances=$(get_current_instances)
-    
+
     log_message "Current metrics: CPU=$cpu_usage%, Memory=$memory_usage%, Load=$load_average, Instances=$current_instances"
-    
+
     # Determine if scaling is needed
     local scale_action=""
     local target_instances=$current_instances
-    
+
     # Scale up conditions
     if [ "$cpu_usage" -gt "$CPU_SCALE_UP_THRESHOLD" ] || [ "$memory_usage" -gt "$MEMORY_SCALE_UP_THRESHOLD" ]; then
         scale_action="up"
-        
+
         # Calculate target instances based on resource usage
         if [ "$cpu_usage" -gt "$CPU_SCALE_UP_THRESHOLD" ]; then
             local cpu_scale_factor=$(echo "scale=0; $cpu_usage / $CPU_SCALE_UP_THRESHOLD" | bc)
             target_instances=$((current_instances + cpu_scale_factor))
         fi
-        
+
         if [ "$memory_usage" -gt "$MEMORY_SCALE_UP_THRESHOLD" ]; then
             local memory_scale_factor=$(echo "scale=0; $memory_usage / $MEMORY_SCALE_UP_THRESHOLD" | bc)
             local memory_target=$((current_instances + memory_scale_factor))
-            
+
             if [ "$memory_target" -gt "$target_instances" ]; then
                 target_instances=$memory_target
             fi
         fi
-        
+
     # Scale down conditions
     elif [ "$cpu_usage" -lt "$CPU_SCALE_DOWN_THRESHOLD" ] && [ "$memory_usage" -lt "$MEMORY_SCALE_DOWN_THRESHOLD" ] && [ "$current_instances" -gt "$MIN_INSTANCES" ]; then
         scale_action="down"
-        
+
         # Conservative scale down - reduce by 1 instance at a time
         target_instances=$((current_instances - 1))
     fi
-    
+
     # Execute scaling action
     case "$scale_action" in
         "up")
@@ -307,25 +307,25 @@ adaptive_scaling() {{
 # Function to perform scheduled scaling
 scheduled_scaling() {{
     local schedule_config="/opt/coffeebreak/config/scaling-schedule.json"
-    
+
     if [ ! -f "$schedule_config" ]; then
         log_message "No scaling schedule configuration found"
         return 0
     fi
-    
+
     local current_hour=$(date +%H)
     local current_day=$(date +%u)  # 1=Monday, 7=Sunday
-    
+
     # Parse schedule and determine target instances
     local target_instances=$(jq -r --arg hour "$current_hour" --arg day "$current_day" \\
         '.schedule[] | select(.hour == ($hour | tonumber) and (.days[] | tostring) == $day) | .instances' \\
         "$schedule_config" | head -1)
-    
+
     if [ -n "$target_instances" ] && [ "$target_instances" != "null" ]; then
         log_message "Scheduled scaling to $target_instances instances (hour=$current_hour, day=$current_day)"
-        
+
         local current_instances=$(get_current_instances)
-        
+
         if [ "$target_instances" -gt "$current_instances" ]; then
             scale_up "$target_instances"
         elif [ "$target_instances" -lt "$current_instances" ]; then
@@ -340,7 +340,7 @@ scheduled_scaling() {{
 manual_scaling() {{
     local action="$1"
     local instances="${{2:-1}}"
-    
+
     case "$action" in
         "up")
             local current_instances=$(get_current_instances)
@@ -374,7 +374,7 @@ show_scaling_status() {{
     local cpu_usage=$(echo "$metrics" | cut -d',' -f1)
     local memory_usage=$(echo "$metrics" | cut -d',' -f2)
     local load_average=$(echo "$metrics" | cut -d',' -f3)
-    
+
     echo "CoffeeBreak Scaling Status"
     echo "========================="
     echo "Current Instances: $current_instances"
@@ -393,7 +393,7 @@ show_scaling_status() {{
     echo "  Memory Scale Down: $MEMORY_SCALE_DOWN_THRESHOLD%"
     echo
     echo "Cooldown: $SCALE_COOLDOWN seconds"
-    
+
     if is_scaling_on_cooldown; then
         echo "Status: On cooldown"
     else
@@ -406,9 +406,9 @@ main() {{
     local action="${{1:-adaptive}}"
     local param1="$2"
     local param2="$3"
-    
+
     log_message "Scaling action requested: $action"
-    
+
     case "$action" in
         "adaptive"|"auto")
             adaptive_scaling

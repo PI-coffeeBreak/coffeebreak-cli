@@ -5,12 +5,13 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 import click
 
-from ..git.operations import GitOperationError, GitOperations
-from ..utils.errors import DevelopmentEnvironmentError
+from coffeebreak.git.operations import GitOperationError, GitOperations
+from coffeebreak.utils.errors import DevelopmentEnvironmentError
+
 from .detector import EnvironmentDetector
 
 if TYPE_CHECKING:
-    from ..config.manager import ConfigManager
+    from coffeebreak.config.manager import ConfigManager
 
 
 class DevelopmentEnvironment:
@@ -233,7 +234,7 @@ class DevelopmentEnvironment:
 
     def _generate_keycloak_dockerfile(self, keycloak_dir: Path) -> None:
         """Generate Keycloak Dockerfile."""
-        from ..templates.keycloak import get_dockerfile_content
+        from coffeebreak.templates.keycloak import get_dockerfile_content
 
         dockerfile_content = get_dockerfile_content()
         with open(keycloak_dir / "Dockerfile", "w") as f:
@@ -241,7 +242,7 @@ class DevelopmentEnvironment:
 
     def _generate_keycloak_realm(self, keycloak_dir: Path) -> None:
         """Generate minimal Keycloak realm configuration for development."""
-        from ..templates.keycloak import get_realm_config
+        from coffeebreak.templates.keycloak import get_realm_config
 
         realm_config = get_realm_config()
 
@@ -252,7 +253,7 @@ class DevelopmentEnvironment:
 
     def _generate_keycloak_theme(self, keycloak_dir: Path) -> None:
         """Generate basic Keycloak theme files."""
-        from ..templates.keycloak import get_theme_files
+        from coffeebreak.templates.keycloak import get_theme_files
 
         theme_files = get_theme_files()
         theme_dir = keycloak_dir / "themes" / "coffeebreak" / "login"
@@ -370,7 +371,8 @@ class DevelopmentEnvironment:
             env_info: Environment information from setup
         """
         try:
-            from ..utils.npm import NPMManager
+            from coffeebreak.utils.npm import NPMManager
+
             from .python_env import PythonEnvironmentManager
 
             python_env_manager = PythonEnvironmentManager(verbose=self.verbose)

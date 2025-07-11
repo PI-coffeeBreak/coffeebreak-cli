@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader
 
-from ..secrets import SecretGenerator, SecretManager
-from ..utils.errors import ConfigurationError
+from coffeebreak.secrets import SecretGenerator, SecretManager
+from coffeebreak.utils.errors import ConfigurationError
 
 
 class ProductionEnvironment:
@@ -462,7 +462,7 @@ esac
     def _setup_ssl_standalone(self, domain: str, ssl_email: str, install_dir: str) -> Dict[str, Any]:
         """Setup SSL certificates for standalone installation."""
         try:
-            from ..ssl import LetsEncryptManager
+            from coffeebreak.ssl import LetsEncryptManager
 
             ssl_email = ssl_email or f"admin@{domain}"
             le_manager = LetsEncryptManager(email=ssl_email, verbose=self.verbose)
@@ -844,7 +844,7 @@ echo "Backup completed: $BACKUP_DIR/$BACKUP_NAME"
             key_path = f"{install_dir}/ssl/privkey.pem"
 
             if os.path.exists(cert_path) and os.path.exists(key_path):
-                from ..ssl import SSLManager
+                from coffeebreak.ssl import SSLManager
 
                 ssl_manager = SSLManager(verbose=self.verbose)
 
@@ -1252,7 +1252,7 @@ docker-compose up -d
 .
 ├── docker-compose.yml          # Main orchestration file
 ├── .env.api                   # API service environment
-├── .env.frontend              # Frontend service environment  
+├── .env.frontend              # Frontend service environment
 ├── .env.events                # Events service environment
 ├── nginx/
 │   └── nginx.conf             # Nginx configuration

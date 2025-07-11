@@ -6,7 +6,8 @@ from typing import Any, Dict, List, Optional
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
-from ..environments.detector import EnvironmentDetector, EnvironmentType
+from coffeebreak.environments.detector import EnvironmentDetector, EnvironmentType
+
 from .validator import ConfigValidationError, ConfigValidator
 
 

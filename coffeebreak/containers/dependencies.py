@@ -71,7 +71,7 @@ class DependencyManager:
                 print(f"Starting profile '{profile_name}' using Docker Compose")
 
             # Generate compose file for profile
-            compose_file = self.compose_orchestrator.generate_compose_file(deps_config, profile=profile_name)
+            self.compose_orchestrator.generate_compose_file(deps_config, profile=profile_name)
 
             # Start services
             return self.compose_orchestrator.start_services(detach=True)
@@ -129,7 +129,7 @@ class DependencyManager:
                     print(f"Starting service '{service_name}'...")
 
                 # Start container
-                container_id = self.container_manager.start_container(service_config)
+                self.container_manager.start_container(service_config)
                 started_services.append(service_name)
 
                 # Wait for health check
@@ -326,7 +326,7 @@ class DependencyManager:
                 print("Cleaning up all dependency services using Docker API...")
 
             # Remove all configured containers
-            for service_name, service_config in services_config.items():
+            for _service_name, service_config in services_config.items():
                 container_name = service_config.get("container_name")
                 if container_name:
                     if self.verbose:

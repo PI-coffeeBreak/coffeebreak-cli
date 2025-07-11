@@ -40,7 +40,7 @@ class BackupScheduler:
                 scripts_dir = "./scripts"
 
             # Create scheduler script
-            scheduler_script = self._create_scheduler_script(domain, config, scripts_dir)
+            self._create_scheduler_script(domain, config, scripts_dir)
 
             # Setup cron jobs
             cron_setup = self._setup_cron_jobs(domain, config, scripts_dir)
@@ -86,16 +86,16 @@ log_message() {{
 # Function to run backup with proper logging
 run_backup() {{
     local backup_type="$1"
-    
+
     log_message "Starting scheduled backup (type: $backup_type)"
-    
+
     if [ -f "$BACKUP_SCRIPT" ]; then
         if "$BACKUP_SCRIPT" "$backup_type" >> "$LOG_FILE" 2>&1; then
             log_message "Scheduled backup completed successfully (type: $backup_type)"
             return 0
         else
             log_message "Scheduled backup failed (type: $backup_type)"
-            
+
             # Send failure notification
             if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
                 /opt/coffeebreak/bin/notify.sh "Scheduled Backup Failed" "Backup type: $backup_type failed to complete"
@@ -112,10 +112,10 @@ run_backup() {{
 check_system_load() {{
     local max_load="{config.get("max_load_threshold", 2.0)}"
     local current_load=$(uptime | awk -F'load average:' '{{ print $2 }}' | awk '{{ print $1 }}' | sed 's/,//')
-    
+
     if (( $(echo "$current_load > $max_load" | bc -l) )); then
         log_message "WARNING: System load too high ($current_load), delaying backup"
-        
+
         # Wait up to 30 minutes for load to decrease
         local wait_count=0
         while (( $(echo "$current_load > $max_load" | bc -l) )) && [ "$wait_count" -lt 30 ]; do
@@ -123,13 +123,13 @@ check_system_load() {{
             current_load=$(uptime | awk -F'load average:' '{{ print $2 }}' | awk '{{ print $1 }}' | sed 's/,//')
             ((wait_count++))
         done
-        
+
         if (( $(echo "$current_load > $max_load" | bc -l) )); then
             log_message "ERROR: System load still too high after 30 minutes, skipping backup"
             return 1
         fi
     fi
-    
+
     return 0
 }}
 
@@ -137,45 +137,45 @@ check_system_load() {{
 check_disk_space() {{
     local backup_dir="{config.get("backup_dir", "/opt/coffeebreak/backups")}"
     local min_space_gb="{config.get("min_free_space_gb", 5)}"
-    
+
     # Get available space in GB
     local available_gb=$(df "$backup_dir" | tail -1 | awk '{{print int($4/1024/1024)}}')
-    
+
     if [ "$available_gb" -lt "$min_space_gb" ]; then
         log_message "ERROR: Insufficient disk space ($available_gb GB available, need $min_space_gb GB)"
-        
+
         # Send low disk space alert
         if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
             /opt/coffeebreak/bin/notify.sh "Low Disk Space" "Only $available_gb GB available for backups (need $min_space_gb GB)"
         fi
-        
+
         return 1
     fi
-    
+
     return 0
 }}
 
 # Main scheduler function
 main() {{
     local backup_type="${{1:-incremental}}"
-    
+
     log_message "Backup scheduler started (type: $backup_type)"
-    
+
     # Pre-backup checks
     if ! check_system_load; then
         exit 1
     fi
-    
+
     if ! check_disk_space; then
         exit 1
     fi
-    
+
     # Lock file to prevent concurrent backups
     local lock_file="/tmp/coffeebreak-backup.lock"
-    
+
     if [ -f "$lock_file" ]; then
         local lock_pid=$(cat "$lock_file" 2>/dev/null || echo "")
-        
+
         if [ -n "$lock_pid" ] && kill -0 "$lock_pid" 2>/dev/null; then
             log_message "Backup already running (PID: $lock_pid), exiting"
             exit 0
@@ -184,13 +184,13 @@ main() {{
             rm -f "$lock_file"
         fi
     fi
-    
+
     # Create lock file
     echo $$ > "$lock_file"
-    
+
     # Ensure lock file is removed on exit
     trap 'rm -f "$lock_file"' EXIT
-    
+
     # Run the backup
     if run_backup "$backup_type"; then
         log_message "Backup scheduler completed successfully"

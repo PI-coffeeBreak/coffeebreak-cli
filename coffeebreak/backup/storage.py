@@ -236,7 +236,7 @@ log_message() {{
 # Function to sync to S3
 sync_to_s3() {{
     log_message "Starting S3 sync"
-    
+
     # Sync backup directory to S3
     if aws s3 sync "$BACKUP_DIR" "s3://$S3_BUCKET/$S3_PREFIX" --region {s3_region} --delete; then
         log_message "S3 sync completed successfully"
@@ -250,12 +250,12 @@ sync_to_s3() {{
 # Function to verify S3 sync
 verify_s3_sync() {{
     log_message "Verifying S3 sync"
-    
+
     local local_files=$(find "$BACKUP_DIR" -type f | wc -l)
     local s3_files=$(aws s3 ls "s3://$S3_BUCKET/$S3_PREFIX" --recursive | wc -l)
-    
+
     log_message "Local files: $local_files, S3 files: $s3_files"
-    
+
     if [ "$s3_files" -gt 0 ]; then
         log_message "S3 sync verification passed"
         return 0
@@ -268,7 +268,7 @@ verify_s3_sync() {{
 # Main function
 main() {{
     local action="${{1:-sync}}"
-    
+
     case "$action" in
         "sync")
             sync_to_s3
@@ -362,7 +362,7 @@ log_message() {{
 # Function to sync via rsync
 sync_via_rsync() {{
     log_message "Starting rsync sync"
-    
+
     # Sync backup directory via rsync
     if rsync -avz --delete "$BACKUP_DIR/" "$RSYNC_USER@$RSYNC_HOST:$RSYNC_PATH/"; then
         log_message "Rsync sync completed successfully"
@@ -376,7 +376,7 @@ sync_via_rsync() {{
 # Function to verify rsync sync
 verify_rsync_sync() {{
     log_message "Verifying rsync sync"
-    
+
     # Check if remote directory exists and has files
     if ssh "$RSYNC_USER@$RSYNC_HOST" "test -d $RSYNC_PATH && find $RSYNC_PATH -type f | head -1"; then
         log_message "Rsync sync verification passed"
@@ -390,7 +390,7 @@ verify_rsync_sync() {{
 # Main function
 main() {{
     local action="${{1:-sync}}"
-    
+
     case "$action" in
         "sync")
             sync_via_rsync
@@ -470,16 +470,16 @@ log_message() {{
 # Function to sync via SFTP
 sync_via_sftp() {{
     log_message "Starting SFTP sync"
-    
+
     # Create SFTP batch file
     local batch_file="/tmp/sftp-batch-$(date +%s)"
-    
+
     cat > "$batch_file" << EOF
 mkdir $SFTP_PATH
 put -r $BACKUP_DIR/* $SFTP_PATH/
 quit
 EOF
-    
+
     # Execute SFTP batch
     if sftp -b "$batch_file" "$SFTP_USER@$SFTP_HOST"; then
         log_message "SFTP sync completed successfully"
@@ -495,7 +495,7 @@ EOF
 # Function to verify SFTP sync
 verify_sftp_sync() {{
     log_message "Verifying SFTP sync"
-    
+
     # Check if remote directory exists
     if sftp "$SFTP_USER@$SFTP_HOST" <<< "ls $SFTP_PATH" | grep -q "."; then
         log_message "SFTP sync verification passed"
@@ -509,7 +509,7 @@ verify_sftp_sync() {{
 # Main function
 main() {{
     local action="${{1:-sync}}"
-    
+
     case "$action" in
         "sync")
             sync_via_sftp
@@ -581,30 +581,30 @@ log_message() {{
 send_alert() {{
     local subject="$1"
     local message="$2"
-    
+
     log_message "ALERT: $subject"
-    
+
     if command -v mail &> /dev/null && [ -n "$ALERT_EMAIL" ]; then
         echo "$message" | mail -s "CoffeeBreak Storage Alert: $subject" "$ALERT_EMAIL"
     fi
-    
+
     if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
         /opt/coffeebreak/bin/notify.sh "$subject" "$message"
     fi
-    
+
     logger -t coffeebreak-storage "ALERT: $subject - $message"
 }}
 
 # Function to check disk usage
 check_disk_usage() {{
     log_message "Checking backup storage disk usage"
-    
+
     local usage_info=$(df "$BACKUP_DIR" | tail -1)
     local usage_percent=$(echo "$usage_info" | awk '{{print $5}}' | sed 's/%//')
     local available_gb=$(echo "$usage_info" | awk '{{print int($4/1024/1024)}}')
-    
+
     log_message "Storage usage: $usage_percent% ($available_gb GB available)"
-    
+
     if [ "$usage_percent" -ge "$CRITICAL_THRESHOLD" ]; then
         send_alert "Critical Storage Usage" "Backup storage is $usage_percent% full ($available_gb GB available). Immediate action required!"
     elif [ "$usage_percent" -ge "$WARNING_THRESHOLD" ]; then
@@ -615,17 +615,17 @@ check_disk_usage() {{
 # Function to check backup directory health
 check_backup_health() {{
     log_message "Checking backup directory health"
-    
+
     if [ ! -d "$BACKUP_DIR" ]; then
         send_alert "Backup Directory Missing" "Backup directory $BACKUP_DIR does not exist"
         return 1
     fi
-    
+
     if [ ! -w "$BACKUP_DIR" ]; then
         send_alert "Backup Directory Not Writable" "Cannot write to backup directory $BACKUP_DIR"
         return 1
     fi
-    
+
     # Check subdirectories
     local subdirs=("postgresql" "mongodb" "files" "configs")
     for subdir in "${{subdirs[@]}}"; do
@@ -638,21 +638,21 @@ check_backup_health() {{
 # Function to check storage performance
 check_storage_performance() {{
     log_message "Checking storage performance"
-    
+
     local test_file="$BACKUP_DIR/.storage-test-$(date +%s)"
     local start_time=$(date +%s.%N)
-    
+
     # Write test (10MB)
     if dd if=/dev/zero of="$test_file" bs=1M count=10 &>/dev/null; then
         local end_time=$(date +%s.%N)
         local write_time=$(echo "$end_time - $start_time" | bc)
         local write_speed=$(echo "scale=2; 10 / $write_time" | bc)
-        
+
         log_message "Storage write speed: ${{write_speed}} MB/s"
-        
+
         # Cleanup test file
         rm -f "$test_file"
-        
+
         # Alert if write speed is too slow (less than 1 MB/s)
         if (( $(echo "$write_speed < 1" | bc -l) )); then
             send_alert "Slow Storage Performance" "Storage write speed is only ${{write_speed}} MB/s"
@@ -665,13 +665,13 @@ check_storage_performance() {{
 # Function to monitor remote storage sync
 check_remote_sync() {{
     local sync_script_patterns=("s3-sync.sh" "rsync-sync.sh" "sftp-sync.sh")
-    
+
     for pattern in "${{sync_script_patterns[@]}}"; do
         local sync_script=$(find /opt/coffeebreak/bin -name "$pattern" 2>/dev/null | head -1)
-        
+
         if [ -f "$sync_script" ]; then
             log_message "Checking remote sync: $pattern"
-            
+
             if "$sync_script" verify; then
                 log_message "✓ Remote sync verification passed: $pattern"
             else
@@ -684,12 +684,12 @@ check_remote_sync() {{
 # Main monitoring function
 main() {{
     log_message "Starting storage monitoring check"
-    
+
     check_disk_usage
     check_backup_health
     check_storage_performance
     check_remote_sync
-    
+
     log_message "Storage monitoring check completed"
 }}
 

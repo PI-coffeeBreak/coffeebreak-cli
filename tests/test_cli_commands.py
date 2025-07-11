@@ -8,7 +8,7 @@ from click.testing import CliRunner
 # Mock docker module before importing coffeebreak.cli
 sys.modules["docker"] = MagicMock()
 
-from coffeebreak.cli import cli
+from coffeebreak.cli import cli  # noqa: E402
 
 
 class TestCLICommands:

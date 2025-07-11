@@ -6,8 +6,8 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-from ..utils.errors import DockerError
-from ..utils.files import FileManager
+from coffeebreak.utils.errors import DockerError
+from coffeebreak.utils.files import FileManager
 
 
 class DockerComposeOrchestrator:

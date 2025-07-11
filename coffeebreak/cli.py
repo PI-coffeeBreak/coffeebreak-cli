@@ -1407,7 +1407,7 @@ def deploy(
         from coffeebreak.infrastructure.deployment import DeploymentManager
 
         # Initialize components
-        config_manager = ConfigManager()
+        ConfigManager()
         env_detector = EnvironmentDetector()
         deployment_manager = DeploymentManager(verbose=ctx.obj["verbose"])
 
@@ -1415,7 +1415,7 @@ def deploy(
         click.echo(f"Strategy: {strategy}")
 
         # Detect current environment and deployment type
-        current_env = env_detector.detect_environment()
+        env_detector.detect_environment()
 
         # Pre-deployment validation
         if not skip_validation:

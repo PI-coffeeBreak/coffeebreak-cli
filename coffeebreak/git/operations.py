@@ -152,7 +152,7 @@ class GitOperations:
                 failed_repos.append(f"{name}: {e}")
 
                 # Clean up any partially cloned repositories
-                for cloned_name, cloned_repo in cloned_repos.items():
+                for _cloned_name, cloned_repo in cloned_repos.items():
                     try:
                         shutil.rmtree(cloned_repo.working_dir)
                     except Exception:

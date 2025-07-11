@@ -509,7 +509,7 @@ main() {{
 
                 case $choice in
                     1) main "list" ;;
-                    2) 
+                    2)
                         read -p "Enter backup date (YYYYMMDD_HHMMSS) or 'latest': " date
                         main "postgresql" "$date"
                         ;;

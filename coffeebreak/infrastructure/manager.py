@@ -4,7 +4,8 @@ import os
 import subprocess
 from typing import Any, Dict, Optional
 
-from ..utils.errors import ConfigurationError
+from coffeebreak.utils.errors import ConfigurationError
+
 from .deployment import DeploymentOrchestrator
 from .maintenance import MaintenanceManager
 from .scaling import AutoScaler
@@ -169,59 +170,59 @@ log_message() {{
 send_alert() {{
     local subject="$1"
     local message="$2"
-    
+
     log_message "ALERT: $subject"
-    
+
     if command -v mail &> /dev/null && [ -n "$ALERT_EMAIL" ]; then
         echo "$message" | mail -s "CoffeeBreak Infrastructure Alert: $subject" "$ALERT_EMAIL"
     fi
-    
+
     if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
         /opt/coffeebreak/bin/notify.sh "$subject" "$message"
     fi
-    
+
     logger -t coffeebreak-infrastructure "ALERT: $subject - $message"
 }}
 
 # Function to check resource usage
 check_resource_usage() {{
     log_message "Checking system resource usage"
-    
+
     # Check CPU usage
     local cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{{print $2}}' | sed 's/%us,//' | cut -d'%' -f1)
     cpu_usage=${{cpu_usage%.*}}  # Remove decimals
-    
+
     if [ "$cpu_usage" -gt "$CPU_THRESHOLD" ]; then
         send_alert "High CPU Usage" "CPU usage is $cpu_usage% (threshold: $CPU_THRESHOLD%)"
     fi
-    
+
     # Check memory usage
     local memory_usage=$(free | awk 'NR==2{{printf "%.0f", $3*100/$2 }}')
-    
+
     if [ "$memory_usage" -gt "$MEMORY_THRESHOLD" ]; then
         send_alert "High Memory Usage" "Memory usage is $memory_usage% (threshold: $MEMORY_THRESHOLD%)"
     fi
-    
+
     log_message "Resource usage: CPU $cpu_usage%, Memory $memory_usage%"
 }}
 
 # Function to check service health
 check_service_health() {{
     log_message "Checking CoffeeBreak service health"
-    
+
     local services=("coffeebreak-api" "coffeebreak-frontend" "coffeebreak-events")
     local failed_services=()
-    
+
     for service in "${{services[@]}}"; do
         if ! systemctl is-active --quiet "$service"; then
             failed_services+=("$service")
             log_message "WARNING: Service $service is not running"
         fi
     done
-    
+
     if [ ${{#failed_services[@]}} -gt 0 ]; then
         send_alert "Service Health Check Failed" "The following services are not running: ${{failed_services[*]}}"
-        
+
         # Attempt automatic restart
         if [ "{config.get("auto_restart_services", True)}" = "True" ]; then
             log_message "Attempting automatic service restart"
@@ -237,10 +238,10 @@ check_service_health() {{
 # Function to check application health
 check_application_health() {{
     log_message "Checking application health endpoint"
-    
+
     local health_url="https://$DOMAIN/health"
     local response_code=$(curl -s -o /dev/null -w "%{{http_code}}" --max-time 10 "$health_url" || echo "000")
-    
+
     if [ "$response_code" != "200" ]; then
         send_alert "Application Health Check Failed" "Health endpoint returned HTTP $response_code"
     else
@@ -251,7 +252,7 @@ check_application_health() {{
 # Function to check database connectivity
 check_database_connectivity() {{
     log_message "Checking database connectivity"
-    
+
     # Check PostgreSQL
     if systemctl is-active --quiet postgresql; then
         if sudo -u postgres psql -c "SELECT 1;" > /dev/null 2>&1; then
@@ -260,7 +261,7 @@ check_database_connectivity() {{
             send_alert "PostgreSQL Connection Failed" "Cannot connect to PostgreSQL database"
         fi
     fi
-    
+
     # Check MongoDB
     if systemctl is-active --quiet mongod; then
         if mongo --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
@@ -274,7 +275,7 @@ check_database_connectivity() {{
 # Function to check load balancer health
 check_load_balancer() {{
     log_message "Checking load balancer health"
-    
+
     if systemctl is-active --quiet nginx; then
         if nginx -t > /dev/null 2>&1; then
             log_message "✓ Nginx configuration is valid"
@@ -289,15 +290,15 @@ check_load_balancer() {{
 # Function to check SSL certificate status
 check_ssl_certificates() {{
     log_message "Checking SSL certificate status"
-    
+
     local expiry_days=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | \\
                        openssl x509 -noout -dates | grep notAfter | cut -d= -f2 | \\
                        xargs -I{{}} date -d{{}} +%s)
-    
+
     if [ -n "$expiry_days" ]; then
         local current_time=$(date +%s)
         local days_left=$(( (expiry_days - current_time) / 86400 ))
-        
+
         if [ "$days_left" -lt 7 ]; then
             send_alert "SSL Certificate Expiring Soon" "SSL certificate expires in $days_left days"
         elif [ "$days_left" -lt 30 ]; then
@@ -313,9 +314,9 @@ check_ssl_certificates() {{
 # Function to check disk space
 check_disk_space() {{
     log_message "Checking disk space"
-    
+
     local usage=$(df / | awk 'NR==2 {{print $5}}' | sed 's/%//')
-    
+
     if [ "$usage" -gt 90 ]; then
         send_alert "Critical Disk Space" "Disk usage is at $usage%"
     elif [ "$usage" -gt 80 ]; then
@@ -328,20 +329,20 @@ check_disk_space() {{
 # Function to check for infrastructure anomalies
 check_infrastructure_anomalies() {{
     log_message "Checking for infrastructure anomalies"
-    
+
     # Check for unusual network connections
     local suspicious_connections=$(netstat -tn | grep ESTABLISHED | wc -l)
     if [ "$suspicious_connections" -gt 100 ]; then
         log_message "WARNING: High number of network connections ($suspicious_connections)"
     fi
-    
+
     # Check for high I/O wait
     local iowait=$(top -bn1 | grep "Cpu(s)" | awk '{{print $5}}' | sed 's/%wa,//' | cut -d'%' -f1)
     iowait=${{iowait%.*}}
     if [ "$iowait" -gt 20 ]; then
         log_message "WARNING: High I/O wait time ($iowait%)"
     fi
-    
+
     # Check system load
     local load_average=$(uptime | awk -F'load average:' '{{ print $2 }}' | awk '{{ print $1 }}' | sed 's/,//')
     if (( $(echo "$load_average > 4.0" | bc -l) )); then
@@ -352,7 +353,7 @@ check_infrastructure_anomalies() {{
 # Main monitoring function
 main() {{
     log_message "Starting infrastructure monitoring check"
-    
+
     check_resource_usage
     check_service_health
     check_application_health
@@ -361,7 +362,7 @@ main() {{
     check_ssl_certificates
     check_disk_space
     check_infrastructure_anomalies
-    
+
     log_message "Infrastructure monitoring check completed"
 }}
 
@@ -450,9 +451,9 @@ log_message() {{
 handle_deployment() {{
     local deployment_type="$1"
     local version="${{2:-latest}}"
-    
+
     log_message "Deployment request received: type=$deployment_type, version=$version"
-    
+
     case "$deployment_type" in
         "rolling")
             /opt/coffeebreak/bin/deploy.sh rolling "$version"
@@ -474,9 +475,9 @@ handle_deployment() {{
 handle_scaling() {{
     local action="$1"
     local instances="${{2:-1}}"
-    
+
     log_message "Scaling request received: action=$action, instances=$instances"
-    
+
     case "$action" in
         "scale-up")
             /opt/coffeebreak/bin/scale.sh up "$instances"
@@ -497,9 +498,9 @@ handle_scaling() {{
 # Function to handle maintenance request
 handle_maintenance() {{
     local maintenance_type="$1"
-    
+
     log_message "Maintenance request received: type=$maintenance_type"
-    
+
     case "$maintenance_type" in
         "update")
             /opt/coffeebreak/bin/maintenance.sh update
@@ -520,7 +521,7 @@ handle_maintenance() {{
 # Function to get system status
 get_status() {{
     local status_type="${{1:-all}}"
-    
+
     case "$status_type" in
         "services")
             systemctl status coffeebreak-* --no-pager
@@ -551,19 +552,19 @@ get_status() {{
 # Function to start API server
 start_api_server() {{
     log_message "Starting orchestration API server on port $API_PORT"
-    
+
     # Simple HTTP server using netcat
     while true; do
         request=$(echo -e "HTTP/1.1 200 OK
 
 CoffeeBreak Orchestration API" | nc -l -p "$API_PORT" -q 1)
-        
+
         # Parse request
         method=$(echo "$request" | head -1 | awk '{{print $1}}')
         path=$(echo "$request" | head -1 | awk '{{print $2}}')
-        
+
         log_message "API request: $method $path"
-        
+
         # Handle different endpoints
         case "$path" in
             "/deploy/"*)
@@ -591,7 +592,7 @@ CoffeeBreak Orchestration API" | nc -l -p "$API_PORT" -q 1)
                 echo "ERROR: Unknown endpoint: $path"
                 ;;
         esac
-        
+
         sleep 1
     done
 }}
@@ -599,7 +600,7 @@ CoffeeBreak Orchestration API" | nc -l -p "$API_PORT" -q 1)
 # Main function
 main() {{
     local action="${{1:-server}}"
-    
+
     case "$action" in
         "server")
             start_api_server
@@ -778,11 +779,11 @@ log_message() {{
 restart_service() {{
     local service="$1"
     local max_wait="${{2:-60}}"
-    
+
     log_message "Restarting service: $service"
-    
+
     systemctl restart "$service"
-    
+
     # Wait for service to become active
     local wait_time=0
     while [ $wait_time -lt $max_wait ]; do
@@ -790,11 +791,11 @@ restart_service() {{
             log_message "Service $service restarted successfully"
             return 0
         fi
-        
+
         sleep 5
         wait_time=$((wait_time + 5))
     done
-    
+
     log_message "ERROR: Service $service failed to start within $max_wait seconds"
     return 1
 }}
@@ -802,29 +803,29 @@ restart_service() {{
 # Function to perform graceful restart
 graceful_restart() {{
     log_message "Starting graceful infrastructure restart"
-    
+
     # Stop application services first
     log_message "Stopping application services..."
     systemctl stop coffeebreak-events || true
     systemctl stop coffeebreak-frontend || true
     systemctl stop coffeebreak-api || true
-    
+
     # Restart infrastructure services
     log_message "Restarting infrastructure services..."
     restart_service nginx
     restart_service postgresql
     restart_service mongod
-    
+
     # Start application services
     log_message "Starting application services..."
     restart_service coffeebreak-api 120
     restart_service coffeebreak-frontend 60
     restart_service coffeebreak-events 60
-    
+
     # Verify health
     log_message "Verifying application health..."
     sleep 10
-    
+
     if curl -s --max-time 10 "https://{domain}/health" > /dev/null; then
         log_message "✓ Application health check passed"
         return 0
@@ -837,16 +838,16 @@ graceful_restart() {{
 # Function to perform emergency restart
 emergency_restart() {{
     log_message "Starting emergency infrastructure restart"
-    
+
     # Force restart all services
     systemctl restart nginx
     systemctl restart postgresql
     systemctl restart mongod
     systemctl restart coffeebreak-*
-    
+
     # Wait and verify
     sleep 15
-    
+
     if curl -s --max-time 10 "https://{domain}/health" > /dev/null; then
         log_message "Emergency restart completed successfully"
     else
@@ -857,7 +858,7 @@ emergency_restart() {{
 # Main function
 main() {{
     local restart_type="${{1:-graceful}}"
-    
+
     case "$restart_type" in
         "graceful")
             graceful_restart

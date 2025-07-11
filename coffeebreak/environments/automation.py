@@ -6,11 +6,12 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ..config.manager import ConfigManager
-from ..containers.dependencies import DependencyManager
-from ..git.operations import GitOperations
-from ..utils.errors import CoffeeBreakError, EnvironmentError
-from ..utils.files import FileManager
+from coffeebreak.config.manager import ConfigManager
+from coffeebreak.containers.dependencies import DependencyManager
+from coffeebreak.git.operations import GitOperations
+from coffeebreak.utils.errors import CoffeeBreakError, EnvironmentError
+from coffeebreak.utils.files import FileManager
+
 from .detector import EnvironmentType
 
 
@@ -482,7 +483,7 @@ class DevEnvironmentAutomation:
             connection_info = self.dependency_manager.generate_connection_info()
 
             # Generate main .env.local file
-            env_path = self.file_manager.generate_env_file(
+            self.file_manager.generate_env_file(
                 connection_info=connection_info,
                 output_path=".env.local",
                 include_secrets=True,
@@ -790,7 +791,7 @@ class DevEnvironmentAutomation:
                 "reset": "\033[0m",  # Reset
             }
 
-            service_names = list(self.processes.keys())
+            list(self.processes.keys())
 
             while True:
                 # Check if any processes are still alive

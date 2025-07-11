@@ -4,16 +4,17 @@ import os
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
-    from ..config.manager import ConfigManager
-from ..plugins.builder import PluginBuilder
-from ..plugins.creator import PluginCreator
-from ..plugins.dependencies import PluginDependencyManager
-from ..plugins.devtools import PluginDeveloperTools
-from ..plugins.documentation import PluginDocumentationGenerator
-from ..plugins.hotreload import PluginDevelopmentWorkflow, PluginHotReloadManager
-from ..plugins.integration import PluginContainerIntegration
-from ..plugins.testing import PluginTestFramework
-from ..plugins.validator import PluginValidator
+    from coffeebreak.config.manager import ConfigManager
+from coffeebreak.plugins.builder import PluginBuilder
+from coffeebreak.plugins.creator import PluginCreator
+from coffeebreak.plugins.dependencies import PluginDependencyManager
+from coffeebreak.plugins.devtools import PluginDeveloperTools
+from coffeebreak.plugins.documentation import PluginDocumentationGenerator
+from coffeebreak.plugins.hotreload import PluginDevelopmentWorkflow, PluginHotReloadManager
+from coffeebreak.plugins.integration import PluginContainerIntegration
+from coffeebreak.plugins.testing import PluginTestFramework
+from coffeebreak.plugins.validator import PluginValidator
+
 from .detector import EnvironmentDetector
 
 

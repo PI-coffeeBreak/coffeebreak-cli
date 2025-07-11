@@ -174,12 +174,12 @@ log_message() {{
 handle_error() {{
     local error_msg="$1"
     log_message "ERROR: $error_msg"
-    
+
     # Send alert if notification script exists
     if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
         /opt/coffeebreak/bin/notify.sh "Backup Failed" "$error_msg"
     fi
-    
+
     exit 1
 }}
 
@@ -188,7 +188,7 @@ create_backup_dir() {{
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local backup_type="$1"
     local backup_path="$BACKUP_DIR/$backup_type/$timestamp"
-    
+
     mkdir -p "$backup_path"
     echo "$backup_path"
 }}
@@ -198,16 +198,16 @@ finalize_backup() {{
     local backup_path="$1"
     local backup_name="$(basename "$backup_path")"
     local parent_dir="$(dirname "$backup_path")"
-    
+
     cd "$parent_dir"
-    
+
     if [ "$ENABLE_COMPRESSION" = "true" ]; then
         log_message "Compressing backup: $backup_name"
         tar -czf "${{backup_name}}.tar.gz" "$backup_name"
         rm -rf "$backup_name"
         backup_name="${{backup_name}}.tar.gz"
     fi
-    
+
     if [ "$ENABLE_ENCRYPTION" = "true" ]; then
         log_message "Encrypting backup: $backup_name"
         if command -v gpg &> /dev/null; then
@@ -218,16 +218,16 @@ finalize_backup() {{
             log_message "WARNING: GPG not available, skipping encryption"
         fi
     fi
-    
+
     log_message "Backup finalized: $parent_dir/$backup_name"
 }}
 
 # Function to backup PostgreSQL databases
 backup_postgresql() {{
     log_message "Starting PostgreSQL backup"
-    
+
     local backup_path=$(create_backup_dir "postgresql")
-    
+
     # Get list of databases
     local databases
     if systemctl is-active --quiet postgresql; then
@@ -236,7 +236,7 @@ backup_postgresql() {{
         log_message "WARNING: PostgreSQL not running, skipping database backup"
         return 0
     fi
-    
+
     if [ -n "$databases" ]; then
         for db in $databases; do
             db=$(echo "$db" | xargs)  # Trim whitespace
@@ -245,11 +245,11 @@ backup_postgresql() {{
                 sudo -u postgres pg_dump "$db" > "$backup_path/${{db}}.sql" || handle_error "Failed to backup PostgreSQL database: $db"
             fi
         done
-        
+
         # Backup globals (users, roles, etc.)
         log_message "Backing up PostgreSQL globals"
         sudo -u postgres pg_dumpall --globals-only > "$backup_path/globals.sql" || handle_error "Failed to backup PostgreSQL globals"
-        
+
         finalize_backup "$backup_path"
     else
         log_message "No PostgreSQL databases found to backup"
@@ -260,9 +260,9 @@ backup_postgresql() {{
 # Function to backup MongoDB databases
 backup_mongodb() {{
     log_message "Starting MongoDB backup"
-    
+
     local backup_path=$(create_backup_dir "mongodb")
-    
+
     if systemctl is-active --quiet mongod || pgrep mongod > /dev/null; then
         log_message "Backing up MongoDB databases"
         mongodump --out "$backup_path" || handle_error "Failed to backup MongoDB"
@@ -276,9 +276,9 @@ backup_mongodb() {{
 # Function to backup application files
 backup_files() {{
     log_message "Starting file backup"
-    
+
     local backup_path=$(create_backup_dir "files")
-    
+
     # List of directories to backup
     local dirs_to_backup=(
         "/opt/coffeebreak/data"
@@ -286,22 +286,22 @@ backup_files() {{
         "/opt/coffeebreak/plugins"
         "/var/log/coffeebreak"
     )
-    
+
     for dir in "${{dirs_to_backup[@]}}"; do
         if [ -d "$dir" ]; then
             log_message "Backing up directory: $dir"
             cp -r "$dir" "$backup_path/" || handle_error "Failed to backup directory: $dir"
         fi
     done
-    
+
     # Backup Docker volumes if Docker deployment
     if [ -f "/usr/bin/docker" ] && docker ps -q > /dev/null 2>&1; then
         log_message "Backing up Docker volumes"
         mkdir -p "$backup_path/docker-volumes"
-        
+
         # Get CoffeeBreak-related volumes
         local volumes=$(docker volume ls --filter name=coffeebreak --format "{{{{.Name}}}}" 2>/dev/null || echo "")
-        
+
         for volume in $volumes; do
             if [ -n "$volume" ]; then
                 log_message "Backing up Docker volume: $volume"
@@ -309,16 +309,16 @@ backup_files() {{
             fi
         done
     fi
-    
+
     finalize_backup "$backup_path"
 }}
 
 # Function to backup configuration files
 backup_configs() {{
     log_message "Starting configuration backup"
-    
+
     local backup_path=$(create_backup_dir "configs")
-    
+
     # List of config files/directories to backup
     local configs_to_backup=(
         "/opt/coffeebreak/config"
@@ -328,46 +328,46 @@ backup_configs() {{
         "/etc/cron.d/coffeebreak"
         "/etc/logrotate.d/coffeebreak"
     )
-    
+
     for config in "${{configs_to_backup[@]}}"; do
         if [ -e "$config" ]; then
             log_message "Backing up config: $config"
-            
+
             # Create directory structure in backup
             local relative_path="${{config#/}}"
             local backup_config_path="$backup_path/$relative_path"
             mkdir -p "$(dirname "$backup_config_path")"
-            
+
             cp -r "$config" "$backup_config_path" 2>/dev/null || log_message "WARNING: Failed to backup config: $config"
         fi
     done
-    
+
     # Backup Docker Compose files if they exist
     if [ -f "docker-compose.yml" ]; then
         log_message "Backing up Docker Compose configuration"
         cp docker-compose.yml "$backup_path/" || log_message "WARNING: Failed to backup docker-compose.yml"
     fi
-    
+
     finalize_backup "$backup_path"
 }}
 
 # Function to cleanup old backups
 cleanup_old_backups() {{
     log_message "Cleaning up backups older than $RETENTION_DAYS days"
-    
+
     find "$BACKUP_DIR" -type f -mtime +$RETENTION_DAYS -delete 2>/dev/null || true
     find "$BACKUP_DIR" -type d -empty -delete 2>/dev/null || true
-    
+
     log_message "Backup cleanup completed"
 }}
 
 # Function to verify backup integrity
 verify_backups() {{
     log_message "Verifying recent backups"
-    
+
     local today=$(date +%Y%m%d)
     local recent_backups=$(find "$BACKUP_DIR" -name "*$today*" -type f 2>/dev/null || echo "")
-    
+
     for backup_file in $recent_backups; do
         if [[ "$backup_file" == *.tar.gz ]]; then
             if tar -tzf "$backup_file" > /dev/null 2>&1; then
@@ -388,39 +388,39 @@ verify_backups() {{
 # Main backup function
 main() {{
     local backup_type="${{1:-incremental}}"
-    
+
     log_message "Starting CoffeeBreak backup (type: $backup_type)"
-    
+
     # Create backup directory structure
     mkdir -p "$BACKUP_DIR"/{{postgresql,mongodb,files,configs}}
-    
+
     # Perform backups based on configuration
     if [ "{config.get("backup_databases", True)}" = "True" ]; then
         backup_postgresql
         backup_mongodb
     fi
-    
+
     if [ "{config.get("backup_files", True)}" = "True" ]; then
         backup_files
     fi
-    
+
     if [ "{config.get("backup_configs", True)}" = "True" ]; then
         backup_configs
     fi
-    
+
     # Verify backups if enabled
     if [ "{config.get("verify_backups", True)}" = "True" ]; then
         verify_backups
     fi
-    
+
     # Cleanup old backups
     cleanup_old_backups
-    
+
     # Calculate backup size
     local backup_size=$(du -sh "$BACKUP_DIR" 2>/dev/null | cut -f1 || echo "unknown")
-    
+
     log_message "Backup completed successfully (Total size: $backup_size)"
-    
+
     # Send success notification
     if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
         /opt/coffeebreak/bin/notify.sh "Backup Completed" "CoffeeBreak backup completed successfully. Type: $backup_type, Size: $backup_size"
@@ -486,9 +486,9 @@ log_message() {{
 # Function to verify PostgreSQL backup
 verify_postgresql_backup() {{
     local backup_file="$1"
-    
+
     log_message "Verifying PostgreSQL backup: $backup_file"
-    
+
     if [[ "$backup_file" == *.sql ]]; then
         # Check SQL syntax
         if pg_verifybackup --parse-only "$backup_file" 2>/dev/null; then
@@ -505,16 +505,16 @@ verify_postgresql_backup() {{
             fi
         fi
     fi
-    
+
     return 1
 }}
 
 # Function to verify MongoDB backup
 verify_mongodb_backup() {{
     local backup_dir="$1"
-    
+
     log_message "Verifying MongoDB backup: $backup_dir"
-    
+
     if [ -d "$backup_dir" ]; then
         # Check for BSON files
         local bson_files=$(find "$backup_dir" -name "*.bson" | wc -l)
@@ -526,16 +526,16 @@ verify_mongodb_backup() {{
             return 1
         fi
     fi
-    
+
     return 1
 }}
 
 # Function to verify file backup integrity
 verify_file_backup() {{
     local backup_file="$1"
-    
+
     log_message "Verifying file backup: $backup_file"
-    
+
     if [[ "$backup_file" == *.tar.gz ]]; then
         if tar -tzf "$backup_file" > /dev/null 2>&1; then
             log_message "✓ File backup archive valid: $backup_file"
@@ -553,19 +553,19 @@ verify_file_backup() {{
             return 1
         fi
     fi
-    
+
     return 1
 }}
 
 # Main verification function
 main() {{
     local backup_date="${{1:-$(date +%Y%m%d)}}"
-    
+
     log_message "Starting backup verification for date: $backup_date"
-    
+
     local total_verified=0
     local total_failed=0
-    
+
     # Verify PostgreSQL backups
     for backup_file in "$BACKUP_DIR"/postgresql/*"$backup_date"*; do
         if [ -f "$backup_file" ]; then
@@ -576,7 +576,7 @@ main() {{
             fi
         fi
     done
-    
+
     # Verify MongoDB backups
     for backup_dir in "$BACKUP_DIR"/mongodb/*"$backup_date"*; do
         if [ -d "$backup_dir" ]; then
@@ -587,7 +587,7 @@ main() {{
             fi
         fi
     done
-    
+
     # Verify file backups
     for backup_file in "$BACKUP_DIR"/files/*"$backup_date"* "$BACKUP_DIR"/configs/*"$backup_date"*; do
         if [ -f "$backup_file" ]; then
@@ -598,14 +598,14 @@ main() {{
             fi
         fi
     done
-    
+
     log_message "Backup verification completed: $total_verified verified, $total_failed failed"
-    
+
     # Send notification if there are failures
     if [ "$total_failed" -gt 0 ] && [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
         /opt/coffeebreak/bin/notify.sh "Backup Verification Failed" "$total_failed backup(s) failed verification for date $backup_date"
     fi
-    
+
     exit $total_failed
 }}
 
@@ -654,19 +654,19 @@ log_message() {{
 send_alert() {{
     local subject="$1"
     local message="$2"
-    
+
     log_message "ALERT: $subject"
-    
+
     # Send email if available
     if command -v mail &> /dev/null && [ -n "$ALERT_EMAIL" ]; then
         echo "$message" | mail -s "CoffeeBreak Backup Alert: $subject" "$ALERT_EMAIL"
     fi
-    
+
     # Send via notification script if available
     if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
         /opt/coffeebreak/bin/notify.sh "$subject" "$message"
     fi
-    
+
     # Log to syslog
     logger -t coffeebreak-backup "ALERT: $subject - $message"
 }}
@@ -674,25 +674,25 @@ send_alert() {{
 # Function to check backup freshness
 check_backup_freshness() {{
     log_message "Checking backup freshness"
-    
+
     local current_time=$(date +%s)
     local max_age_seconds=$((MAX_BACKUP_AGE_HOURS * 3600))
-    
+
     # Check for recent backups in each category
     local categories=("postgresql" "mongodb" "files" "configs")
     local stale_categories=()
-    
+
     for category in "${{categories[@]}}"; do
         local category_dir="$BACKUP_DIR/$category"
-        
+
         if [ -d "$category_dir" ]; then
             local latest_backup=$(find "$category_dir" -type f -printf '%T@ %p
 ' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
-            
+
             if [ -n "$latest_backup" ]; then
                 local backup_time=$(stat -c %Y "$latest_backup" 2>/dev/null || echo 0)
                 local age_seconds=$((current_time - backup_time))
-                
+
                 if [ "$age_seconds" -gt "$max_age_seconds" ]; then
                     stale_categories+=("$category")
                     log_message "WARNING: Stale backup in category $category ($(( age_seconds / 3600 )) hours old)"
@@ -707,7 +707,7 @@ check_backup_freshness() {{
             log_message "WARNING: Backup category directory missing: $category_dir"
         fi
     done
-    
+
     if [ ${{#stale_categories[@]}} -gt 0 ]; then
         send_alert "Stale Backups Detected" "The following backup categories are stale: ${{stale_categories[*]}}"
     fi
@@ -716,40 +716,40 @@ check_backup_freshness() {{
 # Function to check backup sizes
 check_backup_sizes() {{
     log_message "Checking backup sizes"
-    
+
     local today=$(date +%Y%m%d)
     local yesterday=$(date -d "yesterday" +%Y%m%d)
-    
+
     # Get today's backup size
     local today_size=$(find "$BACKUP_DIR" -name "*$today*" -type f -exec du -cb {{}} + 2>/dev/null | tail -1 | cut -f1 || echo 0)
-    
+
     # Get yesterday's backup size
     local yesterday_size=$(find "$BACKUP_DIR" -name "*$yesterday*" -type f -exec du -cb {{}} + 2>/dev/null | tail -1 | cut -f1 || echo 0)
-    
+
     if [ "$today_size" -eq 0 ]; then
         send_alert "No Backups Today" "No backups found for today ($today)"
     elif [ "$yesterday_size" -gt 0 ]; then
         # Check for significant size difference (more than 50% change)
         local size_ratio=$((today_size * 100 / yesterday_size))
-        
+
         if [ "$size_ratio" -lt 50 ]; then
             send_alert "Backup Size Anomaly" "Today's backup is significantly smaller than yesterday's ($today_size vs $yesterday_size bytes)"
         elif [ "$size_ratio" -gt 200 ]; then
             send_alert "Backup Size Anomaly" "Today's backup is significantly larger than yesterday's ($today_size vs $yesterday_size bytes)"
         fi
     fi
-    
+
     log_message "Today's backup size: $today_size bytes"
 }}
 
 # Function to check disk space
 check_disk_space() {{
     log_message "Checking backup disk space"
-    
+
     local backup_fs=$(df "$BACKUP_DIR" | tail -1)
     local usage_percent=$(echo "$backup_fs" | awk '{{print $5}}' | sed 's/%//')
     local available_gb=$(echo "$backup_fs" | awk '{{print int($4/1024/1024)}}')
-    
+
     if [ "$usage_percent" -gt 90 ]; then
         send_alert "Backup Disk Space Critical" "Backup filesystem is $usage_percent% full ($available_gb GB available)"
     elif [ "$usage_percent" -gt 80 ]; then
@@ -762,19 +762,19 @@ check_disk_space() {{
 # Function to verify backup processes
 check_backup_processes() {{
     log_message "Checking backup processes"
-    
+
     # Check if backup is currently running
     local backup_pids=$(pgrep -f "backup.sh" || echo "")
-    
+
     if [ -n "$backup_pids" ]; then
         log_message "Backup process running (PIDs: $backup_pids)"
-        
+
         # Check if backup has been running too long (more than 4 hours)
         for pid in $backup_pids; do
             local start_time=$(ps -o lstart= -p "$pid" 2>/dev/null | xargs -I{{}} date -d{{}} +%s || echo 0)
             local current_time=$(date +%s)
             local runtime_hours=$(( (current_time - start_time) / 3600 ))
-            
+
             if [ "$runtime_hours" -gt 4 ]; then
                 send_alert "Backup Process Stuck" "Backup process (PID: $pid) has been running for $runtime_hours hours"
             fi
@@ -785,12 +785,12 @@ check_backup_processes() {{
 # Main monitoring function
 main() {{
     log_message "Starting backup monitoring check"
-    
+
     check_backup_freshness
     check_backup_sizes
     check_disk_space
     check_backup_processes
-    
+
     log_message "Backup monitoring check completed"
 }}
 
@@ -808,7 +808,7 @@ main "$@"
             try:
                 current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
                 crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
-            except:
+            except Exception:
                 crontab_content = ""
 
             if "monitor-backup.sh" not in crontab_content:

@@ -56,7 +56,7 @@ def _get_docker_imports():
         return DummyDockerClient, DummyAPIError, DummyDockerException, DummyNotFound
 
 
-docker, APIError, DockerException, NotFound = _get_docker_imports()
+docker, APIError, DockerException, NotFound = _get_docker_imports()  # noqa: E402
 
 from .health import HealthChecker
 
@@ -111,7 +111,7 @@ class ContainerManager:
         try:
             # Check if network already exists
             try:
-                network = self.client.networks.get(name)
+                self.client.networks.get(name)
                 if self.verbose:
                     print(f"Network '{name}' already exists")
                 return True
@@ -119,7 +119,7 @@ class ContainerManager:
                 pass
 
             # Create network
-            network = self.client.networks.create(name, driver=driver)
+            self.client.networks.create(name, driver=driver)
 
             if self.verbose:
                 print(f"Created network '{name}' with driver '{driver}'")
