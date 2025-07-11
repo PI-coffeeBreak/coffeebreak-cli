@@ -1523,11 +1523,11 @@ def deps(ctx: click.Context) -> None:
     pass
 
 
-@deps.command()
+@deps.command(name="start")
 @click.option("--profile", help="Use specific dependency profile")
 @click.argument("services", nargs=-1)
 @click.pass_context
-def start(ctx: click.Context, profile: Optional[str], services: tuple) -> None:
+def deps_start(ctx: click.Context, profile: Optional[str], services: tuple) -> None:
     """Start dependency services.
 
     This command starts dependency services (databases, message queues, etc.)
@@ -1576,11 +1576,11 @@ def start(ctx: click.Context, profile: Optional[str], services: tuple) -> None:
         ctx.obj["error_handler"].exit_with_error(e, "Dependency startup")
 
 
-@deps.command()
+@deps.command(name="stop")
 @click.argument("services", nargs=-1)
 @click.option("--all", is_flag=True, help="Stop all containers (default)")
 @click.pass_context
-def stop(ctx, services, all):
+def deps_stop(ctx, services, all):
     """Stop dependency services."""
     if ctx.obj["dry_run"]:
         if services:
@@ -1616,11 +1616,11 @@ def stop(ctx, services, all):
         ctx.obj["error_handler"].exit_with_error(e, "Dependency shutdown")
 
 
-@deps.command()
+@deps.command(name="status")
 @click.option("--detailed", is_flag=True, help="Show detailed health information")
 @click.option("--history", type=int, help="Show health history (number of entries)")
 @click.pass_context
-def status(ctx, detailed, history):
+def deps_status(ctx, detailed, history):
     """Show dependency container status."""
     try:
         from coffeebreak.config import ConfigManager
@@ -1682,13 +1682,13 @@ def status(ctx, detailed, history):
         ctx.obj["error_handler"].exit_with_error(e, "Dependency status check")
 
 
-@deps.command()
+@deps.command(name="logs")
 @click.argument("service", required=False)
 @click.option("--follow", "-f", is_flag=True, help="Follow log output")
 @click.option("--tail", "-n", default=50, help="Number of lines to show from end of logs")
 @click.option("--since", help="Show logs since timestamp (e.g. 2m, 1h, 2023-01-01)")
 @click.pass_context
-def logs(ctx, service, follow, tail, since):
+def deps_logs(ctx, service, follow, tail, since):
     """Show logs for dependencies."""
     if ctx.obj["dry_run"]:
         if service:
@@ -3251,7 +3251,7 @@ def prod(ctx):
 @click.option("--monitoring", is_flag=True, default=True, help="Enable monitoring")
 @click.option("--backup", is_flag=True, default=True, help="Enable automated backups")
 @click.pass_context
-def generate(
+def prod_generate(
     ctx,
     domain,
     output_dir,
@@ -3338,7 +3338,7 @@ def generate(
 @click.option("--data-dir", default="/var/lib/coffeebreak", help="Data directory")
 @click.option("--log-dir", default="/var/log/coffeebreak", help="Log directory")
 @click.pass_context
-def install(ctx, domain, ssl_email, user, install_dir, data_dir, log_dir):
+def prod_install(ctx, domain, ssl_email, user, install_dir, data_dir, log_dir):
     """Install CoffeeBreak directly on production server (standalone mode)."""
     try:
         if ctx.obj["verbose"]:
@@ -3381,7 +3381,7 @@ def install(ctx, domain, ssl_email, user, install_dir, data_dir, log_dir):
     help="Run comprehensive validation including health checks",
 )
 @click.pass_context
-def validate(ctx, domain, config_file, comprehensive):
+def prod_validate(ctx, domain, config_file, comprehensive):
     """Validate production configuration and readiness."""
     try:
         if ctx.obj["verbose"]:

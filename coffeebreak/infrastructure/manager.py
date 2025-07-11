@@ -136,7 +136,7 @@ class InfrastructureManager:
             return setup_result
 
         except Exception as e:
-            raise ConfigurationError(f"Failed to setup infrastructure automation: {e}")
+            raise ConfigurationError(f"Failed to setup infrastructure automation: {e}") from e
 
     def _setup_infrastructure_monitoring(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup infrastructure monitoring and alerting."""

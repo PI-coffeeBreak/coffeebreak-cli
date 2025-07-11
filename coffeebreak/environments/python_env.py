@@ -39,9 +39,9 @@ class EnvironmentActivator:
                 self.config = yaml.safe_load(f)
             return self.config
         except FileNotFoundError:
-            raise PythonEnvironmentError(f"Configuration file not found: {self.config_path}")
+            raise PythonEnvironmentError(f"Configuration file not found: {self.config_path}") from None
         except Exception as e:
-            raise PythonEnvironmentError(f"Error loading configuration: {e}")
+            raise PythonEnvironmentError(f"Error loading configuration: {e}") from e
 
     def get_environment_info(self) -> Dict[str, Any]:
         """Get environment information from configuration."""
@@ -52,7 +52,7 @@ class EnvironmentActivator:
             env_config = self.config["coffeebreak"]["environment"]
             return env_config
         except KeyError:
-            raise PythonEnvironmentError("No environment configuration found in coffeebreak.yml")
+            raise PythonEnvironmentError("No environment configuration found in coffeebreak.yml") from None
 
     def get_activation_command(self, shell: Optional[str] = None) -> str:
         """
@@ -238,9 +238,9 @@ class PythonEnvironmentManager:
             }
 
         except subprocess.TimeoutExpired:
-            raise PythonEnvironmentError("Virtual environment creation timed out")
+            raise PythonEnvironmentError("Virtual environment creation timed out") from None
         except Exception as e:
-            raise PythonEnvironmentError(f"Error creating virtual environment: {e}")
+            raise PythonEnvironmentError(f"Error creating virtual environment: {e}") from e
 
     def create_new_conda(self, env_name: str, python_path: Optional[str]) -> Dict[str, Any]:
         """Create a new conda environment."""
@@ -284,9 +284,9 @@ class PythonEnvironmentManager:
             }
 
         except subprocess.TimeoutExpired:
-            raise PythonEnvironmentError("Conda environment creation timed out")
+            raise PythonEnvironmentError("Conda environment creation timed out") from None
         except Exception as e:
-            raise PythonEnvironmentError(f"Error creating conda environment: {e}")
+            raise PythonEnvironmentError(f"Error creating conda environment: {e}") from e
 
     def validate_existing_venv(self, venv_path: Path, python_path: Optional[str]) -> Dict[str, Any]:
         """Validate existing virtual environment is compatible."""
@@ -323,7 +323,7 @@ class PythonEnvironmentManager:
             }
 
         except Exception as e:
-            raise PythonEnvironmentError(f"Error validating virtual environment: {e}")
+            raise PythonEnvironmentError(f"Error validating virtual environment: {e}") from e
 
     def validate_existing_conda(self, env_name: str, python_path: Optional[str]) -> Dict[str, Any]:
         """Validate existing conda environment is compatible."""
@@ -365,7 +365,7 @@ class PythonEnvironmentManager:
             }
 
         except Exception as e:
-            raise PythonEnvironmentError(f"Error validating conda environment: {e}")
+            raise PythonEnvironmentError(f"Error validating conda environment: {e}") from e
 
     def install_requirements(self, env_info: Dict[str, Any], requirements_file: str) -> bool:
         """
@@ -392,7 +392,7 @@ class PythonEnvironmentManager:
                 raise PythonEnvironmentError(f"Unknown environment type: {env_info['type']}")
 
         except Exception as e:
-            raise PythonEnvironmentError(f"Error installing requirements: {e}")
+            raise PythonEnvironmentError(f"Error installing requirements: {e}") from e
 
     def _install_requirements_venv(self, env_info: Dict[str, Any], requirements_file: str) -> bool:
         """Install requirements into virtual environment."""

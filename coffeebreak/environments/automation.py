@@ -219,7 +219,7 @@ class DevEnvironmentAutomation:
             if isinstance(e, CoffeeBreakError):
                 raise
             else:
-                raise EnvironmentError(f"Failed to start development environment: {e}")
+                raise EnvironmentError(f"Failed to start development environment: {e}") from e
 
     def _start_full_dev_environment(
         self,

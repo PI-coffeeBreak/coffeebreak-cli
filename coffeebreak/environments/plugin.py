@@ -65,7 +65,7 @@ class PluginEnvironment:
             return plugin_dir
 
         except Exception as e:
-            raise OSError(f"Failed to create plugin: {e}")
+            raise OSError(f"Failed to create plugin: {e}") from e
 
     def initialize_plugin_dev(self, plugin_dir: str = ".") -> bool:
         """
@@ -107,7 +107,7 @@ class PluginEnvironment:
             return True
 
         except Exception as e:
-            raise OSError(f"Failed to initialize plugin development environment: {e}")
+            raise OSError(f"Failed to initialize plugin development environment: {e}") from e
 
     def build_plugin(
         self,
@@ -142,7 +142,7 @@ class PluginEnvironment:
             return pyz_path
 
         except Exception as e:
-            raise OSError(f"Failed to build plugin: {e}")
+            raise OSError(f"Failed to build plugin: {e}") from e
 
     def validate_plugin(self, plugin_dir: str = ".") -> Dict[str, Any]:
         """
@@ -172,7 +172,7 @@ class PluginEnvironment:
             return validation_result
 
         except Exception as e:
-            raise OSError(f"Failed to validate plugin: {e}")
+            raise OSError(f"Failed to validate plugin: {e}") from e
 
     def get_plugin_info(self, plugin_dir: str = ".") -> Dict[str, Any]:
         """
@@ -298,7 +298,7 @@ class PluginEnvironment:
             return workflow_result
 
         except Exception as e:
-            raise OSError(f"Failed to start development workflow: {e}")
+            raise OSError(f"Failed to start development workflow: {e}") from e
 
     def stop_development_workflow(self, plugin_name: str) -> bool:
         """
@@ -353,7 +353,7 @@ class PluginEnvironment:
         try:
             return self.dependency_manager.analyze_plugin_dependencies(plugin_dir)
         except Exception as e:
-            raise OSError(f"Failed to analyze dependencies: {e}")
+            raise OSError(f"Failed to analyze dependencies: {e}") from e
 
     def install_plugin_dependencies(
         self,
@@ -382,7 +382,7 @@ class PluginEnvironment:
                 start_services=start_services,
             )
         except Exception as e:
-            raise OSError(f"Failed to install dependencies: {e}")
+            raise OSError(f"Failed to install dependencies: {e}") from e
 
     def check_dependency_compatibility(self, plugin_dir: str = ".", target_environment: str = "development") -> Dict[str, Any]:
         """
@@ -398,7 +398,7 @@ class PluginEnvironment:
         try:
             return self.dependency_manager.check_dependency_compatibility(plugin_dir, target_environment)
         except Exception as e:
-            raise OSError(f"Failed to check compatibility: {e}")
+            raise OSError(f"Failed to check compatibility: {e}") from e
 
     # Plugin Testing Framework
 
@@ -429,7 +429,7 @@ class PluginEnvironment:
                 fail_fast=fail_fast,
             )
         except Exception as e:
-            raise OSError(f"Failed to run plugin tests: {e}")
+            raise OSError(f"Failed to run plugin tests: {e}") from e
 
     def generate_test_report(self, test_results: Dict[str, Any], format: str = "text") -> str:
         """
@@ -476,7 +476,7 @@ class PluginEnvironment:
                 include_examples=include_examples,
             )
         except Exception as e:
-            raise OSError(f"Failed to generate documentation: {e}")
+            raise OSError(f"Failed to generate documentation: {e}") from e
 
     # Plugin Developer Tools
 
@@ -507,7 +507,7 @@ class PluginEnvironment:
                 generate_report=generate_report,
             )
         except Exception as e:
-            raise OSError(f"Failed to run quality assurance: {e}")
+            raise OSError(f"Failed to run quality assurance: {e}") from e
 
     # Container Integration
 
@@ -525,7 +525,7 @@ class PluginEnvironment:
         try:
             return self.integration.mount_plugin_in_development(plugin_dir, core_container_name)
         except Exception as e:
-            raise OSError(f"Failed to mount plugin: {e}")
+            raise OSError(f"Failed to mount plugin: {e}") from e
 
     def unmount_plugin_from_development(self, plugin_name: str, core_container_name: str = "coffeebreak-core") -> bool:
         """
@@ -541,7 +541,7 @@ class PluginEnvironment:
         try:
             return self.integration.unmount_plugin_from_development(plugin_name, core_container_name)
         except Exception as e:
-            raise OSError(f"Failed to unmount plugin: {e}")
+            raise OSError(f"Failed to unmount plugin: {e}") from e
 
     def list_mounted_plugins(self, core_container_name: str = "coffeebreak-core") -> List[Dict[str, Any]]:
         """
@@ -576,7 +576,7 @@ class PluginEnvironment:
         try:
             return self.hot_reload_manager.start_hot_reload(plugin_dir, core_container)
         except Exception as e:
-            raise OSError(f"Failed to start hot reload: {e}")
+            raise OSError(f"Failed to start hot reload: {e}") from e
 
     def stop_hot_reload(self, plugin_name: str) -> bool:
         """
@@ -715,7 +715,7 @@ class PluginEnvironment:
             return results
 
         except Exception as e:
-            raise OSError(f"Failed to run complete plugin workflow: {e}")
+            raise OSError(f"Failed to run complete plugin workflow: {e}") from e
 
     def _print_workflow_summary(self, results: Dict[str, Any]) -> None:
         """Print a summary of the complete workflow results."""

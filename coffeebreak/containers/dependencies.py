@@ -62,7 +62,7 @@ class DependencyManager:
                 return self._start_profile_with_docker_api(deps_config, profile_name)
 
         except Exception as e:
-            raise DependencyManagerError(f"Failed to start profile '{profile_name}': {e}")
+            raise DependencyManagerError(f"Failed to start profile '{profile_name}': {e}") from e
 
     def _start_profile_with_compose(self, deps_config: Dict[str, Any], profile_name: str) -> bool:
         """Start profile using Docker Compose orchestration."""
@@ -144,9 +144,9 @@ class DependencyManager:
             return True
 
         except ContainerManagerError as e:
-            raise DependencyManagerError(f"Container operation failed: {e}")
+            raise DependencyManagerError(f"Container operation failed: {e}") from e
         except Exception as e:
-            raise DependencyManagerError(f"Unexpected error starting profile: {e}")
+            raise DependencyManagerError(f"Unexpected error starting profile: {e}") from e
 
     def start_services(self, service_names: List[str]) -> bool:
         """
@@ -188,7 +188,7 @@ class DependencyManager:
             return True
 
         except Exception as e:
-            raise DependencyManagerError(f"Error starting services: {e}")
+            raise DependencyManagerError(f"Error starting services: {e}") from e
 
     def stop_all_services(self) -> bool:
         """
@@ -203,7 +203,7 @@ class DependencyManager:
             else:
                 return self._stop_all_services_with_docker_api()
         except Exception as e:
-            raise DependencyManagerError(f"Failed to stop all services: {e}")
+            raise DependencyManagerError(f"Failed to stop all services: {e}") from e
 
     def stop_services(self, service_names: List[str]) -> bool:
         """
@@ -221,7 +221,7 @@ class DependencyManager:
             else:
                 return self._stop_services_with_docker_api(service_names)
         except Exception as e:
-            raise DependencyManagerError(f"Failed to stop services: {e}")
+            raise DependencyManagerError(f"Failed to stop services: {e}") from e
 
     def _stop_services_with_docker_api(self, service_names: List[str]) -> bool:
         """Stop specific services using Docker API."""
@@ -249,7 +249,7 @@ class DependencyManager:
             return True
 
         except Exception as e:
-            raise DependencyManagerError(f"Error stopping services: {e}")
+            raise DependencyManagerError(f"Error stopping services: {e}") from e
         try:
             # Stop health monitoring first
             self.stop_health_monitoring()
@@ -264,7 +264,7 @@ class DependencyManager:
                 return self._stop_all_services_with_docker_api()
 
         except Exception as e:
-            raise DependencyManagerError(f"Error stopping services: {e}")
+            raise DependencyManagerError(f"Error stopping services: {e}") from e
 
     def _stop_all_services_with_docker_api(self) -> bool:
         """Stop all services using Docker API (fallback method)."""
@@ -314,7 +314,7 @@ class DependencyManager:
                 return self._clean_all_services_with_docker_api()
 
         except Exception as e:
-            raise DependencyManagerError(f"Error cleaning up services: {e}")
+            raise DependencyManagerError(f"Error cleaning up services: {e}") from e
 
     def _clean_all_services_with_docker_api(self) -> bool:
         """Clean up all services using Docker API (fallback method)."""
@@ -342,7 +342,7 @@ class DependencyManager:
             return True
 
         except Exception as e:
-            raise DependencyManagerError(f"Error during cleanup: {e}")
+            raise DependencyManagerError(f"Error during cleanup: {e}") from e
 
     def get_services_status(self) -> Dict[str, Dict[str, Any]]:
         """
@@ -420,7 +420,7 @@ class DependencyManager:
                 return self.start_services([service_name])
 
         except Exception as e:
-            raise DependencyManagerError(f"Error starting service '{service_name}': {e}")
+            raise DependencyManagerError(f"Error starting service '{service_name}': {e}") from e
 
     def restart_service(self, service_name: str) -> bool:
         """
@@ -443,7 +443,7 @@ class DependencyManager:
                 return self._restart_service_with_docker_api(service_name)
 
         except Exception as e:
-            raise DependencyManagerError(f"Error restarting service '{service_name}': {e}")
+            raise DependencyManagerError(f"Error restarting service '{service_name}': {e}") from e
 
     def _restart_service_with_docker_api(self, service_name: str) -> bool:
         """Restart service using Docker API (fallback method)."""

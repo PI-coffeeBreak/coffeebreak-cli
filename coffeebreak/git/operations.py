@@ -103,7 +103,7 @@ class GitOperations:
                 except Exception:
                     pass
 
-            raise GitOperationError(error_msg)
+            raise GitOperationError(error_msg) from e
 
         except Exception as e:
             # Clean up partial clone if it exists
@@ -113,7 +113,7 @@ class GitOperations:
                 except Exception:
                     pass
 
-            raise GitOperationError(f"Unexpected error cloning repository: {e}")
+            raise GitOperationError(f"Unexpected error cloning repository: {e}") from e
 
     def clone_multiple_repositories(self, repositories: List[Dict[str, Any]]) -> Dict[str, git.Repo]:
         """
@@ -258,11 +258,11 @@ class GitOperations:
             return True
 
         except InvalidGitRepositoryError:
-            raise GitOperationError(f"Not a valid Git repository: {repo_path}")
+            raise GitOperationError(f"Not a valid Git repository: {repo_path}") from None
         except GitCommandError as e:
-            raise GitOperationError(f"Failed to pull repository {repo_path}: {e}")
+            raise GitOperationError(f"Failed to pull repository {repo_path}: {e}") from e
         except Exception as e:
-            raise GitOperationError(f"Unexpected error pulling repository: {e}")
+            raise GitOperationError(f"Unexpected error pulling repository: {e}") from e
 
     def validate_repository_access(self, url: str) -> bool:
         """

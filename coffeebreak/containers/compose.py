@@ -65,7 +65,7 @@ class DockerComposeOrchestrator:
             return self.compose_file
 
         except Exception as e:
-            raise DockerError(f"Failed to generate compose file: {e}")
+            raise DockerError(f"Failed to generate compose file: {e}") from e
 
     def _generate_compose_config(self, dependencies_config: Dict[str, Any], service_names: List[str]) -> Dict[str, Any]:
         """Generate Docker Compose configuration."""
@@ -192,11 +192,11 @@ class DockerComposeOrchestrator:
                 raise DockerError(error_msg)
 
         except subprocess.TimeoutExpired:
-            raise DockerError("Docker Compose start timed out")
+            raise DockerError("Docker Compose start timed out") from None
         except FileNotFoundError:
-            raise DockerError("docker-compose command not found. Please install Docker Compose.")
+            raise DockerError("docker-compose command not found. Please install Docker Compose.") from None
         except Exception as e:
-            raise DockerError(f"Failed to start services: {e}")
+            raise DockerError(f"Failed to start services: {e}") from e
 
     def stop_services(self, service_names: Optional[List[str]] = None) -> bool:
         """
@@ -242,9 +242,9 @@ class DockerComposeOrchestrator:
                 raise DockerError(error_msg)
 
         except subprocess.TimeoutExpired:
-            raise DockerError("Docker Compose stop timed out")
+            raise DockerError("Docker Compose stop timed out") from None
         except Exception as e:
-            raise DockerError(f"Failed to stop services: {e}")
+            raise DockerError(f"Failed to stop services: {e}") from e
 
     def get_service_status(self) -> List[Dict[str, Any]]:
         """

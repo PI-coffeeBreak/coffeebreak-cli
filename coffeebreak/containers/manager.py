@@ -58,7 +58,7 @@ def _get_docker_imports():
 
 docker, APIError, DockerException, NotFound = _get_docker_imports()  # noqa: E402
 
-from .health import HealthChecker
+from .health import HealthChecker  # noqa: E402
 
 
 class ContainerManagerError(Exception):
@@ -90,7 +90,7 @@ class ContainerManager:
                 # Test connection
                 self._client.ping()
             except DockerException as e:
-                raise ContainerManagerError(f"Cannot connect to Docker daemon: {e}")
+                raise ContainerManagerError(f"Cannot connect to Docker daemon: {e}") from e
 
         return self._client
 
@@ -127,9 +127,9 @@ class ContainerManager:
             return True
 
         except APIError as e:
-            raise ContainerManagerError(f"Failed to create network '{name}': {e}")
+            raise ContainerManagerError(f"Failed to create network '{name}': {e}") from e
         except Exception as e:
-            raise ContainerManagerError(f"Unexpected error creating network: {e}")
+            raise ContainerManagerError(f"Unexpected error creating network: {e}") from e
 
     def remove_network(self, name: str) -> bool:
         """
@@ -155,7 +155,7 @@ class ContainerManager:
                 print(f"Network '{name}' not found (already removed)")
             return True
         except APIError as e:
-            raise ContainerManagerError(f"Failed to remove network '{name}': {e}")
+            raise ContainerManagerError(f"Failed to remove network '{name}': {e}") from e
 
     def start_container(self, config: Dict[str, Any]) -> str:
         """
@@ -215,9 +215,9 @@ class ContainerManager:
             return container.id
 
         except APIError as e:
-            raise ContainerManagerError(f"Failed to start container '{container_name}': {e}")
+            raise ContainerManagerError(f"Failed to start container '{container_name}': {e}") from e
         except Exception as e:
-            raise ContainerManagerError(f"Unexpected error starting container: {e}")
+            raise ContainerManagerError(f"Unexpected error starting container: {e}") from e
 
     def stop_container(self, name: str, timeout: int = 10) -> bool:
         """
@@ -248,7 +248,7 @@ class ContainerManager:
                 print(f"Container '{name}' not found")
             return True
         except APIError as e:
-            raise ContainerManagerError(f"Failed to stop container '{name}': {e}")
+            raise ContainerManagerError(f"Failed to stop container '{name}': {e}") from e
 
     def remove_container(self, name: str, force: bool = False) -> bool:
         """
@@ -275,7 +275,7 @@ class ContainerManager:
                 print(f"Container '{name}' not found")
             return True
         except APIError as e:
-            raise ContainerManagerError(f"Failed to remove container '{name}': {e}")
+            raise ContainerManagerError(f"Failed to remove container '{name}': {e}") from e
 
     def get_container_status(self, name: str) -> Dict[str, Any]:
         """
@@ -340,7 +340,7 @@ class ContainerManager:
             return container_list
 
         except APIError as e:
-            raise ContainerManagerError(f"Failed to list containers: {e}")
+            raise ContainerManagerError(f"Failed to list containers: {e}") from e
 
     def get_container_logs(self, name: str, tail: int = 100) -> str:
         """
@@ -378,7 +378,7 @@ class ContainerManager:
                 if self.verbose:
                     print(f"Successfully pulled image '{image}'")
             except APIError as e:
-                raise ContainerManagerError(f"Failed to pull image '{image}': {e}")
+                raise ContainerManagerError(f"Failed to pull image '{image}': {e}") from e
 
     def _prepare_run_config(self, config: Dict[str, Any], image: str) -> Dict[str, Any]:
         """Prepare container run configuration."""
@@ -471,9 +471,9 @@ class ContainerManager:
             return tag
 
         except APIError as e:
-            raise ContainerManagerError(f"Failed to build image from context '{context}': {e}")
+            raise ContainerManagerError(f"Failed to build image from context '{context}': {e}") from e
         except Exception as e:
-            raise ContainerManagerError(f"Unexpected error building image: {e}")
+            raise ContainerManagerError(f"Unexpected error building image: {e}") from e
 
     def _extract_port_mappings(self, container) -> Dict[str, str]:
         """Extract port mappings from container."""

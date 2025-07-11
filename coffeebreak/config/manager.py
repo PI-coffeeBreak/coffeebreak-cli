@@ -66,9 +66,9 @@ class ConfigManager:
             with open(config_path, encoding="utf-8") as f:
                 config = yaml.safe_load(f)
         except FileNotFoundError:
-            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+            raise FileNotFoundError(f"Configuration file not found: {config_path}") from None
         except yaml.YAMLError as e:
-            raise yaml.YAMLError(f"Error parsing YAML file {config_path}: {e}")
+            raise yaml.YAMLError(f"Error parsing YAML file {config_path}: {e}") from e
 
         if config is None:
             config = {}
@@ -115,9 +115,9 @@ class ConfigManager:
             return config
 
         except yaml.YAMLError as e:
-            raise ConfigValidationError(f"Invalid YAML in {config_path}: {e}")
+            raise ConfigValidationError(f"Invalid YAML in {config_path}: {e}") from e
         except Exception as e:
-            raise ConfigValidationError(f"Error loading config file {config_path}: {e}")
+            raise ConfigValidationError(f"Error loading config file {config_path}: {e}") from e
 
     def save_config(self, config: Dict[str, Any], config_path: Optional[str] = None) -> None:
         """

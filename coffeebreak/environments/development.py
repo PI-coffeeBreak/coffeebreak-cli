@@ -91,7 +91,7 @@ class DevelopmentEnvironment:
             return True
 
         except Exception as e:
-            raise DevelopmentEnvironmentError(f"Failed to initialize development environment: {e}")
+            raise DevelopmentEnvironmentError(f"Failed to initialize development environment: {e}") from e
 
     def start(self) -> bool:
         """
@@ -171,7 +171,7 @@ class DevelopmentEnvironment:
                 try:
                     self.git_ops.validate_repository_access(url)
                 except GitOperationError as e:
-                    raise DevelopmentEnvironmentError(f"Repository access validation failed for {repo.get('name')}: {e}")
+                    raise DevelopmentEnvironmentError(f"Repository access validation failed for {repo.get('name')}: {e}") from e
 
             # Clone repositories
             cloned_repos = self.git_ops.clone_multiple_repositories(repos_config)
@@ -184,9 +184,9 @@ class DevelopmentEnvironment:
             return True
 
         except GitOperationError as e:
-            raise DevelopmentEnvironmentError(f"Git operation failed: {e}")
+            raise DevelopmentEnvironmentError(f"Git operation failed: {e}") from e
         except Exception as e:
-            raise DevelopmentEnvironmentError(f"Unexpected error cloning repositories: {e}")
+            raise DevelopmentEnvironmentError(f"Unexpected error cloning repositories: {e}") from e
 
     def _setup_keycloak_configuration(self) -> bool:
         """
@@ -329,7 +329,7 @@ class DevelopmentEnvironment:
             return True
 
         except Exception as e:
-            raise DevelopmentEnvironmentError(f"Error updating repositories: {e}")
+            raise DevelopmentEnvironmentError(f"Error updating repositories: {e}") from e
 
     def _setup_python_environment(self, env_type: str, env_path_or_name: Optional[str], python_path: Optional[str]) -> Dict:
         """
@@ -361,7 +361,7 @@ class DevelopmentEnvironment:
             return env_info
 
         except Exception as e:
-            raise DevelopmentEnvironmentError(f"Failed to setup Python environment: {e}")
+            raise DevelopmentEnvironmentError(f"Failed to setup Python environment: {e}") from e
 
     def _install_repository_dependencies(self, env_info: Dict) -> None:
         """

@@ -372,7 +372,7 @@ class ProductionEnvironment:
                 print(f"Created system user: {user}")
 
         except Exception as e:
-            raise ConfigurationError(f"Failed to create system user: {e}")
+            raise ConfigurationError(f"Failed to create system user: {e}") from e
 
     def _create_directories(self, install_dir: str, data_dir: str, log_dir: str, user: str) -> None:
         """Create directory structure."""
@@ -409,7 +409,7 @@ class ProductionEnvironment:
                 print(f"Created directory structure: {len(directories)} directories")
 
         except Exception as e:
-            raise ConfigurationError(f"Failed to create directories: {e}")
+            raise ConfigurationError(f"Failed to create directories: {e}") from e
 
     def _install_application_files(self, install_dir: str, domain: str, user: str) -> None:
         """Install application files and configuration."""
@@ -457,7 +457,7 @@ esac
                 print(f"Installed application files for {len(services)} services")
 
         except Exception as e:
-            raise ConfigurationError(f"Failed to install application files: {e}")
+            raise ConfigurationError(f"Failed to install application files: {e}") from e
 
     def _setup_ssl_standalone(self, domain: str, ssl_email: str, install_dir: str) -> Dict[str, Any]:
         """Setup SSL certificates for standalone installation."""
