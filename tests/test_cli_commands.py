@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, mock_open, patch
 
 from click.testing import CliRunner
 
-# Mock docker module for testing
 sys.modules["docker"] = MagicMock()
 
 from coffeebreak.cli import cli
@@ -49,7 +48,7 @@ class TestCLICommands:
 
     def test_init_dev_command(self):
         """Test init dev command."""
-        with patch("coffeebreak.config.ConfigManager") as mock_config:
+        with patch("coffeebreak.config.ConfigManager"):
             with patch(
                 "coffeebreak.environments.DevelopmentEnvironment"
             ) as mock_dev_env:
@@ -447,7 +446,7 @@ class TestCLICommands:
         """Test plugin build command."""
         with patch(
             "coffeebreak.environments.plugin.PluginEnvironment"
-        ) as mock_env, patch("coffeebreak.config.ConfigManager") as mock_config, patch(
+        ) as mock_env, patch("coffeebreak.config.ConfigManager"), patch(
             "os.path.getsize", return_value=1024
         ):
             mock_instance = mock_env.return_value
@@ -481,7 +480,7 @@ class TestCLICommands:
                                             ) as mock_temp_dir:
                                                 with patch(
                                                     "json.dump"
-                                                ) as mock_json_dump:
+                                                ):
                                                     with patch(
                                                         "tarfile.open"
                                                     ) as mock_tar:
@@ -621,11 +620,11 @@ class TestCLICommands:
                                             with patch("os.chmod") as mock_chmod:
                                                 with patch(
                                                     "os.urandom",
-                                                    return_value=b"fake_salt",
+                                                    return_value=b"test_key",
                                                 ):
                                                     with patch(
                                                         "os.remove"
-                                                    ) as mock_remove:
+                                                    ):
                                                         with patch(
                                                             "os.path.getsize",
                                                             return_value=1024,

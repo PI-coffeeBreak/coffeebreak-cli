@@ -9,7 +9,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from ..utils.errors import SecurityError
+from coffeebreak.utils.errors import SecurityError
 
 
 class SecretGenerator:
@@ -83,7 +83,7 @@ class SecretGenerator:
             return "".join(password)
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate password: {e}")
+            raise SecurityError(f"Failed to generate password: {e}") from e
 
     def generate_api_key(self, length: int = 64) -> str:
         """
@@ -117,7 +117,7 @@ class SecretGenerator:
             return api_key
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate API key: {e}")
+            raise SecurityError(f"Failed to generate API key: {e}") from e
 
     def generate_secret_key(self, length: int = 128) -> str:
         """
@@ -140,7 +140,7 @@ class SecretGenerator:
             return secret_key
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate secret key: {e}")
+            raise SecurityError(f"Failed to generate secret key: {e}") from e
 
     def generate_session_secret(self) -> str:
         """
@@ -154,7 +154,7 @@ class SecretGenerator:
             return secrets.token_hex(32)
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate session secret: {e}")
+            raise SecurityError(f"Failed to generate session secret: {e}") from e
 
     def generate_encryption_key(self) -> bytes:
         """
@@ -167,7 +167,7 @@ class SecretGenerator:
             return Fernet.generate_key()
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate encryption key: {e}")
+            raise SecurityError(f"Failed to generate encryption key: {e}") from e
 
     def generate_salt(self, length: int = 32) -> str:
         """
@@ -184,7 +184,7 @@ class SecretGenerator:
             return salt_bytes.hex()
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate salt: {e}")
+            raise SecurityError(f"Failed to generate salt: {e}") from e
 
     def generate_database_secrets(self) -> Dict[str, str]:
         """
@@ -209,7 +209,7 @@ class SecretGenerator:
             return secrets_dict
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate database secrets: {e}")
+            raise SecurityError(f"Failed to generate database secrets: {e}") from e
 
     def generate_application_secrets(self) -> Dict[str, str]:
         """
@@ -234,7 +234,7 @@ class SecretGenerator:
             return secrets_dict
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate application secrets: {e}")
+            raise SecurityError(f"Failed to generate application secrets: {e}") from e
 
     def generate_service_secrets(self) -> Dict[str, str]:
         """
@@ -264,7 +264,7 @@ class SecretGenerator:
             return secrets_dict
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate service secrets: {e}")
+            raise SecurityError(f"Failed to generate service secrets: {e}") from e
 
     def generate_ssl_secrets(self) -> Dict[str, str]:
         """
@@ -286,7 +286,7 @@ class SecretGenerator:
             return secrets_dict
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate SSL secrets: {e}")
+            raise SecurityError(f"Failed to generate SSL secrets: {e}") from e
 
     def generate_backup_secrets(self) -> Dict[str, str]:
         """
@@ -308,7 +308,7 @@ class SecretGenerator:
             return secrets_dict
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate backup secrets: {e}")
+            raise SecurityError(f"Failed to generate backup secrets: {e}") from e
 
     def generate_all_secrets(self) -> Dict[str, str]:
         """
@@ -336,7 +336,7 @@ class SecretGenerator:
             return all_secrets
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate all secrets: {e}")
+            raise SecurityError(f"Failed to generate all secrets: {e}") from e
 
     def validate_secret_strength(
         self, secret: str, min_length: int = 16
@@ -411,7 +411,7 @@ class SecretGenerator:
             return validation
 
         except Exception as e:
-            raise SecurityError(f"Failed to validate secret strength: {e}")
+            raise SecurityError(f"Failed to validate secret strength: {e}") from e
 
     def derive_key_from_password(
         self, password: str, salt: bytes, iterations: int = 100000
@@ -438,7 +438,7 @@ class SecretGenerator:
             return key
 
         except Exception as e:
-            raise SecurityError(f"Failed to derive key from password: {e}")
+            raise SecurityError(f"Failed to derive key from password: {e}") from e
 
     def generate_secure_filename(self, extension: str = "") -> str:
         """
@@ -462,7 +462,7 @@ class SecretGenerator:
             return random_name
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate secure filename: {e}")
+            raise SecurityError(f"Failed to generate secure filename: {e}") from e
 
     def generate_nonce(self, length: int = 16) -> str:
         """
@@ -478,4 +478,4 @@ class SecretGenerator:
             return secrets.token_hex(length)
 
         except Exception as e:
-            raise SecurityError(f"Failed to generate nonce: {e}")
+            raise SecurityError(f"Failed to generate nonce: {e}") from e

@@ -5,7 +5,8 @@ import subprocess
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..utils.errors import SSLError
+from coffeebreak.utils.errors import SSLError
+
 from .manager import SSLManager
 
 
@@ -82,7 +83,7 @@ class LetsEncryptManager:
             return True
 
         except Exception as e:
-            raise SSLError(f"Failed to install certbot: {e}")
+            raise SSLError(f"Failed to install certbot: {e}") from e
 
     def obtain_certificate(
         self,
@@ -179,7 +180,7 @@ class LetsEncryptManager:
             if isinstance(e, SSLError):
                 raise
             else:
-                raise SSLError(f"Failed to obtain certificate: {e}")
+                raise SSLError(f"Failed to obtain certificate: {e}") from e
 
     def renew_certificate(
         self, domain: Optional[str] = None, dry_run: bool = False
@@ -226,7 +227,7 @@ class LetsEncryptManager:
             }
 
         except Exception as e:
-            raise SSLError(f"Failed to renew certificate: {e}")
+            raise SSLError(f"Failed to renew certificate: {e}") from e
 
     def list_certificates(self) -> List[Dict[str, Any]]:
         """
@@ -283,7 +284,7 @@ class LetsEncryptManager:
             return certificates
 
         except Exception as e:
-            raise SSLError(f"Failed to list certificates: {e}")
+            raise SSLError(f"Failed to list certificates: {e}") from e
 
     def revoke_certificate(self, domain: str, reason: str = "unspecified") -> bool:
         """
@@ -320,7 +321,7 @@ class LetsEncryptManager:
                 raise SSLError(f"Failed to revoke certificate: {result.stderr}")
 
         except Exception as e:
-            raise SSLError(f"Failed to revoke certificate: {e}")
+            raise SSLError(f"Failed to revoke certificate: {e}") from e
 
     def setup_auto_renewal(self, renewal_frequency: str = "twice-daily") -> bool:
         """
@@ -382,7 +383,7 @@ class LetsEncryptManager:
                 raise SSLError("Failed to update crontab")
 
         except Exception as e:
-            raise SSLError(f"Failed to setup auto renewal: {e}")
+            raise SSLError(f"Failed to setup auto renewal: {e}") from e
 
     def test_renewal(self, domain: Optional[str] = None) -> bool:
         """
@@ -501,4 +502,4 @@ class LetsEncryptManager:
             return cleanup_results
 
         except Exception as e:
-            raise SSLError(f"Failed to cleanup expired certificates: {e}")
+            raise SSLError(f"Failed to cleanup expired certificates: {e}") from e

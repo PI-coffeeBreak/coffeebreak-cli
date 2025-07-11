@@ -7,7 +7,7 @@ from typing import Any, Dict
 
 import requests
 
-from ..utils.errors import ValidationError
+from coffeebreak.utils.errors import ValidationError
 
 
 class HealthChecker:
@@ -81,7 +81,7 @@ class HealthChecker:
             return health_result
 
         except Exception as e:
-            raise ValidationError(f"Health check failed: {e}")
+            raise ValidationError(f"Health check failed: {e}") from e
 
     def _check_http_connectivity(self, domain: str, timeout: int) -> Dict[str, Any]:
         """Check HTTP/HTTPS connectivity."""
@@ -268,7 +268,7 @@ class HealthChecker:
                         try:
                             health_data = response.json()
                             successful_endpoints[-1]["health_data"] = health_data
-                        except:
+                        except (ValueError, KeyError):
                             successful_endpoints[-1]["content"] = response.text[:200]
 
                 except requests.exceptions.RequestException:
@@ -456,7 +456,7 @@ class HealthChecker:
                                 service_statuses[service]["active_info"] = line.strip()
                             elif "Main PID:" in line:
                                 service_statuses[service]["pid_info"] = line.strip()
-                    except:
+                    except Exception:
                         pass  # Additional info is optional
 
                 except Exception as e:
@@ -511,15 +511,15 @@ class HealthChecker:
             # Response time test
             response_times = []
 
-            for i in range(3):  # Test 3 times
+            for _ in range(3):  # Test 3 times
                 try:
                     start_time = time.time()
-                    response = requests.get(
+                    requests.get(
                         f"https://{domain}", timeout=timeout, verify=False
                     )
                     response_time = (time.time() - start_time) * 1000
                     response_times.append(response_time)
-                except:
+                except Exception:
                     continue
 
             if response_times:
@@ -592,7 +592,8 @@ class HealthChecker:
             if header_score >= 0.8:  # 80% or more headers present
                 check_result["status"] = "healthy"
                 check_result["details"]["message"] = (
-                    f"Good security headers: {len(present_headers)}/{len(security_headers)}"
+                    f"Good security headers: {len(present_headers)}/"
+                    f"{len(security_headers)}"
                 )
             elif header_score >= 0.5:  # 50% or more headers present
                 check_result["status"] = "warning"
@@ -618,7 +619,6 @@ class HealthChecker:
         all_checks = health_result["checks"].values()
 
         # Count status types
-        healthy_count = sum(1 for check in all_checks if check["status"] == "healthy")
         warning_count = sum(1 for check in all_checks if check["status"] == "warning")
         unhealthy_count = sum(
             1 for check in all_checks if check["status"] == "unhealthy"

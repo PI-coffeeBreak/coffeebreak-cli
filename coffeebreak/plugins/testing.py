@@ -5,7 +5,7 @@ import os
 import subprocess
 from typing import Any, Dict, List, Optional
 
-from ..utils.errors import PluginError
+from coffeebreak.utils.errors import PluginError
 
 
 class PluginTestFramework:
@@ -143,7 +143,7 @@ class PluginTestFramework:
             return results
 
         except Exception as e:
-            raise PluginError(f"Failed to run plugin tests: {e}")
+            raise PluginError(f"Failed to run plugin tests: {e}") from e
 
     def _detect_available_test_types(
         self, plugin_dir: str, plugin_config: Dict[str, Any]
@@ -491,7 +491,7 @@ class PluginTestFramework:
 
             # Python linting with flake8
             python_files = []
-            for root, dirs, files in os.walk(src_path):
+            for root, _dirs, files in os.walk(src_path):
                 for file in files:
                     if file.endswith(".py"):
                         python_files.append(os.path.join(root, file))
@@ -519,7 +519,7 @@ class PluginTestFramework:
 
             # JavaScript/TypeScript linting with eslint
             js_files = []
-            for root, dirs, files in os.walk(src_path):
+            for root, _dirs, files in os.walk(src_path):
                 for file in files:
                     if file.endswith((".js", ".jsx", ".ts", ".tsx")):
                         js_files.append(os.path.join(root, file))
@@ -672,7 +672,7 @@ class PluginTestFramework:
     def _load_plugin_config(self, plugin_dir: str) -> Dict[str, Any]:
         """Load plugin configuration."""
         config_path = os.path.join(plugin_dir, "coffeebreak-plugin.yml")
-        from ..config.manager import ConfigManager
+        from coffeebreak.config.manager import ConfigManager
 
         config_manager = ConfigManager()
         return config_manager.load_config_file(config_path)

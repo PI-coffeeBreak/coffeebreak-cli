@@ -143,9 +143,9 @@ class NPMManager:
                 raise NPMManagerError(error_msg)
 
         except subprocess.TimeoutExpired:
-            raise NPMManagerError(f"npm install timed out in {repo_path}")
+            raise NPMManagerError(f"npm install timed out in {repo_path}") from None
         except Exception as e:
-            raise NPMManagerError(f"Error installing npm dependencies: {e}")
+            raise NPMManagerError(f"Error installing npm dependencies: {e}") from e
 
     def clean_install(self, repo_path: str) -> bool:
         """
@@ -206,7 +206,7 @@ class NPMManager:
                 return self.install_dependencies(str(repo_path))
 
         except subprocess.TimeoutExpired:
-            raise NPMManagerError(f"npm ci timed out in {repo_path}")
+            raise NPMManagerError(f"npm ci timed out in {repo_path}") from None
         except Exception as e:
             if self.verbose:
                 print(f"Clean install failed: {e}, falling back to regular install...")

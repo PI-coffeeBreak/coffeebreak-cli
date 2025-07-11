@@ -1,13 +1,15 @@
 """Security validation for production deployments."""
 
 import os
+import socket
+import ssl
 import subprocess
 from pathlib import Path
 from typing import Any, Dict
 
 import requests
 
-from ..utils.errors import SecurityError
+from coffeebreak.utils.errors import SecurityError
 
 
 class SecurityValidator:
@@ -88,7 +90,7 @@ class SecurityValidator:
             return security_result
 
         except Exception as e:
-            raise SecurityError(f"Security validation failed: {e}")
+            raise SecurityError(f"Security validation failed: {e}") from e
 
     def _validate_file_permissions(self, deployment_type: str) -> Dict[str, Any]:
         """Validate file and directory permissions."""
@@ -109,7 +111,7 @@ class SecurityValidator:
                     ("/etc/systemd/system/coffeebreak-*.service", 0o644, "root"),
                 ]
 
-                for path_pattern, expected_mode, expected_owner in critical_paths:
+                for path_pattern, expected_mode, _expected_owner in critical_paths:
                     if "*" in path_pattern:
                         # Handle glob patterns
                         import glob
@@ -369,8 +371,6 @@ class SecurityValidator:
 
             for port in common_ports:
                 try:
-                    import socket
-
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.settimeout(2)
                     result = sock.connect_ex((domain, port))
@@ -412,10 +412,6 @@ class SecurityValidator:
         }
 
         try:
-            import socket
-            import ssl
-
-            # Test SSL connection
             context = ssl.create_default_context()
 
             with socket.create_connection((domain, 443), timeout=10) as sock:
@@ -455,7 +451,7 @@ class SecurityValidator:
                             )
 
                     # Check certificate
-                    cert = ssock.getpeercert()
+                    # cert = ssock.getpeercert()  # Unused variable removed
 
                     # Check key size (if available in cert)
                     public_key = ssock.getpeercert_chain()[0].get_pubkey()
@@ -739,7 +735,7 @@ class SecurityValidator:
                                 validation["issues"].append(
                                     f"Potential information disclosure: {test_path}"
                                 )
-                    except:
+                    except Exception:
                         continue  # Expected to fail
 
                 validation["checks"].append(

@@ -14,7 +14,7 @@ from watchdog.events import (
 )
 from watchdog.observers import Observer
 
-from ..utils.errors import PluginError
+from coffeebreak.utils.errors import PluginError
 from .integration import PluginContainerIntegration
 
 
@@ -157,7 +157,7 @@ class PluginHotReloadManager:
             if not os.path.exists(config_path):
                 raise PluginError(f"Plugin configuration not found: {config_path}")
 
-            from ..config.manager import ConfigManager
+            from coffeebreak.config.manager import ConfigManager
 
             config_manager = ConfigManager()
             plugin_config = config_manager.load_config_file(config_path)
@@ -198,7 +198,7 @@ class PluginHotReloadManager:
             return True
 
         except Exception as e:
-            raise PluginError(f"Failed to start hot reload: {e}")
+            raise PluginError(f"Failed to start hot reload: {e}") from e
 
     def stop_hot_reload(self, plugin_name: str) -> bool:
         """
@@ -286,7 +286,7 @@ class PluginHotReloadManager:
     ) -> None:
         """Sync individual file to container."""
         try:
-            from ..containers.manager import ContainerManager
+            from coffeebreak.containers.manager import ContainerManager
 
             container_manager = ContainerManager(verbose=self.verbose)
             container = container_manager.client.containers.get(core_container)
@@ -345,7 +345,7 @@ class PluginHotReloadManager:
     def _trigger_plugin_reload(self, plugin_name: str, core_container: str) -> None:
         """Trigger plugin reload in core container."""
         try:
-            from ..containers.manager import ContainerManager
+            from coffeebreak.containers.manager import ContainerManager
 
             container_manager = ContainerManager(verbose=self.verbose)
             container = container_manager.client.containers.get(core_container)
@@ -419,7 +419,7 @@ class PluginDevelopmentWorkflow:
             return result
 
         except Exception as e:
-            raise PluginError(f"Failed to start plugin development workflow: {e}")
+            raise PluginError(f"Failed to start plugin development workflow: {e}") from e
 
     def stop_plugin_development(self, plugin_name: str) -> bool:
         """

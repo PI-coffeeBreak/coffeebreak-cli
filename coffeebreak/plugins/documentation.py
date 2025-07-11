@@ -287,7 +287,7 @@ class PluginDocumentationGenerator:
                             if file.endswith(".json"):
                                 content = json.load(f)
                             else:
-                                from ..config.manager import ConfigManager
+                                from coffeebreak.config.manager import ConfigManager
 
                                 config_manager = ConfigManager()
                                 content = config_manager.load_config_file(file_path)
@@ -544,7 +544,7 @@ class PluginDocumentationGenerator:
         for spec_path in api_spec_paths:
             if os.path.exists(spec_path):
                 try:
-                    from ..config.manager import ConfigManager
+                    from coffeebreak.config.manager import ConfigManager
 
                     config_manager = ConfigManager()
                     api_spec = config_manager.load_config_file(spec_path)
@@ -935,7 +935,7 @@ class PluginDocumentationGenerator:
     def _load_plugin_config(self, plugin_dir: str) -> Dict[str, Any]:
         """Load plugin configuration."""
         config_path = os.path.join(plugin_dir, "coffeebreak-plugin.yml")
-        from ..config.manager import ConfigManager
+        from coffeebreak.config.manager import ConfigManager
 
         config_manager = ConfigManager()
         return config_manager.load_config_file(config_path)

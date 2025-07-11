@@ -123,7 +123,7 @@ class TestGitOperations:
             result = self.git_operations.validate_repository_access(
                 "https://github.com/test/repo.git"
             )
-            assert result == True
+            assert result
 
     def test_validate_repository_access_failure(self):
         """Test repository access validation with failure."""
@@ -150,10 +150,10 @@ class TestGitOperations:
         with patch("git.Repo", return_value=mock_repo):
             status = self.git_operations.check_repository_status("/test/repo")
 
-            assert status["exists"] == True
-            assert status["is_valid"] == True
+            assert status["exists"]
+            assert status["is_valid"]
             assert status["current_branch"] == "main"
-            assert status["has_uncommitted_changes"] == False
+            assert not status["has_uncommitted_changes"]
 
     def test_check_repository_status_invalid_repo(self):
         """Test checking status of invalid repository."""
@@ -161,8 +161,8 @@ class TestGitOperations:
             with patch("os.path.exists", return_value=True):
                 status = self.git_operations.check_repository_status("/test/not-repo")
 
-                assert status["exists"] == True
-                assert status["is_valid"] == False
+                assert status["exists"]
+                assert not status["is_valid"]
                 assert "error" in status
 
     def teardown_method(self):

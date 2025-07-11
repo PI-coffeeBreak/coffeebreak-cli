@@ -5,8 +5,8 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List
 
-from ..config.manager import ConfigManager
-from ..config.validator import ConfigValidator
+from coffeebreak.config.manager import ConfigManager
+from coffeebreak.config.validator import ConfigValidator
 
 
 class PluginValidator:

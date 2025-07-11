@@ -5,7 +5,8 @@ import subprocess
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from ..utils.errors import ConfigurationError
+from coffeebreak.utils.errors import CoffeeBreakError
+
 from .recovery import RecoveryManager
 from .scheduler import BackupScheduler
 from .storage import BackupStorage
@@ -137,7 +138,7 @@ class BackupManager:
             return setup_result
 
         except Exception as e:
-            raise ConfigurationError(f"Failed to setup backup system: {e}")
+            raise CoffeeBreakError(f"Failed to setup backup system: {e}") from e
 
     def _create_backup_scripts(
         self, domain: str, config: Dict[str, Any]

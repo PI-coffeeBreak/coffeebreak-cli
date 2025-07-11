@@ -106,12 +106,11 @@ class TestErrorHandler:
         """Test error handling with verbose output."""
         error = CoffeeBreakError("Test error")
 
-        with patch("click.echo") as mock_echo:
-            with patch("traceback.print_exc") as mock_traceback:
-                self.verbose_handler.handle_error(error)
+        with patch("traceback.print_exc") as mock_traceback:
+            self.verbose_handler.handle_error(error)
 
-                # Should print traceback in verbose mode
-                mock_traceback.assert_called_once()
+            # Should print traceback in verbose mode
+            mock_traceback.assert_called_once()
 
     def test_exit_with_error(self):
         """Test exit_with_error functionality."""

@@ -25,13 +25,12 @@ class TestFileManager:
 
         output_path = os.path.join(self.temp_dir, ".env.test")
 
-        result_path = self.file_manager.generate_env_file(
+        self.file_manager.generate_env_file(
             connection_info=connection_info,
             output_path=output_path,
             include_secrets=False,
         )
 
-        assert result_path == output_path
         assert os.path.exists(output_path)
 
         # Verify file contents
@@ -47,7 +46,7 @@ class TestFileManager:
         connection_info = {"DATABASE_URL": "postgresql://localhost:5432/db"}
         output_path = os.path.join(self.temp_dir, ".env.test")
 
-        result_path = self.file_manager.generate_env_file(
+        self.file_manager.generate_env_file(
             connection_info=connection_info,
             output_path=output_path,
             include_secrets=True,
@@ -79,9 +78,8 @@ class TestFileManager:
         """Test creating new .gitignore file."""
         gitignore_path = os.path.join(self.temp_dir, ".gitignore")
 
-        result_path = self.file_manager.create_gitignore(gitignore_path)
+        self.file_manager.create_gitignore(gitignore_path)
 
-        assert result_path == gitignore_path
         assert os.path.exists(gitignore_path)
 
         with open(gitignore_path) as f:

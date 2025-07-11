@@ -5,15 +5,18 @@ import sys
 
 from setuptools import find_packages, setup
 
+# Get version from package
 here = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(here, "coffeebreak"))
+try:
+    from coffeebreak import __author__, __version__
+except ImportError:
+    __version__ = "0.1.0"
+    __author__ = "CoffeeBreak Team"
 
 # Get the long description from the README file
 with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
-
-# Import version and author from package
-sys.path.insert(0, os.path.join(here, "coffeebreak"))
-from coffeebreak import __author__, __version__
 
 setup(
     name="coffeebreak-cli",

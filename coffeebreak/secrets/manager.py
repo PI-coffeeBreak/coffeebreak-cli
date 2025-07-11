@@ -9,7 +9,8 @@ from typing import Any, Dict, List, Optional
 
 from cryptography.fernet import Fernet
 
-from ..utils.errors import SecurityError
+from coffeebreak.utils.errors import SecurityError
+
 from .generator import SecretGenerator
 
 
@@ -87,9 +88,9 @@ class SecretManager:
                 os.unlink(tmp_file_path)
 
         except subprocess.FileNotFoundError:
-            raise SecurityError("Docker is not available for secret management")
+            raise SecurityError("Docker is not available for secret management") from None
         except Exception as e:
-            raise SecurityError(f"Failed to create Docker secret {name}: {e}")
+            raise SecurityError(f"Failed to create Docker secret {name}: {e}") from e
 
     def update_docker_secret(self, name: str, value: str) -> bool:
         """
@@ -115,7 +116,7 @@ class SecretManager:
             return self.create_docker_secret(name, value)
 
         except Exception as e:
-            raise SecurityError(f"Failed to update Docker secret {name}: {e}")
+            raise SecurityError(f"Failed to update Docker secret {name}: {e}") from e
 
     def remove_docker_secret(self, name: str) -> bool:
         """
@@ -150,7 +151,7 @@ class SecretManager:
                     )
 
         except Exception as e:
-            raise SecurityError(f"Failed to remove Docker secret {name}: {e}")
+            raise SecurityError(f"Failed to remove Docker secret {name}: {e}") from e
 
     def list_docker_secrets(self) -> List[str]:
         """
@@ -175,9 +176,9 @@ class SecretManager:
                 raise SecurityError(f"Failed to list Docker secrets: {result.stderr}")
 
         except subprocess.FileNotFoundError:
-            raise SecurityError("Docker is not available for secret management")
+            raise SecurityError("Docker is not available for secret management") from None
         except Exception as e:
-            raise SecurityError(f"Failed to list Docker secrets: {e}")
+            raise SecurityError(f"Failed to list Docker secrets: {e}") from e
 
     def save_encrypted_secret(self, name: str, value: str, secrets_dir: str) -> str:
         """
@@ -218,7 +219,7 @@ class SecretManager:
             return secret_file
 
         except Exception as e:
-            raise SecurityError(f"Failed to save encrypted secret {name}: {e}")
+            raise SecurityError(f"Failed to save encrypted secret {name}: {e}") from e
 
     def load_encrypted_secret(self, name: str, secrets_dir: str) -> str:
         """
@@ -250,7 +251,7 @@ class SecretManager:
             return decrypted_value.decode("utf-8")
 
         except Exception as e:
-            raise SecurityError(f"Failed to load encrypted secret {name}: {e}")
+            raise SecurityError(f"Failed to load encrypted secret {name}: {e}") from e
 
     def save_plain_secret(self, name: str, value: str, secrets_dir: str) -> str:
         """
@@ -285,7 +286,7 @@ class SecretManager:
             return secret_file
 
         except Exception as e:
-            raise SecurityError(f"Failed to save plain secret {name}: {e}")
+            raise SecurityError(f"Failed to save plain secret {name}: {e}") from e
 
     def deploy_all_secrets(
         self, secrets: Dict[str, str], secrets_dir: str = "/etc/coffeebreak/secrets"
@@ -356,7 +357,7 @@ class SecretManager:
             return results
 
         except Exception as e:
-            raise SecurityError(f"Failed to deploy secrets: {e}")
+            raise SecurityError(f"Failed to deploy secrets: {e}") from e
 
     def rotate_secret(
         self, name: str, secrets_dir: str = "/etc/coffeebreak/secrets"
@@ -401,7 +402,7 @@ class SecretManager:
             return new_value
 
         except Exception as e:
-            raise SecurityError(f"Failed to rotate secret {name}: {e}")
+            raise SecurityError(f"Failed to rotate secret {name}: {e}") from e
 
     def rotate_all_secrets(
         self, secret_names: List[str], secrets_dir: str = "/etc/coffeebreak/secrets"
@@ -439,7 +440,7 @@ class SecretManager:
             return new_secrets
 
         except Exception as e:
-            raise SecurityError(f"Failed to rotate secrets: {e}")
+            raise SecurityError(f"Failed to rotate secrets: {e}") from e
 
     def backup_secrets(
         self,
@@ -496,7 +497,7 @@ class SecretManager:
             return backup_file
 
         except Exception as e:
-            raise SecurityError(f"Failed to backup secrets: {e}")
+            raise SecurityError(f"Failed to backup secrets: {e}") from e
 
     def validate_secrets_deployment(
         self, secrets_dir: str = "/etc/coffeebreak/secrets"
@@ -575,4 +576,4 @@ class SecretManager:
             return validation
 
         except Exception as e:
-            raise SecurityError(f"Failed to validate secrets deployment: {e}")
+            raise SecurityError(f"Failed to validate secrets deployment: {e}") from e

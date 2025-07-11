@@ -2,6 +2,7 @@
 
 from typing import Any, Dict, List
 
+
 # Lazy imports for docker to avoid import issues
 def _get_docker_imports():
     """Get docker imports, importing them only when needed."""
@@ -20,32 +21,32 @@ def _get_docker_imports():
                 return DummyNetworks()
             def containers(self):
                 return DummyContainers()
-            
+
             @classmethod
             def from_env(cls):
                 return cls()
-        
+
         class DummyNetworks:
             def get(self, name):
                 raise DummyNotFound()
             def create(self, name, driver):
                 pass
-        
+
         class DummyContainers:
             def get(self, name):
                 raise DummyNotFound()
             def run(self, **kwargs):
                 pass
-        
+
         class DummyNotFound(Exception):
             pass
-        
+
         class DummyAPIError(Exception):
             pass
-        
+
         class DummyDockerException(Exception):
             pass
-        
+
         return DummyDockerClient, DummyAPIError, DummyDockerException, DummyNotFound
 
 docker, APIError, DockerException, NotFound = _get_docker_imports()

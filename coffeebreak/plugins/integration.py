@@ -5,10 +5,10 @@ import shutil
 import tempfile
 from typing import Any, Dict, List
 
-from ..config.manager import ConfigManager
-from ..containers.compose import DockerComposeOrchestrator
-from ..containers.manager import ContainerManager
-from ..utils.errors import PluginError
+from coffeebreak.config.manager import ConfigManager
+from coffeebreak.containers.compose import DockerComposeOrchestrator
+from coffeebreak.containers.manager import ContainerManager
+from coffeebreak.utils.errors import PluginError
 
 
 class PluginContainerIntegration:
@@ -79,7 +79,7 @@ class PluginContainerIntegration:
             if isinstance(e, PluginError):
                 raise
             else:
-                raise PluginError(f"Failed to mount plugin in development: {e}")
+                raise PluginError(f"Failed to mount plugin in development: {e}") from e
 
     def unmount_plugin_from_development(
         self, plugin_name: str, core_container_name: str = "coffeebreak-core"
@@ -118,7 +118,7 @@ class PluginContainerIntegration:
             return True
 
         except Exception as e:
-            raise PluginError(f"Failed to unmount plugin: {e}")
+            raise PluginError(f"Failed to unmount plugin: {e}") from e
 
     def list_mounted_plugins(
         self, core_container_name: str = "coffeebreak-core"
@@ -195,7 +195,7 @@ class PluginContainerIntegration:
             return result
 
         except Exception as e:
-            raise PluginError(f"Failed to setup plugin development environment: {e}")
+            raise PluginError(f"Failed to setup plugin development environment: {e}") from e
 
     def _validate_plugin_directory(self, plugin_dir: str) -> bool:
         """Validate that directory is a valid plugin."""
@@ -265,7 +265,7 @@ class PluginContainerIntegration:
                     print(f"Copying {host_path} -> {container_path}")
 
                 # Create container directory
-                exec_result = container.exec_run(
+                container.exec_run(
                     f"mkdir -p {os.path.dirname(container_path)}"
                 )
 
@@ -323,7 +323,8 @@ EOF
             if exec_result.exit_code != 0:
                 if self.verbose:
                     print(
-                        f"Warning: Failed to register plugin in core: {exec_result.output}"
+                        f"Warning: Failed to register plugin in core: "
+                        f"{exec_result.output}"
                     )
 
         except Exception as e:
@@ -338,7 +339,7 @@ EOF
             container = self.container_manager.client.containers.get(container_name)
 
             # Remove plugin registry entry
-            exec_result = container.exec_run(
+            container.exec_run(
                 ["rm", "-f", f"/opt/coffeebreak/plugins/.registry/{plugin_name}.json"]
             )
 
@@ -354,7 +355,7 @@ EOF
             container = self.container_manager.client.containers.get(container_name)
 
             # Remove plugin directory
-            exec_result = container.exec_run(
+            container.exec_run(
                 ["rm", "-rf", f"/opt/coffeebreak/plugins/{plugin_name}"]
             )
 
@@ -416,7 +417,7 @@ EOF
                     print(f"Ensuring required services are running: {services}")
 
                 # Use dependency manager to start required services
-                from ..containers.dependencies import DependencyManager
+                from coffeebreak.containers.dependencies import DependencyManager
 
                 dep_manager = DependencyManager(
                     self.config_manager, verbose=self.verbose

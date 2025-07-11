@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
-from ..utils.errors import SSLError
+from coffeebreak.utils.errors import SSLError
 
 
 class SSLManager:
@@ -167,7 +167,7 @@ class SSLManager:
             return validation
 
         except Exception as e:
-            raise SSLError(f"Failed to validate certificate: {e}")
+            raise SSLError(f"Failed to validate certificate: {e}") from e
 
     def generate_self_signed_certificate(
         self,
@@ -267,7 +267,7 @@ class SSLManager:
             }
 
         except Exception as e:
-            raise SSLError(f"Failed to generate self-signed certificate: {e}")
+            raise SSLError(f"Failed to generate self-signed certificate: {e}") from e
 
     def check_certificate_expiration(self, cert_path: str) -> Dict[str, Any]:
         """
@@ -308,7 +308,7 @@ class SSLManager:
             }
 
         except Exception as e:
-            raise SSLError(f"Failed to check certificate expiration: {e}")
+            raise SSLError(f"Failed to check certificate expiration: {e}") from e
 
     def backup_certificates(self, cert_dir: str, backup_dir: str, domain: str) -> str:
         """
@@ -349,7 +349,7 @@ class SSLManager:
             return str(backup_file)
 
         except Exception as e:
-            raise SSLError(f"Failed to backup certificates: {e}")
+            raise SSLError(f"Failed to backup certificates: {e}") from e
 
     def install_certificate(
         self,
@@ -416,7 +416,7 @@ class SSLManager:
             }
 
         except Exception as e:
-            raise SSLError(f"Failed to install certificate: {e}")
+            raise SSLError(f"Failed to install certificate: {e}") from e
 
     def get_certificate_info(self, cert_path: str) -> Dict[str, Any]:
         """
@@ -493,4 +493,4 @@ class SSLManager:
             return info
 
         except Exception as e:
-            raise SSLError(f"Failed to get certificate info: {e}")
+            raise SSLError(f"Failed to get certificate info: {e}") from e

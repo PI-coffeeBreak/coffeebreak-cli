@@ -3,6 +3,7 @@
 from .dependencies import DependencyManager
 from .manager import ContainerManager
 
+
 # Lazy import for health checker to avoid docker import issues
 def get_health_checker():
     """Get HealthChecker class, importing it only when needed."""

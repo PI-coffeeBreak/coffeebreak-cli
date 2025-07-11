@@ -7,9 +7,10 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-from ..secrets import SecretManager
-from ..ssl import SSLManager
-from ..utils.errors import ValidationError
+from coffeebreak.secrets import SecretManager
+from coffeebreak.ssl import SSLManager
+from coffeebreak.utils.errors import ValidationError
+
 from .health import HealthChecker
 from .security import SecurityValidator
 
@@ -129,7 +130,7 @@ class ProductionValidator:
             return validation_result
 
         except Exception as e:
-            raise ValidationError(f"Production validation failed: {e}")
+            raise ValidationError(f"Production validation failed: {e}") from e
 
     def _validate_configuration(self, config_path: Optional[str]) -> Dict[str, Any]:
         """Validate configuration files."""

@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
 
-from ..utils.errors import SecurityError
+from coffeebreak.utils.errors import SecurityError
+
 from .generator import SecretGenerator
 from .manager import SecretManager
 
@@ -168,7 +169,7 @@ class SecretRotationManager:
             os.chmod(self.config_file, 0o600)
 
         except Exception as e:
-            raise SecurityError(f"Failed to save rotation schedules: {e}")
+            raise SecurityError(f"Failed to save rotation schedules: {e}") from e
 
     def add_rotation_hook(self, hook: Callable, phase: str = "post") -> None:
         """
@@ -241,7 +242,7 @@ class SecretRotationManager:
         except Exception as e:
             raise SecurityError(
                 f"Failed to update rotation schedule for {secret_name}: {e}"
-            )
+            ) from e
 
     def get_secrets_due_for_rotation(self) -> List[RotationSchedule]:
         """
@@ -278,7 +279,7 @@ class SecretRotationManager:
             return due_secrets
 
         except Exception as e:
-            raise SecurityError(f"Failed to get secrets due for rotation: {e}")
+            raise SecurityError(f"Failed to get secrets due for rotation: {e}") from e
 
     def rotate_secret(self, secret_name: str, force: bool = False) -> Dict[str, Any]:
         """
@@ -341,7 +342,7 @@ class SecretRotationManager:
                             secret_name, "/etc/coffeebreak/secrets"
                         )
                         rotation_result["old_value_length"] = len(old_value)
-                except:
+                except Exception:
                     pass  # Old value not available, continue
 
                 # Generate and deploy new secret
@@ -382,7 +383,7 @@ class SecretRotationManager:
             if isinstance(e, SecurityError):
                 raise
             else:
-                raise SecurityError(f"Failed to rotate secret {secret_name}: {e}")
+                raise SecurityError(f"Failed to rotate secret {secret_name}: {e}") from e
 
     def rotate_due_secrets(self, max_rotations: int = 5) -> List[Dict[str, Any]]:
         """
@@ -432,7 +433,7 @@ class SecretRotationManager:
             return results
 
         except Exception as e:
-            raise SecurityError(f"Failed to rotate due secrets: {e}")
+            raise SecurityError(f"Failed to rotate due secrets: {e}") from e
 
     def emergency_rotation(
         self, secret_names: List[str], reason: str = ""
@@ -478,7 +479,7 @@ class SecretRotationManager:
             return results
 
         except Exception as e:
-            raise SecurityError(f"Failed to perform emergency rotation: {e}")
+            raise SecurityError(f"Failed to perform emergency rotation: {e}") from e
 
     def _log_emergency_rotation(
         self, secret_names: List[str], reason: str, results: List[Dict[str, Any]]
@@ -575,7 +576,7 @@ class SecretRotationManager:
             return status
 
         except Exception as e:
-            raise SecurityError(f"Failed to get rotation status: {e}")
+            raise SecurityError(f"Failed to get rotation status: {e}") from e
 
     def disable_rotation(self, secret_name: str) -> None:
         """
@@ -595,7 +596,7 @@ class SecretRotationManager:
                 raise SecurityError(f"Secret not found: {secret_name}")
 
         except Exception as e:
-            raise SecurityError(f"Failed to disable rotation for {secret_name}: {e}")
+            raise SecurityError(f"Failed to disable rotation for {secret_name}: {e}") from e
 
     def enable_rotation(self, secret_name: str) -> None:
         """
@@ -621,4 +622,4 @@ class SecretRotationManager:
                 raise SecurityError(f"Secret not found: {secret_name}")
 
         except Exception as e:
-            raise SecurityError(f"Failed to enable rotation for {secret_name}: {e}")
+            raise SecurityError(f"Failed to enable rotation for {secret_name}: {e}") from e
