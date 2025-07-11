@@ -12,7 +12,8 @@ from coffeebreak.utils.errors import PluginError
 
 
 class PluginContainerIntegration:
-    """Handles mounting and integrating plugins with running CoffeeBreak core instances."""
+    """Handles mounting and integrating plugins with running CoffeeBreak core
+    instances."""
 
     def __init__(self, verbose: bool = False):
         """Initialize plugin container integration."""
@@ -39,7 +40,8 @@ class PluginContainerIntegration:
 
             if self.verbose:
                 print(
-                    f"Mounting plugin {plugin_dir} into container {core_container_name}"
+                    f"Mounting plugin {plugin_dir} into container "
+                    f"{core_container_name}"
                 )
 
             # Validate plugin directory
@@ -97,7 +99,8 @@ class PluginContainerIntegration:
         try:
             if self.verbose:
                 print(
-                    f"Unmounting plugin '{plugin_name}' from container {core_container_name}"
+                    f"Unmounting plugin '{plugin_name}' from container "
+                    f"{core_container_name}"
                 )
 
             # Check if container is running
@@ -195,7 +198,9 @@ class PluginContainerIntegration:
             return result
 
         except Exception as e:
-            raise PluginError(f"Failed to setup plugin development environment: {e}") from e
+            raise PluginError(
+                f"Failed to setup plugin development environment: {e}"
+            ) from e
 
     def _validate_plugin_directory(self, plugin_dir: str) -> bool:
         """Validate that directory is a valid plugin."""
@@ -255,7 +260,8 @@ class PluginContainerIntegration:
     ) -> bool:
         """Mount plugin volumes into container."""
         try:
-            # Note: Docker doesn't support dynamic volume mounting after container creation
+            # Note: Docker doesn't support dynamic volume mounting after
+            # container creation
             # For development, we'll copy files and set up file watching instead
 
             container = self.container_manager.client.containers.get(container_name)
@@ -440,13 +446,15 @@ EOF
 
             if self.verbose:
                 print(
-                    f"Core container '{core_container_name}' not running, attempting to start..."
+                    f"Core container '{core_container_name}' not running, "
+                    f"attempting to start..."
                 )
 
             # Try to start using docker-compose if available
             if self.compose_orchestrator.is_compose_available():
                 # This would need a compose file that includes the core service
-                # For now, just return the container name and let the user start it manually
+                # For now, just return the container name and let the user
+                # start it manually
                 pass
 
             # Check again after potential start
@@ -455,10 +463,12 @@ EOF
             else:
                 if self.verbose:
                     print(
-                        f"Warning: Core container '{core_container_name}' is not running"
+                        f"Warning: Core container '{core_container_name}' "
+                        f"is not running"
                     )
                     print(
-                        "You may need to start the CoffeeBreak core development environment first"
+                        "You may need to start the CoffeeBreak core "
+                        "development environment first"
                     )
                 return core_container_name  # Return name anyway for error handling
 

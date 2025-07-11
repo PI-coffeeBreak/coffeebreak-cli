@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 import yaml
 
-from ..utils.errors import ConfigurationError
+from coffeebreak.utils.errors import ConfigurationError
 
 
 class MetricsCollector:
@@ -172,4 +172,4 @@ WantedBy=multi-user.target
             subprocess.run(["systemctl", "start", "node_exporter"], check=True)
 
         except Exception as e:
-            raise ConfigurationError(f"Failed to install Node Exporter: {e}")
+            raise ConfigurationError(f"Failed to install Node Exporter: {e}") from e

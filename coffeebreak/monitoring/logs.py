@@ -164,12 +164,12 @@ send_alert() {
     local log_file="$1"
     local pattern="$2"
     local count="$3"
-    
+
     local subject="CoffeeBreak Log Alert: $pattern in $log_file"
     local message="Found $count occurrences of '$pattern' in $log_file since last check"
-    
+
     echo "$message" | logger -t coffeebreak-log-monitor
-    
+
     if command -v mail &> /dev/null && [ -n "$ALERT_EMAIL" ]; then
         echo "$message" | mail -s "$subject" "$ALERT_EMAIL"
     fi
@@ -188,7 +188,7 @@ for log_file in "$LOG_DIR"/*.log; do
                     }
                 }
             ' "$log_file" | wc -l)
-            
+
             if [ "$count" -gt 0 ]; then
                 send_alert "$(basename "$log_file")" "$pattern" "$count"
             fi
@@ -219,7 +219,7 @@ done
                 crontab_content = (
                     current_crontab.stdout if current_crontab.returncode == 0 else ""
                 )
-            except:
+            except Exception:
                 crontab_content = ""
 
             if "log-monitor.sh" not in crontab_content:

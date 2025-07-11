@@ -798,14 +798,12 @@ echo "Backup completed: $BACKUP_DIR/$BACKUP_NAME"
 
             try:
                 current_crontab = subprocess.run(
-                    ["crontab", "-u", "coffeebreak", "-l"],
-                    capture_output=True,
-                    text=True,
+                    ["crontab", "-l"], capture_output=True, text=True
                 )
                 crontab_content = (
                     current_crontab.stdout if current_crontab.returncode == 0 else ""
                 )
-            except:
+            except Exception:
                 crontab_content = ""
 
             if "backup.sh" not in crontab_content:

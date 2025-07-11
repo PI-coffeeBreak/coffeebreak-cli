@@ -132,7 +132,8 @@ class SecurityValidator:
                                 validation["score"] += 10
                             else:
                                 validation["issues"].append(
-                                    f"Incorrect permissions: {path} has {oct(actual_mode)}, expected {oct(expected_mode)}"
+                                    f"Incorrect permissions: {path} has "
+                                    f"{oct(actual_mode)}, expected {oct(expected_mode)}"
                                 )
                         else:
                             validation["warnings"].append(f"Path not found: {path}")
@@ -157,7 +158,9 @@ class SecurityValidator:
                             validation["score"] += 10
                         else:
                             validation["warnings"].append(
-                                f"Overly permissive: {path} has {oct(actual_mode)}, recommended max {oct(expected_mode)}"
+                                f"Overly permissive: {path} has "
+                                f"{oct(actual_mode)}, recommended max "
+                                f"{oct(expected_mode)}"
                             )
 
             # Check for world-readable sensitive files
@@ -229,7 +232,8 @@ class SecurityValidator:
                             ):
                                 if "${" not in line:  # Not using environment variables
                                     validation["issues"].append(
-                                        f"Potential plaintext secret in docker-compose.yml line {i}"
+                                        f"Potential plaintext secret in docker-compose.yml "
+                                        f"line {i}"
                                     )
 
             else:  # Standalone deployment
@@ -284,7 +288,8 @@ class SecurityValidator:
                                     for keyword in sensitive_keywords
                                 ):
                                     validation["warnings"].append(
-                                        f"Potential hardcoded secret in {env_file} line {i}"
+                                        f"Potential hardcoded secret in {env_file} "
+                                        f"line {i}"
                                     )
 
             validation["status"] = "passed" if not validation["issues"] else "failed"
@@ -387,7 +392,8 @@ class SecurityValidator:
                             )
                         else:
                             validation["issues"].append(
-                                f"Database/service port {port} is accessible from internet"
+                                f"Database/service port {port} is accessible "
+                                f"from internet"
                             )
 
                 except Exception:
@@ -511,12 +517,14 @@ class SecurityValidator:
 
                         if len(found_settings) >= 3:
                             validation["checks"].append(
-                                f"Good systemd security in {os.path.basename(service_file)}"
+                                f"Good systemd security in "
+                                f"{os.path.basename(service_file)}"
                             )
                             validation["score"] += 5
                         else:
                             validation["warnings"].append(
-                                f"Missing systemd security settings in {os.path.basename(service_file)}"
+                                f"Missing systemd security settings in "
+                                f"{os.path.basename(service_file)}"
                             )
 
             else:  # Docker deployment
@@ -801,7 +809,8 @@ class SecurityValidator:
 
                     if backup_files:
                         validation["checks"].append(
-                            f"Found {len(backup_files)} backup files with appropriate permissions"
+                            f"Found {len(backup_files)} backup files with "
+                            f"appropriate permissions"
                         )
 
             # Check for backup encryption

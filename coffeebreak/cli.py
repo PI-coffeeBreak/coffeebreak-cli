@@ -2302,7 +2302,7 @@ def publish(ctx, name, validate, registry, token, tag, changelog, force, public)
             try:
                 registry_config = config_manager.get_config().get("plugin_registry", {})
                 registry = registry_config.get("url")
-            except:
+            except Exception:
                 pass
 
             if not registry:
@@ -2319,7 +2319,7 @@ def publish(ctx, name, validate, registry, token, tag, changelog, force, public)
                         "plugin_registry", {}
                     )
                     token = registry_config.get("token")
-                except:
+                except Exception:
                     pass
 
             if not token:

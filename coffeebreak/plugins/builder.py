@@ -1,5 +1,6 @@
 """Plugin build system for CoffeeBreak CLI."""
 
+import fnmatch
 import glob
 import importlib.util
 import os
@@ -9,9 +10,9 @@ import sys
 import zipapp
 from typing import Any, Dict, List, Optional, Set
 
-from ..config.manager import ConfigManager
-from ..utils.errors import CoffeeBreakError, PluginError
-from ..utils.files import FileManager
+from coffeebreak.config.manager import ConfigManager
+from coffeebreak.utils.errors import CoffeeBreakError, PluginError
+from coffeebreak.utils.files import FileManager
 
 
 class PluginBuilder:
@@ -139,7 +140,7 @@ class PluginBuilder:
             if isinstance(e, CoffeeBreakError):
                 raise
             else:
-                raise PluginError(f"Failed to build plugin: {e}")
+                raise PluginError(f"Failed to build plugin: {e}") from e
 
     def _load_plugin_config(self, plugin_dir: str) -> Dict[str, Any]:
         """Load plugin configuration."""
@@ -151,7 +152,7 @@ class PluginBuilder:
         try:
             return self.config_manager.load_config_file(config_path)
         except Exception as e:
-            raise PluginError(f"Failed to load plugin configuration: {e}")
+            raise PluginError(f"Failed to load plugin configuration: {e}") from e
 
     def _cleanup_build_dir(self, build_dir: str) -> None:
         """Clean up build directory."""
@@ -206,7 +207,7 @@ class PluginBuilder:
 
             excluded = False
             for exclude_pattern in exclude_patterns:
-                if glob.fnmatch.fnmatch(rel_path, exclude_pattern):
+                if fnmatch.fnmatch(rel_path, exclude_pattern):
                     excluded = True
                     break
 
@@ -259,7 +260,7 @@ class PluginBuilder:
                 print("Dependencies installed successfully")
 
         except subprocess.CalledProcessError as e:
-            raise PluginError(f"Failed to install dependencies: {e.stderr}")
+            raise PluginError(f"Failed to install dependencies: {e.stderr}") from e
 
     def _exclude_native_modules(
         self, build_dir: str, additional_excludes: List[str]
@@ -301,7 +302,7 @@ class PluginBuilder:
 
     def _has_native_extensions(self, module_path: str) -> bool:
         """Check if module contains native extensions."""
-        for root, dirs, files in os.walk(module_path):
+        for _root, _dirs, files in os.walk(module_path):
             for file in files:
                 # Native extension files
                 if file.endswith((".so", ".pyd", ".dll", ".dylib")):
@@ -384,7 +385,7 @@ class PluginBuilder:
             return pyz_path
 
         except Exception as e:
-            raise PluginError(f"Failed to create .pyz package: {e}")
+            raise PluginError(f"Failed to create .pyz package: {e}") from e
 
     def _run_build_hooks(
         self, plugin_dir: str, config: Dict[str, Any], hook_type: str
@@ -420,9 +421,9 @@ class PluginBuilder:
                 print(f"{hook_type} hook output: {result.stdout}")
 
         except subprocess.TimeoutExpired:
-            raise PluginError(f"{hook_type} hook timed out")
+            raise PluginError(f"{hook_type} hook timed out") from None
         except Exception as e:
-            raise PluginError(f"Failed to run {hook_type} hook: {e}")
+            raise PluginError(f"Failed to run {hook_type} hook: {e}") from e
 
     def get_build_info(self, plugin_dir: str = ".") -> Dict[str, Any]:
         """Get build information for a plugin."""
@@ -444,7 +445,7 @@ class PluginBuilder:
             return info
 
         except Exception as e:
-            raise PluginError(f"Failed to get build info: {e}")
+            raise PluginError(f"Failed to get build info: {e}") from e
 
     def _estimate_build_size(self, plugin_dir: str) -> str:
         """Estimate the size of the plugin build."""
@@ -482,7 +483,7 @@ class PluginBuilder:
     def _get_directory_size(self, directory: str) -> int:
         """Calculate total size of directory."""
         total_size = 0
-        for root, dirs, files in os.walk(directory):
+        for root, _dirs, files in os.walk(directory):
             for file in files:
                 file_path = os.path.join(root, file)
                 try:

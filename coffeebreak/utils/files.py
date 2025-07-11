@@ -265,7 +265,8 @@ class FileManager:
         return backup_path
 
     def _generate_development_secrets(self) -> Dict[str, str]:
-        """Generate development secrets matching orchestrator variables and test expectations."""
+        """Generate development secrets matching orchestrator variables and
+        test expectations."""
         import secrets
         import string
 

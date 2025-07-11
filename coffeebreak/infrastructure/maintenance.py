@@ -536,7 +536,7 @@ main "$@"
                 crontab_content = (
                     current_crontab.stdout if current_crontab.returncode == 0 else ""
                 )
-            except:
+            except Exception:
                 crontab_content = ""
 
             # Add new maintenance entries

@@ -5,7 +5,7 @@ import os
 import subprocess
 from typing import Any, Dict, List, Optional
 
-from ..utils.errors import PluginError
+from coffeebreak.utils.errors import PluginError
 
 
 class PluginDeveloperTools:
@@ -129,7 +129,7 @@ class PluginDeveloperTools:
             return results
 
         except Exception as e:
-            raise PluginError(f"Failed to run quality assurance: {e}")
+            raise PluginError(f"Failed to run quality assurance: {e}") from e
 
     def _detect_available_tools(self, plugin_dir: str) -> List[str]:
         """Detect which tools are available and applicable."""
@@ -139,7 +139,7 @@ class PluginDeveloperTools:
         src_path = os.path.join(plugin_dir, "src")
         if os.path.exists(src_path):
             python_files = []
-            for root, dirs, files in os.walk(src_path):
+            for _root, _dirs, files in os.walk(src_path):
                 python_files.extend([f for f in files if f.endswith(".py")])
 
             if python_files:
@@ -149,7 +149,7 @@ class PluginDeveloperTools:
         js_files = []
         ts_files = []
         if os.path.exists(src_path):
-            for root, dirs, files in os.walk(src_path):
+            for _root, _dirs, files in os.walk(src_path):
                 js_files.extend([f for f in files if f.endswith((".js", ".jsx"))])
                 ts_files.extend([f for f in files if f.endswith((".ts", ".tsx"))])
 
@@ -197,9 +197,9 @@ class PluginDeveloperTools:
 
         # Python linting with flake8
         python_files = []
-        for root, dirs, files in os.walk(src_path):
+        for _root, _dirs, files in os.walk(src_path):
             python_files.extend(
-                [os.path.join(root, f) for f in files if f.endswith(".py")]
+                [os.path.join(_root, f) for f in files if f.endswith(".py")]
             )
 
         if python_files:
@@ -278,7 +278,7 @@ class PluginDeveloperTools:
         # JavaScript/TypeScript linting with ESLint
         js_files = []
         ts_files = []
-        for root, dirs, files in os.walk(src_path):
+        for _root, _dirs, files in os.walk(src_path):
             js_files.extend([f for f in files if f.endswith((".js", ".jsx"))])
             ts_files.extend([f for f in files if f.endswith((".ts", ".tsx"))])
 
@@ -347,9 +347,9 @@ class PluginDeveloperTools:
 
         # Python formatting with black
         python_files = []
-        for root, dirs, files in os.walk(src_path):
+        for _root, _dirs, files in os.walk(src_path):
             python_files.extend(
-                [os.path.join(root, f) for f in files if f.endswith(".py")]
+                [os.path.join(_root, f) for f in files if f.endswith(".py")]
             )
 
         if python_files:
@@ -397,7 +397,7 @@ class PluginDeveloperTools:
 
         # JavaScript/TypeScript formatting with Prettier
         js_ts_files = []
-        for root, dirs, files in os.walk(src_path):
+        for _root, _dirs, files in os.walk(src_path):
             js_ts_files.extend(
                 [f for f in files if f.endswith((".js", ".jsx", ".ts", ".tsx"))]
             )
@@ -458,7 +458,7 @@ class PluginDeveloperTools:
         src_path = os.path.join(plugin_dir, "src")
         if os.path.exists(src_path):
             python_files = []
-            for root, dirs, files in os.walk(src_path):
+            for _root, _dirs, files in os.walk(src_path):
                 python_files.extend([f for f in files if f.endswith(".py")])
 
             if python_files:
@@ -546,7 +546,7 @@ class PluginDeveloperTools:
         src_path = os.path.join(plugin_dir, "src")
         if os.path.exists(src_path):
             python_files = []
-            for root, dirs, files in os.walk(src_path):
+            for _root, _dirs, files in os.walk(src_path):
                 python_files.extend([f for f in files if f.endswith(".py")])
 
             if python_files:
@@ -732,9 +732,9 @@ class PluginDeveloperTools:
             total_size = 0
             file_count = 0
 
-            for root, dirs, files in os.walk(src_path):
+            for _root, _dirs, files in os.walk(src_path):
                 for file in files:
-                    file_path = os.path.join(root, file)
+                    file_path = os.path.join(_root, file)
                     try:
                         file_size = os.path.getsize(file_path)
                         total_size += file_size
@@ -819,9 +819,9 @@ class PluginDeveloperTools:
         src_path = os.path.join(plugin_dir, "src")
         if os.path.exists(src_path):
             python_files = []
-            for root, dirs, files in os.walk(src_path):
+            for _root, _dirs, files in os.walk(src_path):
                 python_files.extend(
-                    [os.path.join(root, f) for f in files if f.endswith(".py")]
+                    [os.path.join(_root, f) for f in files if f.endswith(".py")]
                 )
 
             if python_files:
@@ -1015,7 +1015,7 @@ class PluginDeveloperTools:
     def _load_plugin_config(self, plugin_dir: str) -> Dict[str, Any]:
         """Load plugin configuration."""
         config_path = os.path.join(plugin_dir, "coffeebreak-plugin.yml")
-        from ..config.manager import ConfigManager
+        from coffeebreak.config.manager import ConfigManager
 
         config_manager = ConfigManager()
         return config_manager.load_config_file(config_path)

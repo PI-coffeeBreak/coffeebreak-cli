@@ -310,7 +310,8 @@ class SecretRotationManager:
                 if schedule.next_rotation and datetime.now() < schedule.next_rotation:
                     time_until_due = schedule.next_rotation - datetime.now()
                     raise SecurityError(
-                        f"Secret {secret_name} is not due for rotation (due in {time_until_due.days} days)"
+                        f"Secret {secret_name} is not due for rotation "
+                        f"(due in {time_until_due.days} days)"
                     )
 
             start_time = time.time()
@@ -383,7 +384,9 @@ class SecretRotationManager:
             if isinstance(e, SecurityError):
                 raise
             else:
-                raise SecurityError(f"Failed to rotate secret {secret_name}: {e}") from e
+                raise SecurityError(
+                    f"Failed to rotate secret {secret_name}: {e}"
+                ) from e
 
     def rotate_due_secrets(self, max_rotations: int = 5) -> List[Dict[str, Any]]:
         """
@@ -596,7 +599,9 @@ class SecretRotationManager:
                 raise SecurityError(f"Secret not found: {secret_name}")
 
         except Exception as e:
-            raise SecurityError(f"Failed to disable rotation for {secret_name}: {e}") from e
+            raise SecurityError(
+                f"Failed to disable rotation for {secret_name}: {e}"
+            ) from e
 
     def enable_rotation(self, secret_name: str) -> None:
         """
@@ -622,4 +627,6 @@ class SecretRotationManager:
                 raise SecurityError(f"Secret not found: {secret_name}")
 
         except Exception as e:
-            raise SecurityError(f"Failed to enable rotation for {secret_name}: {e}") from e
+            raise SecurityError(
+                f"Failed to enable rotation for {secret_name}: {e}"
+            ) from e

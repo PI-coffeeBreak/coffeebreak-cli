@@ -34,7 +34,8 @@ class PluginTestFramework:
 
         Args:
             plugin_dir: Plugin directory to test
-            test_types: Specific test types to run (python, node, integration, lint, security)
+            test_types: Specific test types to run (python, node, integration,
+                       lint, security)
             coverage: Whether to generate coverage reports
             fail_fast: Whether to stop on first test failure
 
@@ -597,11 +598,13 @@ class PluginTestFramework:
                                     if high_severity:
                                         result["success"] = False
                                         result["details"].append(
-                                            f"Found {len(high_severity)} high-severity security issues"
+                                            f"Found {len(high_severity)} high-severity "
+                                            f"security issues"
                                         )
                                     else:
                                         result["details"].append(
-                                            f"Found {len(vulnerabilities)} low/medium security issues"
+                                            f"Found {len(vulnerabilities)} low/medium "
+                                            f"security issues"
                                         )
                                 else:
                                     result["details"].append("No security issues found")
@@ -641,11 +644,13 @@ class PluginTestFramework:
                                 if high_vuln > 0:
                                     result["success"] = False
                                     result["details"].append(
-                                        f"Found {high_vuln} high/critical npm vulnerabilities"
+                                        f"Found {high_vuln} high/critical npm "
+                                        f"vulnerabilities"
                                     )
                                 else:
                                     result["details"].append(
-                                        f"Found {len(vulnerabilities)} low/medium npm vulnerabilities"
+                                        f"Found {len(vulnerabilities)} low/medium "
+                                        f"npm vulnerabilities"
                                     )
                             else:
                                 result["details"].append("No npm vulnerabilities found")
@@ -725,8 +730,10 @@ class PluginTestFramework:
             html_lines = [
                 "<html><head><title>Plugin Test Report</title></head><body>",
                 f"<h1>Test Report for {results['plugin_name']}</h1>",
-                f"<p><strong>Overall Success:</strong> {'✓' if results['overall_success'] else '✗'}</p>",
-                f"<p><strong>Execution Time:</strong> {results['execution_time']:.2f}s</p>",
+                f"<p><strong>Overall Success:</strong> "
+                f"{'✓' if results['overall_success'] else '✗'}</p>",
+                f"<p><strong>Execution Time:</strong> "
+                f"{results['execution_time']:.2f}s</p>",
                 "<h2>Summary</h2>",
                 "<ul>",
                 f"<li>Total Tests: {results['summary']['total_tests']}</li>",

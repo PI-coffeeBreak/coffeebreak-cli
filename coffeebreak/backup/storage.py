@@ -324,7 +324,7 @@ main "$@"
                 crontab_content = (
                     current_crontab.stdout if current_crontab.returncode == 0 else ""
                 )
-            except:
+            except Exception:
                 crontab_content = ""
 
             if "s3-sync.sh" not in crontab_content:
@@ -748,7 +748,7 @@ main "$@"
                 crontab_content = (
                     current_crontab.stdout if current_crontab.returncode == 0 else ""
                 )
-            except:
+            except Exception:
                 crontab_content = ""
 
             if "storage-monitor.sh" not in crontab_content:

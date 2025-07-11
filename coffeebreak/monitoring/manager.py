@@ -7,7 +7,8 @@ from typing import Any, Dict, Optional
 
 from jinja2 import Environment, FileSystemLoader
 
-from ..utils.errors import ConfigurationError
+from coffeebreak.utils.errors import ConfigurationError
+
 from .alerts import AlertManager
 from .logs import LogManager
 from .metrics import MetricsCollector
@@ -157,7 +158,7 @@ class MonitoringManager:
             return setup_result
 
         except Exception as e:
-            raise ConfigurationError(f"Failed to setup monitoring: {e}")
+            raise ConfigurationError(f"Failed to setup monitoring: {e}") from e
 
     def _setup_grafana_dashboards(
         self, domain: str, config: Dict[str, Any]
@@ -168,7 +169,7 @@ class MonitoringManager:
         try:
             if self.deployment_type == "docker":
                 # Add Grafana to Docker Compose
-                grafana_config = self._generate_grafana_docker_config(domain, config)
+                # grafana_config = self._generate_grafana_docker_config(domain, config)
 
                 # Create Grafana configuration directory
                 grafana_dir = Path("./grafana")
@@ -236,14 +237,14 @@ log_message() {{
 send_alert() {{
     local subject="$1"
     local message="$2"
-    
+
     log_message "ALERT: $subject"
-    
+
     # Send email if mail is available
     if command -v mail &> /dev/null; then
         echo "$message" | mail -s "CoffeeBreak Alert: $subject" "$ALERT_EMAIL"
     fi
-    
+
     # Log to syslog
     logger -t coffeebreak-health "ALERT: $subject - $message"
 }}
@@ -263,11 +264,11 @@ check_ssl_expiry() {{
     expiry_days=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | \\
                  openssl x509 -noout -dates | grep notAfter | cut -d= -f2 | \\
                  xargs -I{{}} date -d{{}} +%s)
-    
+
     if [ -n "$expiry_days" ]; then
         local current_time=$(date +%s)
         local days_left=$(( (expiry_days - current_time) / 86400 ))
-        
+
         if [ "$days_left" -lt 30 ]; then
             send_alert "SSL Certificate Expiring" "SSL certificate expires in $days_left days"
         fi
@@ -277,7 +278,7 @@ check_ssl_expiry() {{
 # Check service status
 check_services() {{
     local services=("nginx" "postgresql" "mongod" "rabbitmq-server" "redis-server")
-    
+
     for service in "${{services[@]}}"; do
         if ! systemctl is-active --quiet "$service" 2>/dev/null; then
             send_alert "Service Down" "Service $service is not running"
@@ -289,7 +290,7 @@ check_services() {{
 check_disk_space() {{
     local usage
     usage=$(df / | awk 'NR==2 {{print $5}}' | sed 's/%//')
-    
+
     if [ "$usage" -gt 85 ]; then
         send_alert "High Disk Usage" "Disk usage is at $usage%"
     fi
@@ -299,7 +300,7 @@ check_disk_space() {{
 check_memory() {{
     local mem_usage
     mem_usage=$(free | awk 'NR==2{{printf "%.0f", $3*100/$2 }}')
-    
+
     if [ "$mem_usage" -gt 90 ]; then
         send_alert "High Memory Usage" "Memory usage is at $mem_usage%"
     fi
@@ -308,18 +309,18 @@ check_memory() {{
 # Main health check
 main() {{
     log_message "Starting health check"
-    
+
     local checks_passed=0
     local total_checks=5
-    
+
     check_https && ((checks_passed++))
     check_ssl_expiry && ((checks_passed++))
     check_services && ((checks_passed++))
     check_disk_space && ((checks_passed++))
     check_memory && ((checks_passed++))
-    
+
     log_message "Health check completed: $checks_passed/$total_checks checks passed"
-    
+
     if [ "$checks_passed" -eq "$total_checks" ]; then
         exit 0
     else
@@ -353,7 +354,7 @@ main "$@"
                 crontab_content = (
                     current_crontab.stdout if current_crontab.returncode == 0 else ""
                 )
-            except:
+            except Exception:
                 crontab_content = ""
 
             if "health-monitor.sh" not in crontab_content:
@@ -395,14 +396,14 @@ for log_file in "$LOG_DIR"/*.log; do
     if [ -f "$log_file" ]; then
         # Compress logs older than 1 day
         find "$(dirname "$log_file")" -name "$(basename "$log_file").*.gz" -mtime +$RETENTION_DAYS -delete
-        
+
         # Rotate current log
         if [ -s "$log_file" ]; then
             timestamp=$(date +%Y%m%d_%H%M%S)
             mv "$log_file" "${{log_file}}.$timestamp"
             gzip "${{log_file}}.$timestamp"
             touch "$log_file"
-            
+
             # Set appropriate permissions
             chmod 644 "$log_file"
             if id coffeebreak &>/dev/null; then
@@ -430,7 +431,7 @@ if [ -d "$METRICS_DIR" ]; then
     # Clean old metrics data
     find "$METRICS_DIR" -name "*.db" -mtime +$RETENTION_DAYS -delete
     find "$METRICS_DIR" -name "*.log" -mtime +$RETENTION_DAYS -delete
-    
+
     echo "Metrics cleanup completed at $(date)"
 fi
 """
@@ -645,7 +646,7 @@ journalctl -u coffeebreak-* --since "1 hour ago" --no-pager | grep -i error | ta
             subprocess.run(["systemctl", "start", "grafana-server"], check=True)
 
         except Exception as e:
-            raise ConfigurationError(f"Failed to install Grafana: {e}")
+            raise ConfigurationError(f"Failed to install Grafana: {e}") from e
 
     def _configure_grafana_standalone(
         self, domain: str, config: Dict[str, Any]
@@ -674,7 +675,7 @@ enabled = false
             subprocess.run(["systemctl", "restart", "grafana-server"], check=True)
 
         except Exception as e:
-            raise ConfigurationError(f"Failed to configure Grafana: {e}")
+            raise ConfigurationError(f"Failed to configure Grafana: {e}") from e
 
     def _generate_password(self, length: int = 16) -> str:
         """Generate a random password."""

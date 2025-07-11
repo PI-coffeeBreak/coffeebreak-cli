@@ -7,9 +7,9 @@ from typing import Any, Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader
 
-from ..config.manager import ConfigManager
-from ..utils.errors import CoffeeBreakError, PluginError
-from ..utils.files import FileManager
+from coffeebreak.config.manager import ConfigManager
+from coffeebreak.utils.errors import CoffeeBreakError, PluginError
+from coffeebreak.utils.files import FileManager
 
 
 class PluginCreator:
@@ -89,7 +89,7 @@ class PluginCreator:
             if isinstance(e, CoffeeBreakError):
                 raise
             else:
-                raise PluginError(f"Failed to create plugin '{name}': {e}")
+                raise PluginError(f"Failed to create plugin '{name}': {e}") from e
 
     def _validate_plugin_name(self, name: str) -> None:
         """Validate plugin name format."""
@@ -131,7 +131,7 @@ class PluginCreator:
                 self._copy_template_files(template_dir, plugin_dir, name, **kwargs)
 
         except Exception as e:
-            raise PluginError(f"Failed to create plugin structure: {e}")
+            raise PluginError(f"Failed to create plugin structure: {e}") from e
 
     def _copy_template_files(
         self, template_dir: Path, plugin_dir: str, name: str, **kwargs
@@ -144,7 +144,7 @@ class PluginCreator:
             **kwargs,
         }
 
-        for root, dirs, files in os.walk(template_dir):
+        for root, _dirs, files in os.walk(template_dir):
             # Calculate relative path from template root
             rel_path = os.path.relpath(root, template_dir)
 
@@ -188,7 +188,7 @@ class PluginCreator:
                 f.write(rendered_content)
 
         except Exception as e:
-            raise PluginError(f"Failed to process template file {src_file}: {e}")
+            raise PluginError(f"Failed to process template file {src_file}: {e}") from e
 
     def _generate_plugin_manifest(self, name: str, plugin_dir: str, **kwargs) -> None:
         """Generate coffeebreak-plugin.yml manifest file."""
@@ -219,7 +219,7 @@ class PluginCreator:
                 print("Created plugin manifest: coffeebreak-plugin.yml")
 
         except Exception as e:
-            raise PluginError(f"Failed to generate plugin manifest: {e}")
+            raise PluginError(f"Failed to generate plugin manifest: {e}") from e
 
     def _create_build_scripts(self, plugin_dir: str) -> None:
         """Create build scripts for the plugin."""
@@ -344,19 +344,19 @@ Main module for {name} plugin.
 
 class {name.replace("-", "_").title()}Plugin:
     """Main plugin class."""
-    
+
     def __init__(self):
         self.name = "{name}"
         self.version = "{kwargs.get("version", "1.0.0")}"
-    
+
     def initialize(self):
         """Initialize the plugin."""
         print(f"Initializing {{self.name}} plugin v{{self.version}}")
-    
+
     def execute(self):
         """Execute plugin functionality."""
         print(f"Executing {{self.name}} plugin")
-    
+
     def cleanup(self):
         """Cleanup plugin resources."""
         print(f"Cleaning up {{self.name}} plugin")

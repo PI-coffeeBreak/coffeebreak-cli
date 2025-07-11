@@ -6,7 +6,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional
 
-from ..utils.errors import PluginError
+from coffeebreak.utils.errors import PluginError
 
 
 class PluginDocumentationGenerator:
@@ -134,7 +134,7 @@ class PluginDocumentationGenerator:
             return results
 
         except Exception as e:
-            raise PluginError(f"Failed to generate plugin documentation: {e}")
+            raise PluginError(f"Failed to generate plugin documentation: {e}") from e
 
     def _extract_documentation_data(
         self, plugin_dir: str, plugin_config: Dict[str, Any]
@@ -155,7 +155,7 @@ class PluginDocumentationGenerator:
         # Extract documentation from source files
         src_path = os.path.join(plugin_dir, "src")
         if os.path.exists(src_path):
-            for root, dirs, files in os.walk(src_path):
+            for root, _dirs, files in os.walk(src_path):
                 for file in files:
                     file_path = os.path.join(root, file)
                     relative_path = os.path.relpath(file_path, plugin_dir)
@@ -413,8 +413,8 @@ class PluginDocumentationGenerator:
             # Simple regex-based extraction (could be enhanced with proper JS parser)
 
             # Extract JSDoc comments
-            jsdoc_pattern = r"/\*\*\s*(.*?)\s*\*/"
-            jsdoc_matches = re.findall(jsdoc_pattern, content, re.DOTALL)
+            # jsdoc_pattern = r"/\*\*\s*(.*?)\s*\*/"  # Unused variable removed
+            # jsdoc_matches = re.findall(jsdoc_pattern, content, re.DOTALL)  # Unused variable removed
 
             # Extract function declarations
             func_pattern = r"(?:function\s+(\w+)|(?:const|let|var)\s+(\w+)\s*=\s*(?:function|\(.*?\)\s*=>))"
@@ -804,7 +804,7 @@ class PluginDocumentationGenerator:
         <p>Version: {plugin_info["version"]}</p>
         <p>{overview.get("description", "No description available")}</p>
     </div>
-    
+
     <div class="toc">
         <h2>Table of Contents</h2>
         <ul>

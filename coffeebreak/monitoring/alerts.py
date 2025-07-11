@@ -244,7 +244,7 @@ WEBHOOK_URL="{config.get("webhook_url", "")}"
 send_email() {{
     local subject="$1"
     local message="$2"
-    
+
     if command -v mail &> /dev/null && [ -n "$ALERT_EMAIL" ]; then
         echo "$message" | mail -s "CoffeeBreak Alert: $subject" "$ALERT_EMAIL"
         echo "Email alert sent to $ALERT_EMAIL"
@@ -255,7 +255,7 @@ send_email() {{
 send_webhook() {{
     local subject="$1"
     local message="$2"
-    
+
     if [ -n "$WEBHOOK_URL" ] && command -v curl &> /dev/null; then
         local payload='{{"text": "CoffeeBreak Alert: '"$subject"'
 '"$message"'"}}'
@@ -268,7 +268,7 @@ send_webhook() {{
 log_notification() {{
     local subject="$1"
     local message="$2"
-    
+
     logger -t coffeebreak-alert "ALERT: $subject - $message"
 }}
 
@@ -276,10 +276,10 @@ log_notification() {{
 notify() {{
     local subject="$1"
     local message="$2"
-    
+
     echo "Sending notification: $subject"
     echo "Message: $message"
-    
+
     send_email "$subject" "$message"
     send_webhook "$subject" "$message"
     log_notification "$subject" "$message"

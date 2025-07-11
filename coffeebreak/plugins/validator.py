@@ -189,8 +189,8 @@ class PluginValidator:
         # Check format
         if not re.match(r"^[a-z0-9]+(-[a-z0-9]+)*$", name):
             result["errors"].append(
-                "Plugin name must contain only lowercase letters, numbers, and hyphens, "
-                "and cannot start or end with hyphens"
+                "Plugin name must contain only lowercase letters, numbers, "
+                "and hyphens, and cannot start or end with hyphens"
             )
 
         # Check length
@@ -210,7 +210,12 @@ class PluginValidator:
             return
 
         # Check semantic versioning format
-        semver_pattern = r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
+        semver_pattern = (
+            r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+            r"(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)"
+            r"(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?"
+            r"(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
+        )
 
         if not re.match(semver_pattern, version):
             result["warnings"].append(
@@ -369,7 +374,8 @@ class PluginValidator:
 
         if found_problematic:
             result["warnings"].append(
-                f"Dependencies with native extensions detected: {', '.join(found_problematic)}. "
+                f"Dependencies with native extensions detected: "
+                f"{', '.join(found_problematic)}. "
                 "These will be excluded from .pyz packaging."
             )
 
@@ -419,7 +425,8 @@ class PluginValidator:
 
                 if missing_sections:
                     result["warnings"].append(
-                        f"README.md missing recommended sections: {', '.join(missing_sections)}"
+                        f"README.md missing recommended sections: "
+                        f"{', '.join(missing_sections)}"
                     )
 
                 result["checks"]["comprehensive_readme"] = len(missing_sections) == 0

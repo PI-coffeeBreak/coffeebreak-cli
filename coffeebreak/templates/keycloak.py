@@ -35,7 +35,8 @@ RUN keytool -genkeypair -storepass password -storetype PKCS12 \\
 RUN /opt/keycloak/bin/kc.sh build
 
 # Ensure the /exports directory exists and contains the necessary files
-RUN mkdir -p /opt/keycloak/data/import && echo "Ensure this directory contains the necessary files"
+RUN mkdir -p /opt/keycloak/data/import && echo "Ensure this directory " \
+    "contains the necessary files"
 
 # 🔹 Step 2: Create the final image
 FROM quay.io/keycloak/keycloak:26.1.4
@@ -66,7 +67,8 @@ EXPOSE 8443
 EXPOSE 9000
 
 # Start Keycloak in PRODUCTION mode with development theme caching disabled
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--optimized", "--proxy-headers", "forwarded", "--import-realm"]
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--optimized",
+           "--proxy-headers", "forwarded", "--import-realm"]
 """
 
 

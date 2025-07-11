@@ -5,8 +5,8 @@ import os
 import subprocess
 from typing import Any, Dict, List
 
-from ..containers.manager import ContainerManager
-from ..utils.errors import PluginError
+from coffeebreak.containers.manager import ContainerManager
+from coffeebreak.utils.errors import PluginError
 
 
 class PluginDependencyManager:
@@ -38,7 +38,7 @@ class PluginDependencyManager:
             if not os.path.exists(config_path):
                 raise PluginError(f"Plugin configuration not found: {config_path}")
 
-            from ..config.manager import ConfigManager
+            from coffeebreak.config.manager import ConfigManager
 
             config_manager = ConfigManager()
             plugin_config = config_manager.load_config_file(config_path)
@@ -67,7 +67,7 @@ class PluginDependencyManager:
             return analysis
 
         except Exception as e:
-            raise PluginError(f"Failed to analyze plugin dependencies: {e}")
+            raise PluginError(f"Failed to analyze plugin dependencies: {e}") from e
 
     def install_plugin_dependencies(
         self,
@@ -146,7 +146,7 @@ class PluginDependencyManager:
             return results
 
         except Exception as e:
-            raise PluginError(f"Failed to install plugin dependencies: {e}")
+            raise PluginError(f"Failed to install plugin dependencies: {e}") from e
 
     def _analyze_python_dependencies(
         self, plugin_dir: str, plugin_config: Dict[str, Any]
@@ -492,8 +492,8 @@ class PluginDependencyManager:
                     print(f"Starting required services: {required_services}")
 
                 # Use dependency manager to start services
-                from ..config.manager import ConfigManager
-                from ..containers.dependencies import DependencyManager
+                from coffeebreak.config.manager import ConfigManager
+                from coffeebreak.containers.dependencies import DependencyManager
 
                 config_manager = ConfigManager()
                 dep_manager = DependencyManager(config_manager, verbose=self.verbose)

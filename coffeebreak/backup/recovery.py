@@ -115,19 +115,19 @@ log_message() {{
 handle_error() {{
     local error_msg="$1"
     log_message "ERROR: $error_msg"
-    
+
     # Send alert
     if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
         /opt/coffeebreak/bin/notify.sh "Recovery Failed" "$error_msg"
     fi
-    
+
     exit 1
 }}
 
 # Function to prompt user for confirmation
 confirm_action() {{
     local message="$1"
-    
+
     if [ "$RECOVERY_MODE" = "interactive" ]; then
         echo "$message"
         read -p "Do you want to continue? (y/N): " -n 1 -r
@@ -144,7 +144,7 @@ confirm_action() {{
 # Function to list available backups
 list_backups() {{
     local backup_type="$1"
-    
+
     echo "Available $backup_type backups:"
     find "$BACKUP_DIR/$backup_type" -type f -name "*.tar.gz" -o -name "*.gpg" | sort -r | head -10 | while read backup; do
         local backup_date=$(basename "$backup" | grep -oE '[0-9]{{8}}_[0-9]{{6}}' || echo "unknown")
@@ -157,17 +157,17 @@ list_backups() {{
 select_backup() {{
     local backup_type="$1"
     local backup_date="${{2:-latest}}"
-    
+
     if [ "$backup_date" = "latest" ]; then
         local selected_backup=$(find "$BACKUP_DIR/$backup_type" -type f \\( -name "*.tar.gz" -o -name "*.gpg" \\) | sort -r | head -1)
     else
         local selected_backup=$(find "$BACKUP_DIR/$backup_type" -type f -name "*$backup_date*" | head -1)
     fi
-    
+
     if [ -z "$selected_backup" ]; then
         handle_error "No backup found for type: $backup_type, date: $backup_date"
     fi
-    
+
     echo "$selected_backup"
 }}
 
@@ -175,12 +175,12 @@ select_backup() {{
 extract_backup() {{
     local backup_file="$1"
     local extract_dir="$2"
-    
+
     log_message "Extracting backup: $backup_file"
-    
+
     mkdir -p "$extract_dir"
     cd "$extract_dir"
-    
+
     if [[ "$backup_file" == *.gpg ]]; then
         log_message "Decrypting backup..."
         if ! gpg --decrypt "$backup_file" > "$(basename "$backup_file" .gpg)"; then
@@ -188,129 +188,129 @@ extract_backup() {{
         fi
         backup_file="$extract_dir/$(basename "$backup_file" .gpg)"
     fi
-    
+
     if [[ "$backup_file" == *.tar.gz ]]; then
         log_message "Extracting archive..."
         if ! tar -xzf "$backup_file"; then
             handle_error "Failed to extract backup: $backup_file"
         fi
     fi
-    
+
     log_message "Backup extracted successfully"
 }}
 
 # Function to recover PostgreSQL
 recover_postgresql() {{
     local backup_date="${{1:-latest}}"
-    
+
     log_message "Starting PostgreSQL recovery"
     confirm_action "This will restore PostgreSQL databases from backup ($backup_date). This will OVERWRITE existing data!"
-    
+
     # Stop CoffeeBreak services
     log_message "Stopping CoffeeBreak services..."
     systemctl stop coffeebreak-* 2>/dev/null || true
-    
+
     # Get backup file
     local backup_file=$(select_backup "postgresql" "$backup_date")
     local extract_dir="/tmp/coffeebreak-recovery-pg"
-    
+
     # Extract backup
     extract_backup "$backup_file" "$extract_dir"
-    
+
     # Find SQL files
     local sql_files=$(find "$extract_dir" -name "*.sql" | sort)
-    
+
     if [ -z "$sql_files" ]; then
         handle_error "No SQL files found in backup"
     fi
-    
+
     # Stop PostgreSQL temporarily for full restore
     systemctl stop postgresql
-    
+
     # Restore globals first
     local globals_file=$(echo "$sql_files" | grep "globals.sql" || echo "")
     if [ -n "$globals_file" ]; then
         log_message "Restoring PostgreSQL globals..."
         sudo -u postgres psql -f "$globals_file" postgres || handle_error "Failed to restore PostgreSQL globals"
     fi
-    
+
     # Start PostgreSQL
     systemctl start postgresql
-    
+
     # Restore individual databases
     for sql_file in $sql_files; do
         if [[ "$sql_file" != *"globals.sql" ]]; then
             local db_name=$(basename "$sql_file" .sql)
             log_message "Restoring database: $db_name"
-            
+
             # Drop and recreate database
             sudo -u postgres dropdb "$db_name" 2>/dev/null || true
             sudo -u postgres createdb "$db_name" || handle_error "Failed to create database: $db_name"
-            
+
             # Restore database
             sudo -u postgres psql -d "$db_name" -f "$sql_file" || handle_error "Failed to restore database: $db_name"
         fi
     done
-    
+
     # Cleanup
     rm -rf "$extract_dir"
-    
+
     log_message "PostgreSQL recovery completed"
 }}
 
 # Function to recover MongoDB
 recover_mongodb() {{
     local backup_date="${{1:-latest}}"
-    
+
     log_message "Starting MongoDB recovery"
     confirm_action "This will restore MongoDB databases from backup ($backup_date). This will OVERWRITE existing data!"
-    
+
     # Stop CoffeeBreak services
     log_message "Stopping CoffeeBreak services..."
     systemctl stop coffeebreak-* 2>/dev/null || true
-    
+
     # Get backup file
     local backup_file=$(select_backup "mongodb" "$backup_date")
     local extract_dir="/tmp/coffeebreak-recovery-mongo"
-    
+
     # Extract backup
     extract_backup "$backup_file" "$extract_dir"
-    
+
     # Find dump directory
     local dump_dir=$(find "$extract_dir" -type d -name "*" | head -1)
-    
+
     if [ -z "$dump_dir" ] || [ ! -d "$dump_dir" ]; then
         handle_error "No MongoDB dump directory found in backup"
     fi
-    
+
     # Drop existing databases and restore
     log_message "Restoring MongoDB databases..."
     mongorestore --drop "$dump_dir" || handle_error "Failed to restore MongoDB"
-    
+
     # Cleanup
     rm -rf "$extract_dir"
-    
+
     log_message "MongoDB recovery completed"
 }}
 
 # Function to recover files
 recover_files() {{
     local backup_date="${{1:-latest}}"
-    
+
     log_message "Starting file recovery"
     confirm_action "This will restore application files from backup ($backup_date). This will OVERWRITE existing files!"
-    
+
     # Stop CoffeeBreak services
     log_message "Stopping CoffeeBreak services..."
     systemctl stop coffeebreak-* 2>/dev/null || true
-    
+
     # Get backup file
     local backup_file=$(select_backup "files" "$backup_date")
     local extract_dir="/tmp/coffeebreak-recovery-files"
-    
+
     # Extract backup
     extract_backup "$backup_file" "$extract_dir"
-    
+
     # Restore directories
     local restore_dirs=(
         "opt/coffeebreak/data:/opt/coffeebreak/data"
@@ -318,142 +318,142 @@ recover_files() {{
         "opt/coffeebreak/plugins:/opt/coffeebreak/plugins"
         "var/log/coffeebreak:/var/log/coffeebreak"
     )
-    
+
     for dir_mapping in "${{restore_dirs[@]}}"; do
         local src_dir="$extract_dir/${{dir_mapping%%:*}}"
         local dest_dir="${{dir_mapping##*:}}"
-        
+
         if [ -d "$src_dir" ]; then
             log_message "Restoring directory: $dest_dir"
-            
+
             # Backup current directory
             if [ -d "$dest_dir" ]; then
                 mv "$dest_dir" "$dest_dir.backup.$(date +%Y%m%d_%H%M%S)" || true
             fi
-            
+
             # Create parent directory
             mkdir -p "$(dirname "$dest_dir")"
-            
+
             # Copy files
             cp -r "$src_dir" "$dest_dir" || handle_error "Failed to restore directory: $dest_dir"
-            
+
             # Fix permissions
             if id coffeebreak &>/dev/null; then
                 chown -R coffeebreak:coffeebreak "$dest_dir" 2>/dev/null || true
             fi
         fi
     done
-    
+
     # Restore Docker volumes if Docker deployment
     if [ -f "/usr/bin/docker" ] && docker ps -q > /dev/null 2>&1; then
         local volumes_dir="$extract_dir/docker-volumes"
-        
+
         if [ -d "$volumes_dir" ]; then
             log_message "Restoring Docker volumes..."
-            
+
             for volume_archive in "$volumes_dir"/*.tar.gz; do
                 if [ -f "$volume_archive" ]; then
                     local volume_name=$(basename "$volume_archive" .tar.gz)
-                    
+
                     log_message "Restoring Docker volume: $volume_name"
-                    
+
                     # Remove existing volume
                     docker volume rm "$volume_name" 2>/dev/null || true
-                    
+
                     # Create new volume
                     docker volume create "$volume_name"
-                    
+
                     # Restore volume content
                     docker run --rm -v "$volume_name:/dest" -v "$volumes_dir:/backup" ubuntu tar xzf "/backup/$(basename "$volume_archive")" -C /dest || log_message "WARNING: Failed to restore volume $volume_name"
                 fi
             done
         fi
     fi
-    
+
     # Cleanup
     rm -rf "$extract_dir"
-    
+
     log_message "File recovery completed"
 }}
 
 # Function to recover configurations
 recover_configs() {{
     local backup_date="${{1:-latest}}"
-    
+
     log_message "Starting configuration recovery"
     confirm_action "This will restore configuration files from backup ($backup_date). This will OVERWRITE existing configs!"
-    
+
     # Get backup file
     local backup_file=$(select_backup "configs" "$backup_date")
     local extract_dir="/tmp/coffeebreak-recovery-configs"
-    
+
     # Extract backup
     extract_backup "$backup_file" "$extract_dir"
-    
+
     # Restore configuration files
     local config_files=$(find "$extract_dir" -type f)
-    
+
     for config_file in $config_files; do
         local relative_path="${{config_file#$extract_dir/}}"
         local dest_file="/$relative_path"
-        
+
         log_message "Restoring config: $dest_file"
-        
+
         # Backup current file
         if [ -f "$dest_file" ]; then
             cp "$dest_file" "$dest_file.backup.$(date +%Y%m%d_%H%M%S)" || true
         fi
-        
+
         # Create parent directory
         mkdir -p "$(dirname "$dest_file")"
-        
+
         # Copy file
         cp "$config_file" "$dest_file" || log_message "WARNING: Failed to restore config: $dest_file"
     done
-    
+
     # Cleanup
     rm -rf "$extract_dir"
-    
+
     log_message "Configuration recovery completed"
 }}
 
 # Function to perform full system recovery
 full_recovery() {{
     local backup_date="${{1:-latest}}"
-    
+
     log_message "Starting full system recovery"
     confirm_action "This will perform a COMPLETE SYSTEM RECOVERY from backup ($backup_date). This will OVERWRITE ALL DATA!"
-    
+
     # Recovery order: configs -> files -> databases
     recover_configs "$backup_date"
     recover_files "$backup_date"
     recover_postgresql "$backup_date"
     recover_mongodb "$backup_date"
-    
+
     # Restart services
     log_message "Restarting CoffeeBreak services..."
     systemctl daemon-reload
     systemctl start coffeebreak-* || handle_error "Failed to start CoffeeBreak services"
-    
+
     # Verify recovery
     log_message "Verifying recovery..."
     sleep 10
-    
+
     if systemctl is-active --quiet coffeebreak-api; then
         log_message "✓ CoffeeBreak API is running"
     else
         log_message "✗ CoffeeBreak API is not running"
     fi
-    
+
     # Test basic connectivity
     if curl -s --max-time 10 "https://{domain}/health" > /dev/null; then
         log_message "✓ CoffeeBreak is responding to HTTPS requests"
     else
         log_message "✗ CoffeeBreak is not responding to HTTPS requests"
     fi
-    
+
     log_message "Full system recovery completed"
-    
+
     # Send success notification
     if [ -f "/opt/coffeebreak/bin/notify.sh" ]; then
         /opt/coffeebreak/bin/notify.sh "System Recovery Completed" "Full system recovery from backup ($backup_date) completed successfully"
@@ -478,9 +478,9 @@ show_menu() {{
 main() {{
     local action="${{1:-menu}}"
     local backup_date="${{2:-latest}}"
-    
+
     log_message "CoffeeBreak recovery system started (action: $action)"
-    
+
     case "$action" in
         "list")
             echo "PostgreSQL backups:"
@@ -514,7 +514,7 @@ main() {{
             while true; do
                 show_menu
                 read -p "Select an option (1-7): " choice
-                
+
                 case $choice in
                     1) main "list" ;;
                     2) 
@@ -545,7 +545,7 @@ main() {{
                         echo "Invalid option. Please try again."
                         ;;
                 esac
-                
+
                 echo
                 read -p "Press Enter to continue..."
             done
@@ -556,7 +556,7 @@ main() {{
             exit 1
             ;;
     esac
-    
+
     log_message "Recovery operation completed"
 }}
 

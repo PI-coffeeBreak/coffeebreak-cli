@@ -36,7 +36,8 @@ class SecretGenerator:
         Args:
             length: Password length
             include_symbols: Whether to include special symbols
-            exclude_ambiguous: Whether to exclude ambiguous characters (0, O, l, 1, etc.)
+            exclude_ambiguous: Whether to exclude ambiguous characters
+                              (0, O, l, 1, etc.)
 
         Returns:
             str: Secure password

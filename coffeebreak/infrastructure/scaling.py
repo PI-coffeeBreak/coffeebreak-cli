@@ -526,11 +526,9 @@ main "$@"
                         ["crontab", "-l"], capture_output=True, text=True
                     )
                     crontab_content = (
-                        current_crontab.stdout
-                        if current_crontab.returncode == 0
-                        else ""
+                        current_crontab.stdout if current_crontab.returncode == 0 else ""
                     )
-                except:
+                except Exception:
                     crontab_content = ""
 
                 if "scale.sh adaptive" not in crontab_content:
@@ -549,11 +547,9 @@ main "$@"
                         ["crontab", "-l"], capture_output=True, text=True
                     )
                     crontab_content = (
-                        current_crontab.stdout
-                        if current_crontab.returncode == 0
-                        else ""
+                        current_crontab.stdout if current_crontab.returncode == 0 else ""
                     )
-                except:
+                except Exception:
                     crontab_content = ""
 
                 if "scale.sh scheduled" not in crontab_content:

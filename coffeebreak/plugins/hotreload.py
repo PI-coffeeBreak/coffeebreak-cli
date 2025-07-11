@@ -15,6 +15,7 @@ from watchdog.events import (
 from watchdog.observers import Observer
 
 from coffeebreak.utils.errors import PluginError
+
 from .integration import PluginContainerIntegration
 
 
@@ -354,7 +355,7 @@ class PluginHotReloadManager:
             reload_command = f"""
                 # Create reload trigger file
                 touch /opt/coffeebreak/plugins/.reload/{plugin_name}
-                
+
                 # Try to send signal to core process (if available)
                 pkill -USR1 -f "coffeebreak.*core" 2>/dev/null || true
             """

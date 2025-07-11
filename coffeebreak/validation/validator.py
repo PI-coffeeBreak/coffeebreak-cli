@@ -124,7 +124,8 @@ class ProductionValidator:
                 issues = len(validation_result["critical_issues"])
                 warnings = len(validation_result["warnings"])
                 print(
-                    f"Validation completed: {status} ({issues} critical, {warnings} warnings)"
+                    f"Validation completed: {status} "
+                    f"({issues} critical, {warnings} warnings)"
                 )
 
             return validation_result

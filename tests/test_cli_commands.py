@@ -1,10 +1,11 @@
-"""Tests for CLI commands."""
+"""Test CLI commands."""
 
 import sys
 from unittest.mock import MagicMock, mock_open, patch
 
 from click.testing import CliRunner
 
+# Mock docker module before importing coffeebreak.cli
 sys.modules["docker"] = MagicMock()
 
 from coffeebreak.cli import cli
@@ -611,13 +612,13 @@ class TestCLICommands:
                         "builtins.open", mock_open(read_data=b"fake_backup_data")
                     ):
                         with patch("tarfile.open") as mock_tar:
-                            with patch("json.dump") as mock_json_dump:
+                            with patch("json.dump"):
                                 with patch("datetime.datetime") as mock_datetime:
                                     with patch(
                                         "click.prompt", return_value="dummy-password"
                                     ):
                                         with patch("os.path.exists", return_value=True):
-                                            with patch("os.chmod") as mock_chmod:
+                                            with patch("os.chmod"):
                                                 with patch(
                                                     "os.urandom",
                                                     return_value=b"test_key",

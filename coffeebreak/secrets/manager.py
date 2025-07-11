@@ -15,7 +15,8 @@ from .generator import SecretGenerator
 
 
 class SecretManager:
-    """Manages secrets for production deployments using Docker Secrets or encrypted files."""
+    """Manages secrets for production deployments using Docker Secrets or
+    encrypted files."""
 
     def __init__(
         self,
@@ -87,8 +88,10 @@ class SecretManager:
                 # Clean up temporary file
                 os.unlink(tmp_file_path)
 
-        except subprocess.FileNotFoundError:
-            raise SecurityError("Docker is not available for secret management") from None
+        except FileNotFoundError:
+            raise SecurityError(
+                "Docker is not available for secret management"
+            ) from None
         except Exception as e:
             raise SecurityError(f"Failed to create Docker secret {name}: {e}") from e
 
@@ -175,8 +178,10 @@ class SecretManager:
             else:
                 raise SecurityError(f"Failed to list Docker secrets: {result.stderr}")
 
-        except subprocess.FileNotFoundError:
-            raise SecurityError("Docker is not available for secret management") from None
+        except FileNotFoundError:
+            raise SecurityError(
+                "Docker is not available for secret management"
+            ) from None
         except Exception as e:
             raise SecurityError(f"Failed to list Docker secrets: {e}") from e
 
@@ -304,7 +309,8 @@ class SecretManager:
         try:
             if self.verbose:
                 print(
-                    f"Deploying {len(secrets)} secrets for {self.deployment_type} deployment"
+                    f"Deploying {len(secrets)} secrets for "
+                    f"{self.deployment_type} deployment"
                 )
 
             results = {
@@ -349,7 +355,8 @@ class SecretManager:
 
             if self.verbose:
                 print(
-                    f"Successfully deployed {results['successful']}/{results['total_secrets']} secrets"
+                    f"Successfully deployed {results['successful']}/"
+                    f"{results['total_secrets']} secrets"
                 )
                 if results["failed"] > 0:
                     print(f"Failed to deploy {results['failed']} secrets")
@@ -434,7 +441,8 @@ class SecretManager:
 
             if self.verbose:
                 print(
-                    f"Successfully rotated {len(new_secrets)}/{len(secret_names)} secrets"
+                    f"Successfully rotated {len(new_secrets)}/"
+                    f"{len(secret_names)} secrets"
                 )
 
             return new_secrets
@@ -568,7 +576,8 @@ class SecretManager:
 
             if self.verbose:
                 print(
-                    f"Found {validation['found']}/{validation['total_required']} required secrets"
+                    f"Found {validation['found']}/"
+                    f"{validation['total_required']} required secrets"
                 )
                 if validation["missing"]:
                     print(f"Missing secrets: {validation['missing']}")

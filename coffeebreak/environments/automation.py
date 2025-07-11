@@ -50,7 +50,7 @@ class DevEnvironmentAutomation:
 
             groups = [grp.getgrgid(gid).gr_name for gid in os.getgroups()]
             return "coffeebreak" in groups
-        except:
+        except Exception:
             return False
 
     def _get_log_directory(self) -> Path:
@@ -846,9 +846,9 @@ class DevEnvironmentAutomation:
                                     line = process.stdout.readline()
                                     if line:
                                         print(f"[{name}] {line.rstrip()}")
-                                except:
+                                except Exception:
                                     pass
-                        except:
+                        except Exception:
                             continue
 
                 # Small delay to prevent excessive CPU usage
