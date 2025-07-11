@@ -65,9 +65,7 @@ class TestFileManager:
         connection_info = {"TEST_VAR": "test_value"}
         output_path = os.path.join(self.temp_dir, ".env.test")
 
-        self.file_manager.generate_env_file(
-            connection_info=connection_info, output_path=output_path
-        )
+        self.file_manager.generate_env_file(connection_info=connection_info, output_path=output_path)
 
         # Check file permissions (should be 600 - user read/write only)
         file_mode = os.stat(output_path).st_mode
@@ -118,9 +116,7 @@ class TestFileManager:
             "README.md": "# Test Project\n",
         }
 
-        created_paths = self.file_manager.create_directory_structure(
-            self.temp_dir, structure
-        )
+        created_paths = self.file_manager.create_directory_structure(self.temp_dir, structure)
 
         # Verify directories were created
         assert os.path.isdir(os.path.join(self.temp_dir, "src"))

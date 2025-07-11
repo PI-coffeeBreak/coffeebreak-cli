@@ -48,9 +48,7 @@ class PluginValidator:
             # Check if directory exists
             if not os.path.exists(plugin_dir):
                 validation_result["valid"] = False
-                validation_result["errors"].append(
-                    f"Plugin directory does not exist: {plugin_dir}"
-                )
+                validation_result["errors"].append(f"Plugin directory does not exist: {plugin_dir}")
                 return validation_result
 
             # Basic structure validation
@@ -92,9 +90,7 @@ class PluginValidator:
             validation_result["errors"].append(f"Validation error: {e}")
             return validation_result
 
-    def _validate_directory_structure(
-        self, plugin_dir: str, result: Dict[str, Any]
-    ) -> None:
+    def _validate_directory_structure(self, plugin_dir: str, result: Dict[str, Any]) -> None:
         """Validate plugin directory structure."""
         required_files = ["coffeebreak-plugin.yml"]
         recommended_dirs = ["src", "scripts", "tests", "docs"]
@@ -104,14 +100,10 @@ class PluginValidator:
         for file in required_files:
             file_path = os.path.join(plugin_dir, file)
             if os.path.exists(file_path):
-                result["checks"][f"has_{file.replace('.', '_').replace('-', '_')}"] = (
-                    True
-                )
+                result["checks"][f"has_{file.replace('.', '_').replace('-', '_')}"] = True
             else:
                 result["errors"].append(f"Missing required file: {file}")
-                result["checks"][f"has_{file.replace('.', '_').replace('-', '_')}"] = (
-                    False
-                )
+                result["checks"][f"has_{file.replace('.', '_').replace('-', '_')}"] = False
 
         # Check recommended directories
         for directory in recommended_dirs:
@@ -126,14 +118,10 @@ class PluginValidator:
         for file in recommended_files:
             file_path = os.path.join(plugin_dir, file)
             if os.path.exists(file_path):
-                result["checks"][f"has_{file.replace('.', '_').replace('-', '_')}"] = (
-                    True
-                )
+                result["checks"][f"has_{file.replace('.', '_').replace('-', '_')}"] = True
             else:
                 result["warnings"].append(f"Missing recommended file: {file}")
-                result["checks"][f"has_{file.replace('.', '_').replace('-', '_')}"] = (
-                    False
-                )
+                result["checks"][f"has_{file.replace('.', '_').replace('-', '_')}"] = False
 
     def _validate_plugin_config(self, plugin_dir: str, result: Dict[str, Any]) -> None:
         """Validate plugin configuration file."""
@@ -188,10 +176,7 @@ class PluginValidator:
 
         # Check format
         if not re.match(r"^[a-z0-9]+(-[a-z0-9]+)*$", name):
-            result["errors"].append(
-                "Plugin name must contain only lowercase letters, numbers, "
-                "and hyphens, and cannot start or end with hyphens"
-            )
+            result["errors"].append("Plugin name must contain only lowercase letters, numbers, and hyphens, and cannot start or end with hyphens")
 
         # Check length
         if len(name) > 50:
@@ -199,9 +184,7 @@ class PluginValidator:
         elif len(name) < 3:
             result["warnings"].append("Plugin name should be at least 3 characters")
 
-        result["checks"]["valid_plugin_name"] = (
-            len([e for e in result["errors"] if "name" in e]) == 0
-        )
+        result["checks"]["valid_plugin_name"] = len([e for e in result["errors"] if "name" in e]) == 0
 
     def _validate_version_format(self, version: str, result: Dict[str, Any]) -> None:
         """Validate version format (semantic versioning)."""
@@ -218,15 +201,11 @@ class PluginValidator:
         )
 
         if not re.match(semver_pattern, version):
-            result["warnings"].append(
-                "Plugin version should follow semantic versioning (e.g., 1.0.0)"
-            )
+            result["warnings"].append("Plugin version should follow semantic versioning (e.g., 1.0.0)")
 
         result["checks"]["valid_version_format"] = True
 
-    def _validate_optional_config_fields(
-        self, plugin_config: Dict[str, Any], result: Dict[str, Any]
-    ) -> None:
+    def _validate_optional_config_fields(self, plugin_config: Dict[str, Any], result: Dict[str, Any]) -> None:
         """Validate optional configuration fields."""
         # Check for description
         if "description" not in plugin_config:
@@ -275,9 +254,7 @@ class PluginValidator:
         # Basic syntax validation
         self._validate_python_syntax(python_files, result)
 
-    def _validate_python_syntax(
-        self, python_files: List[Path], result: Dict[str, Any]
-    ) -> None:
+    def _validate_python_syntax(self, python_files: List[Path], result: Dict[str, Any]) -> None:
         """Validate Python syntax in source files."""
         syntax_errors = []
 
@@ -296,9 +273,7 @@ class PluginValidator:
                 syntax_errors.append(f"{py_file.name}: {e}")
 
         if syntax_errors:
-            result["errors"].extend(
-                [f"Python syntax error: {error}" for error in syntax_errors]
-            )
+            result["errors"].extend([f"Python syntax error: {error}" for error in syntax_errors])
             result["checks"]["valid_python_syntax"] = False
         else:
             result["checks"]["valid_python_syntax"] = True
@@ -329,9 +304,7 @@ class PluginValidator:
                     invalid_lines.append(f"Line {i}: {line}")
 
             if invalid_lines:
-                result["warnings"].extend(
-                    [f"Invalid dependency format: {line}" for line in invalid_lines]
-                )
+                result["warnings"].extend([f"Invalid dependency format: {line}" for line in invalid_lines])
 
             result["info"]["dependencies_count"] = len(dependencies)
             result["checks"]["valid_requirements"] = len(invalid_lines) == 0
@@ -347,9 +320,7 @@ class PluginValidator:
         # Very basic validation - could be more sophisticated
         return bool(re.match(r"^[a-zA-Z0-9_-]+([>=<]=?[\d.]+)?(\s*#.*)?$", line))
 
-    def _check_problematic_dependencies(
-        self, dependencies: List[str], result: Dict[str, Any]
-    ) -> None:
+    def _check_problematic_dependencies(self, dependencies: List[str], result: Dict[str, Any]) -> None:
         """Check for dependencies that might cause issues in .pyz packaging."""
         problematic = [
             "numpy",
@@ -373,11 +344,7 @@ class PluginValidator:
                 found_problematic.append(dep_name)
 
         if found_problematic:
-            result["warnings"].append(
-                f"Dependencies with native extensions detected: "
-                f"{', '.join(found_problematic)}. "
-                "These will be excluded from .pyz packaging."
-            )
+            result["warnings"].append(f"Dependencies with native extensions detected: {', '.join(found_problematic)}. These will be excluded from .pyz packaging.")
 
     def _validate_build_system(self, plugin_dir: str, result: Dict[str, Any]) -> None:
         """Validate plugin build system."""
@@ -424,10 +391,7 @@ class PluginValidator:
                         missing_sections.append(section)
 
                 if missing_sections:
-                    result["warnings"].append(
-                        f"README.md missing recommended sections: "
-                        f"{', '.join(missing_sections)}"
-                    )
+                    result["warnings"].append(f"README.md missing recommended sections: {', '.join(missing_sections)}")
 
                 result["checks"]["comprehensive_readme"] = len(missing_sections) == 0
 
@@ -464,9 +428,7 @@ class PluginValidator:
                         security_issues.append(f"{py_file.name}: Uses exec() function")
 
                     if "__import__(" in content:
-                        security_issues.append(
-                            f"{py_file.name}: Uses __import__() function"
-                        )
+                        security_issues.append(f"{py_file.name}: Uses __import__() function")
 
                     # Check for hardcoded credentials patterns
                     if re.search(
@@ -474,17 +436,13 @@ class PluginValidator:
                         content,
                         re.IGNORECASE,
                     ):
-                        security_issues.append(
-                            f"{py_file.name}: Possible hardcoded credentials"
-                        )
+                        security_issues.append(f"{py_file.name}: Possible hardcoded credentials")
 
                 except Exception:
                     pass
 
         if security_issues:
-            result["warnings"].extend(
-                [f"Security concern: {issue}" for issue in security_issues]
-            )
+            result["warnings"].extend([f"Security concern: {issue}" for issue in security_issues])
 
         result["checks"]["security_scan_passed"] = len(security_issues) == 0
 

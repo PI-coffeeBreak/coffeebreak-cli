@@ -50,9 +50,7 @@ class AutoScaler:
                 setup_result["errors"].extend(policies_result["errors"])
 
             # Setup scaling monitoring
-            monitoring_result = self._setup_scaling_monitoring(
-                domain, config, scripts_dir
-            )
+            monitoring_result = self._setup_scaling_monitoring(domain, config, scripts_dir)
             if not monitoring_result["success"]:
                 setup_result["errors"].extend(monitoring_result["errors"])
 
@@ -67,9 +65,7 @@ class AutoScaler:
 
         return setup_result
 
-    def _create_scaling_scripts(
-        self, domain: str, config: Dict[str, Any], scripts_dir: str
-    ) -> Dict[str, Any]:
+    def _create_scaling_scripts(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
         """Create scaling management scripts."""
         setup_result = {"success": True, "errors": []}
 
@@ -447,9 +443,7 @@ main "$@"
 
         return setup_result
 
-    def _setup_scaling_policies(
-        self, domain: str, config: Dict[str, Any], scripts_dir: str
-    ) -> Dict[str, Any]:
+    def _setup_scaling_policies(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
         """Setup scaling policies and configuration."""
         setup_result = {"success": True, "errors": []}
 
@@ -510,9 +504,7 @@ main "$@"
 
         return setup_result
 
-    def _setup_scaling_monitoring(
-        self, domain: str, config: Dict[str, Any], scripts_dir: str
-    ) -> Dict[str, Any]:
+    def _setup_scaling_monitoring(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
         """Setup scaling monitoring and automation."""
         setup_result = {"success": True, "errors": []}
 
@@ -522,20 +514,14 @@ main "$@"
                 cron_entry = f"*/5 * * * * {scripts_dir}/scale.sh adaptive"
 
                 try:
-                    current_crontab = subprocess.run(
-                        ["crontab", "-l"], capture_output=True, text=True
-                    )
-                    crontab_content = (
-                        current_crontab.stdout if current_crontab.returncode == 0 else ""
-                    )
+                    current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                    crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
                 except Exception:
                     crontab_content = ""
 
                 if "scale.sh adaptive" not in crontab_content:
                     new_crontab = crontab_content.rstrip() + "\n" + cron_entry + "\n"
-                    process = subprocess.Popen(
-                        ["crontab", "-"], stdin=subprocess.PIPE, text=True
-                    )
+                    process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
                     process.communicate(input=new_crontab)
 
             # Setup cron job for scheduled scaling
@@ -543,20 +529,14 @@ main "$@"
                 cron_entry = f"0 * * * * {scripts_dir}/scale.sh scheduled"
 
                 try:
-                    current_crontab = subprocess.run(
-                        ["crontab", "-l"], capture_output=True, text=True
-                    )
-                    crontab_content = (
-                        current_crontab.stdout if current_crontab.returncode == 0 else ""
-                    )
+                    current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                    crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
                 except Exception:
                     crontab_content = ""
 
                 if "scale.sh scheduled" not in crontab_content:
                     new_crontab = crontab_content.rstrip() + "\n" + cron_entry + "\n"
-                    process = subprocess.Popen(
-                        ["crontab", "-"], stdin=subprocess.PIPE, text=True
-                    )
+                    process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
                     process.communicate(input=new_crontab)
 
             if self.verbose:

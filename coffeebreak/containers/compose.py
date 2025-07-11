@@ -49,14 +49,10 @@ class DockerComposeOrchestrator:
                 service_names = list(dependencies_config.get("services", {}).keys())
 
             if not service_names:
-                raise DockerError(
-                    f"No services found for profile '{profile}' or services list"
-                )
+                raise DockerError(f"No services found for profile '{profile}' or services list")
 
             # Generate compose configuration
-            compose_config = self._generate_compose_config(
-                dependencies_config, service_names
-            )
+            compose_config = self._generate_compose_config(dependencies_config, service_names)
 
             # Write compose file
             with open(self.compose_file, "w", encoding="utf-8") as f:
@@ -71,17 +67,13 @@ class DockerComposeOrchestrator:
         except Exception as e:
             raise DockerError(f"Failed to generate compose file: {e}")
 
-    def _generate_compose_config(
-        self, dependencies_config: Dict[str, Any], service_names: List[str]
-    ) -> Dict[str, Any]:
+    def _generate_compose_config(self, dependencies_config: Dict[str, Any], service_names: List[str]) -> Dict[str, Any]:
         """Generate Docker Compose configuration."""
         services_config = dependencies_config.get("services", {})
 
         compose_config = {
             "version": "3.8",
-            "networks": {
-                self.network_name: {"driver": "bridge", "name": self.network_name}
-            },
+            "networks": {self.network_name: {"driver": "bridge", "name": self.network_name}},
             "volumes": {},
             "services": {},
         }
@@ -90,9 +82,7 @@ class DockerComposeOrchestrator:
         for service_name in service_names:
             if service_name not in services_config:
                 if self.verbose:
-                    print(
-                        f"Warning: Service '{service_name}' not found in configuration"
-                    )
+                    print(f"Warning: Service '{service_name}' not found in configuration")
                 continue
 
             service_config = services_config[service_name]
@@ -106,22 +96,16 @@ class DockerComposeOrchestrator:
                 for volume in volumes:
                     if ":" in volume:
                         volume_name = volume.split(":")[0]
-                        if not volume_name.startswith(
-                            "./"
-                        ) and not volume_name.startswith("/"):
+                        if not volume_name.startswith("./") and not volume_name.startswith("/"):
                             compose_config["volumes"][volume_name] = {}
 
         return compose_config
 
-    def _convert_service_config(
-        self, service_name: str, service_config: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def _convert_service_config(self, service_name: str, service_config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Convert service configuration to Docker Compose format."""
         try:
             compose_service = {
-                "container_name": service_config.get(
-                    "container_name", f"coffeebreak-{service_name}"
-                ),
+                "container_name": service_config.get("container_name", f"coffeebreak-{service_name}"),
                 "networks": [self.network_name],
                 "restart": "unless-stopped",
             }
@@ -210,9 +194,7 @@ class DockerComposeOrchestrator:
         except subprocess.TimeoutExpired:
             raise DockerError("Docker Compose start timed out")
         except FileNotFoundError:
-            raise DockerError(
-                "docker-compose command not found. Please install Docker Compose."
-            )
+            raise DockerError("docker-compose command not found. Please install Docker Compose.")
         except Exception as e:
             raise DockerError(f"Failed to start services: {e}")
 
@@ -247,18 +229,14 @@ class DockerComposeOrchestrator:
             if self.verbose:
                 print(f"Stopping services: {' '.join(cmd)}")
 
-            result = subprocess.run(
-                cmd, capture_output=not self.verbose, text=True, timeout=60
-            )
+            result = subprocess.run(cmd, capture_output=not self.verbose, text=True, timeout=60)
 
             if result.returncode == 0:
                 if self.verbose:
                     print("Services stopped successfully")
                 return True
             else:
-                error_msg = (
-                    f"Docker Compose stop failed with exit code {result.returncode}"
-                )
+                error_msg = f"Docker Compose stop failed with exit code {result.returncode}"
                 if result.stderr:
                     error_msg += f": {result.stderr}"
                 raise DockerError(error_msg)
@@ -315,9 +293,7 @@ class DockerComposeOrchestrator:
                 print(f"Failed to get service status: {e}")
             return []
 
-    def get_service_logs(
-        self, service_name: Optional[str] = None, tail: int = 100
-    ) -> str:
+    def get_service_logs(self, service_name: Optional[str] = None, tail: int = 100) -> str:
         """
         Get logs from services.
 
@@ -384,9 +360,7 @@ class DockerComposeOrchestrator:
             if self.verbose:
                 print(f"Scaling {service_name} to {replicas} replicas")
 
-            result = subprocess.run(
-                cmd, capture_output=not self.verbose, text=True, timeout=120
-            )
+            result = subprocess.run(cmd, capture_output=not self.verbose, text=True, timeout=120)
 
             return result.returncode == 0
 
@@ -414,9 +388,7 @@ class DockerComposeOrchestrator:
             if self.verbose:
                 print(f"Restarting service: {service_name}")
 
-            result = subprocess.run(
-                cmd, capture_output=not self.verbose, text=True, timeout=60
-            )
+            result = subprocess.run(cmd, capture_output=not self.verbose, text=True, timeout=60)
 
             return result.returncode == 0
 
@@ -483,9 +455,7 @@ class DockerComposeOrchestrator:
             if self.verbose:
                 print(f"Cleaning up: {' '.join(cmd)}")
 
-            result = subprocess.run(
-                cmd, capture_output=not self.verbose, text=True, timeout=60
-            )
+            result = subprocess.run(cmd, capture_output=not self.verbose, text=True, timeout=60)
 
             # Remove compose file
             if os.path.exists(self.compose_file):

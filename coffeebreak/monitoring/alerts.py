@@ -42,9 +42,7 @@ class AlertManager:
 
         return setup_result
 
-    def _setup_alertmanager(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_alertmanager(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup Prometheus Alertmanager."""
         setup_result = {"success": True, "errors": []}
 

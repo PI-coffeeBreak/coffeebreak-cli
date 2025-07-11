@@ -22,36 +22,24 @@ class TestGitOperations:
         mock_repo = MagicMock()
 
         with patch("git.Repo.clone_from", return_value=mock_repo):
-            repo = self.git_operations.clone_repository(
-                "https://github.com/test/repo.git", self.temp_dir
-            )
+            repo = self.git_operations.clone_repository("https://github.com/test/repo.git", self.temp_dir)
 
             assert repo == mock_repo
-            git.Repo.clone_from.assert_called_once_with(
-                "https://github.com/test/repo.git", to_path=self.temp_dir
-            )
+            git.Repo.clone_from.assert_called_once_with("https://github.com/test/repo.git", to_path=self.temp_dir)
 
     def test_clone_repository_auth_failure(self):
         """Test repository cloning with authentication failure."""
-        with patch(
-            "git.Repo.clone_from", side_effect=git.exc.GitCommandError("clone", 128)
-        ):
+        with patch("git.Repo.clone_from", side_effect=git.exc.GitCommandError("clone", 128)):
             with pytest.raises(GitOperationError) as exc_info:
-                self.git_operations.clone_repository(
-                    "https://github.com/test/private-repo.git", self.temp_dir
-                )
+                self.git_operations.clone_repository("https://github.com/test/private-repo.git", self.temp_dir)
 
             assert "Failed to clone repository" in str(exc_info.value)
 
     def test_clone_repository_network_error(self):
         """Test repository cloning with network error."""
-        with patch(
-            "git.Repo.clone_from", side_effect=git.exc.GitError("Network error")
-        ):
+        with patch("git.Repo.clone_from", side_effect=git.exc.GitError("Network error")):
             with pytest.raises(GitOperationError) as exc_info:
-                self.git_operations.clone_repository(
-                    "https://github.com/test/repo.git", self.temp_dir
-                )
+                self.git_operations.clone_repository("https://github.com/test/repo.git", self.temp_dir)
 
             assert "Unexpected error cloning repository" in str(exc_info.value)
 
@@ -65,9 +53,7 @@ class TestGitOperations:
         mock_repos = {"core": MagicMock(), "frontend": MagicMock()}
 
         with patch.object(self.git_operations, "clone_repository") as mock_clone:
-            mock_clone.side_effect = lambda url, path, branch=None: mock_repos[
-                path.split("/")[-1]
-            ]
+            mock_clone.side_effect = lambda url, path, branch=None: mock_repos[path.split("/")[-1]]
 
             # For this test, we'll prepare repository configs with 'path' attribute
             repos_with_paths = []
@@ -98,9 +84,7 @@ class TestGitOperations:
             else:
                 raise GitOperationError("Failed to clone frontend")
 
-        with patch.object(
-            self.git_operations, "clone_repository", side_effect=clone_side_effect
-        ):
+        with patch.object(self.git_operations, "clone_repository", side_effect=clone_side_effect):
             # For this test, we'll prepare repository configs with 'path' attribute
             repos_with_paths = []
             for repo in repositories:
@@ -117,12 +101,8 @@ class TestGitOperations:
 
     def test_validate_repository_access(self):
         """Test repository access validation."""
-        with patch.object(
-            self.git_operations.validator, "validate_access", return_value=[]
-        ):
-            result = self.git_operations.validate_repository_access(
-                "https://github.com/test/repo.git"
-            )
+        with patch.object(self.git_operations.validator, "validate_access", return_value=[]):
+            result = self.git_operations.validate_repository_access("https://github.com/test/repo.git")
             assert result
 
     def test_validate_repository_access_failure(self):
@@ -133,9 +113,7 @@ class TestGitOperations:
             return_value=["Access denied"],
         ):
             with pytest.raises(GitOperationError) as exc_info:
-                self.git_operations.validate_repository_access(
-                    "https://github.com/test/repo.git"
-                )
+                self.git_operations.validate_repository_access("https://github.com/test/repo.git")
 
             assert "Repository access validation failed" in str(exc_info.value)
 

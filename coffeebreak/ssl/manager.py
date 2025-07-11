@@ -21,9 +21,7 @@ class SSLManager:
         """Initialize SSL manager."""
         self.verbose = verbose
 
-    def validate_certificate(
-        self, cert_path: str, key_path: str, domain: str
-    ) -> Dict[str, Any]:
+    def validate_certificate(self, cert_path: str, key_path: str, domain: str) -> Dict[str, Any]:
         """
         Validate SSL certificate.
 
@@ -88,9 +86,7 @@ class SSLManager:
                 validation["valid"] = False
                 validation["errors"].append("Certificate has expired")
             elif expires_in.days < 30:
-                validation["warnings"].append(
-                    f"Certificate expires in {expires_in.days} days"
-                )
+                validation["warnings"].append(f"Certificate expires in {expires_in.days} days")
 
             # Check domain validation
             domain_valid = False
@@ -108,9 +104,7 @@ class SSLManager:
             # Check Subject Alternative Names (SAN)
             if not domain_valid:
                 try:
-                    san_ext = cert.extensions.get_extension_for_oid(
-                        x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME
-                    )
+                    san_ext = cert.extensions.get_extension_for_oid(x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
                     san_domains = [name.value for name in san_ext.value]
 
                     if domain in san_domains or f"*.{domain}" in san_domains:
@@ -123,9 +117,7 @@ class SSLManager:
 
             if not domain_valid:
                 validation["valid"] = False
-                validation["errors"].append(
-                    f"Certificate is not valid for domain: {domain}"
-                )
+                validation["errors"].append(f"Certificate is not valid for domain: {domain}")
 
             # Validate private key
             try:
@@ -133,9 +125,7 @@ class SSLManager:
                     key_data = f.read()
 
                 try:
-                    private_key = serialization.load_pem_private_key(
-                        key_data, password=None
-                    )
+                    private_key = serialization.load_pem_private_key(key_data, password=None)
                 except Exception as e:
                     validation["valid"] = False
                     validation["errors"].append(f"Invalid private key format: {e}")
@@ -146,19 +136,10 @@ class SSLManager:
                 private_public_key = private_key.public_key()
 
                 # Compare public key numbers for RSA keys
-                if isinstance(public_key, rsa.RSAPublicKey) and isinstance(
-                    private_public_key, rsa.RSAPublicKey
-                ):
-                    if (
-                        public_key.public_numbers().n
-                        != private_public_key.public_numbers().n
-                        or public_key.public_numbers().e
-                        != private_public_key.public_numbers().e
-                    ):
+                if isinstance(public_key, rsa.RSAPublicKey) and isinstance(private_public_key, rsa.RSAPublicKey):
+                    if public_key.public_numbers().n != private_public_key.public_numbers().n or public_key.public_numbers().e != private_public_key.public_numbers().e:
                         validation["valid"] = False
-                        validation["errors"].append(
-                            "Private key does not match certificate"
-                        )
+                        validation["errors"].append("Private key does not match certificate")
 
             except Exception as e:
                 validation["valid"] = False
@@ -197,9 +178,7 @@ class SSLManager:
             output_path.mkdir(parents=True, exist_ok=True)
 
             # Generate private key
-            private_key = rsa.generate_private_key(
-                public_exponent=65537, key_size=key_size
-            )
+            private_key = rsa.generate_private_key(public_exponent=65537, key_size=key_size)
 
             # Generate certificate
             subject = issuer = x509.Name(
@@ -474,9 +453,7 @@ class SSLManager:
                     ext_info["value"] = {
                         "digital_signature": extension.value.digital_signature,
                         "key_encipherment": extension.value.key_encipherment,
-                        "key_agreement": getattr(
-                            extension.value, "key_agreement", False
-                        ),
+                        "key_agreement": getattr(extension.value, "key_agreement", False),
                     }
                 else:
                     ext_info["value"] = str(extension.value)

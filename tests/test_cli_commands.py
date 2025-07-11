@@ -50,9 +50,7 @@ class TestCLICommands:
     def test_init_dev_command(self):
         """Test init dev command."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.environments.DevelopmentEnvironment"
-            ) as mock_dev_env:
+            with patch("coffeebreak.environments.DevelopmentEnvironment") as mock_dev_env:
                 mock_dev_instance = MagicMock()
                 mock_dev_instance.initialize.return_value = True
                 mock_dev_env.return_value = mock_dev_instance
@@ -60,16 +58,12 @@ class TestCLICommands:
                 result = self.runner.invoke(cli, ["init", "dev"])
 
                 assert result.exit_code == 0
-                assert (
-                    "Initializing CoffeeBreak development environment" in result.output
-                )
+                assert "Initializing CoffeeBreak development environment" in result.output
 
     def test_init_dev_command_with_options(self):
         """Test init dev command with custom options."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.environments.DevelopmentEnvironment"
-            ) as mock_dev_env:
+            with patch("coffeebreak.environments.DevelopmentEnvironment") as mock_dev_env:
                 mock_dev_instance = MagicMock()
                 mock_dev_instance.initialize.return_value = True
                 mock_dev_env.return_value = mock_dev_instance
@@ -88,9 +82,7 @@ class TestCLICommands:
     def test_init_dev_command_failure(self):
         """Test init dev command with initialization failure."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.environments.DevelopmentEnvironment"
-            ) as mock_dev_env:
+            with patch("coffeebreak.environments.DevelopmentEnvironment") as mock_dev_env:
                 mock_dev_instance = MagicMock()
                 mock_dev_instance.initialize.return_value = False
                 mock_dev_env.return_value = mock_dev_instance
@@ -103,9 +95,7 @@ class TestCLICommands:
     def test_init_production_command(self):
         """Test init production command."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.environments.production.ProductionEnvironment"
-            ) as mock_prod_env:
+            with patch("coffeebreak.environments.production.ProductionEnvironment") as mock_prod_env:
                 with patch("click.prompt", return_value="test.com"):
                     mock_prod_instance = MagicMock()
                     mock_prod_instance.setup_standalone_production.return_value = {
@@ -134,17 +124,12 @@ class TestCLICommands:
                         ],
                     )
                     assert result.exit_code == 0
-                    assert (
-                        "Initializing CoffeeBreak production environment"
-                        in result.output
-                    )
+                    assert "Initializing CoffeeBreak production environment" in result.output
 
     def test_build_command_without_plugin(self):
         """Test build command without plugin specification."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.environments.detector.EnvironmentDetector"
-            ) as mock_env_detector:
+            with patch("coffeebreak.environments.detector.EnvironmentDetector") as mock_env_detector:
                 mock_env_detector.return_value.detect_environment.return_value = "dev"
                 with patch(
                     "coffeebreak.cli._build_component",
@@ -161,18 +146,10 @@ class TestCLICommands:
     def test_build_command_with_plugin(self):
         """Test build command with plugin specification."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.environments.detector.EnvironmentDetector"
-            ) as mock_env_detector:
-                mock_env_detector.return_value.detect_environment.return_value = (
-                    "plugin"
-                )
-                with patch(
-                    "coffeebreak.environments.plugin.PluginEnvironment"
-                ) as mock_plugin_env:
-                    mock_plugin_env.return_value.build_plugin.return_value = (
-                        "/path/to/plugin.pyz"
-                    )
+            with patch("coffeebreak.environments.detector.EnvironmentDetector") as mock_env_detector:
+                mock_env_detector.return_value.detect_environment.return_value = "plugin"
+                with patch("coffeebreak.environments.plugin.PluginEnvironment") as mock_plugin_env:
+                    mock_plugin_env.return_value.build_plugin.return_value = "/path/to/plugin.pyz"
                     with patch("os.path.getsize", return_value=1024):
                         result = self.runner.invoke(cli, ["build", "test-plugin"])
                         assert result.exit_code == 0
@@ -181,17 +158,13 @@ class TestCLICommands:
     def test_deploy_command(self):
         """Test deploy command."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.environments.detector.EnvironmentDetector"
-            ) as mock_detector:
+            with patch("coffeebreak.environments.detector.EnvironmentDetector") as mock_detector:
                 with patch(
                     "coffeebreak.infrastructure.deployment.DeploymentManager",
                     create=True,
                 ) as mock_deploy_mgr:
                     mock_detector_instance = MagicMock()
-                    mock_detector_instance.detect_environment.return_value = (
-                        "development"
-                    )
+                    mock_detector_instance.detect_environment.return_value = "development"
                     mock_detector.return_value = mock_detector_instance
 
                     mock_deploy_instance = MagicMock()
@@ -226,9 +199,7 @@ class TestCLICommands:
     def test_deps_start_command(self):
         """Test deps start command."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.containers.dependencies.DependencyManager"
-            ) as mock_deps:
+            with patch("coffeebreak.containers.dependencies.DependencyManager") as mock_deps:
                 mock_deps.return_value.start_profile.return_value = True
                 result = self.runner.invoke(cli, ["deps", "start"])
                 assert result.exit_code == 0
@@ -237,35 +208,25 @@ class TestCLICommands:
     def test_deps_start_with_services(self):
         """Test deps start command with specific services."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.containers.dependencies.DependencyManager"
-            ) as mock_deps:
+            with patch("coffeebreak.containers.dependencies.DependencyManager") as mock_deps:
                 mock_deps.return_value.start_services.return_value = True
-                result = self.runner.invoke(
-                    cli, ["deps", "start", "postgres", "mongodb"]
-                )
+                result = self.runner.invoke(cli, ["deps", "start", "postgres", "mongodb"])
                 assert result.exit_code == 0
                 assert "Starting services: postgres, mongodb" in result.output
 
     def test_deps_start_with_profile(self):
         """Test deps start command with profile."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.containers.dependencies.DependencyManager"
-            ) as mock_deps:
+            with patch("coffeebreak.containers.dependencies.DependencyManager") as mock_deps:
                 mock_deps.return_value.start_profile.return_value = True
-                result = self.runner.invoke(
-                    cli, ["deps", "start", "--profile", "minimal"]
-                )
+                result = self.runner.invoke(cli, ["deps", "start", "--profile", "minimal"])
                 assert result.exit_code == 0
                 assert "Starting dependency profile: minimal" in result.output
 
     def test_deps_stop_command(self):
         """Test deps stop command."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.containers.dependencies.DependencyManager"
-            ) as mock_deps:
+            with patch("coffeebreak.containers.dependencies.DependencyManager") as mock_deps:
                 mock_deps.return_value.stop_all_services.return_value = True
                 result = self.runner.invoke(cli, ["deps", "stop"])
                 assert result.exit_code == 0
@@ -274,9 +235,7 @@ class TestCLICommands:
     def test_deps_status_command(self):
         """Test deps status command."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.containers.dependencies.DependencyManager"
-            ) as mock_deps:
+            with patch("coffeebreak.containers.dependencies.DependencyManager") as mock_deps:
                 mock_deps.return_value.get_health_status.return_value = {
                     "total_containers": 0,
                     "healthy": 0,
@@ -287,10 +246,7 @@ class TestCLICommands:
                 result = self.runner.invoke(cli, ["deps", "status"])
                 assert result.exit_code == 0
                 # Accept either message for no containers
-                assert (
-                    "No dependency containers running" in result.output
-                    or "Error getting status" in result.output
-                )
+                assert "No dependency containers running" in result.output or "Error getting status" in result.output
 
     def test_deps_logs_command(self):
         """Test deps logs command."""
@@ -362,9 +318,7 @@ class TestCLICommands:
                 mock_containers_module.DependencyManager = mock_deps_class
 
                 mock_deps_instance = MagicMock()
-                mock_deps_instance.generate_connection_info.return_value = {
-                    "DATABASE_URL": "postgresql://localhost:5432/db"
-                }
+                mock_deps_instance.generate_connection_info.return_value = {"DATABASE_URL": "postgresql://localhost:5432/db"}
                 mock_deps_class.return_value = mock_deps_instance
 
                 # Also mock the utils module since FileManager is imported from there
@@ -396,9 +350,7 @@ class TestCLICommands:
             "freed_space": "100MB",
         }
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.containers.dependencies.DependencyManager"
-            ) as mock_deps:
+            with patch("coffeebreak.containers.dependencies.DependencyManager") as mock_deps:
                 mock_deps_instance = MagicMock()
                 mock_deps_instance.clean_all_services.return_value = True
                 mock_deps_instance.stop_health_monitoring.return_value = True
@@ -425,9 +377,7 @@ class TestCLICommands:
             mock_instance = mock_env.return_value
             mock_instance.create_plugin.return_value = "/path/to/test-plugin"
 
-            result = self.runner.invoke(
-                cli, ["plugin", "create", "test-plugin", "--template", "react"]
-            )
+            result = self.runner.invoke(cli, ["plugin", "create", "test-plugin", "--template", "react"])
 
             assert result.exit_code == 0
             assert "test-plugin" in result.output
@@ -445,11 +395,7 @@ class TestCLICommands:
 
     def test_plugin_build_command(self):
         """Test plugin build command."""
-        with patch(
-            "coffeebreak.environments.plugin.PluginEnvironment"
-        ) as mock_env, patch("coffeebreak.config.ConfigManager"), patch(
-            "os.path.getsize", return_value=1024
-        ):
+        with patch("coffeebreak.environments.plugin.PluginEnvironment") as mock_env, patch("coffeebreak.config.ConfigManager"), patch("os.path.getsize", return_value=1024):
             mock_instance = mock_env.return_value
             mock_instance.build_plugin.return_value = "/path/to/plugin.pyz"
 
@@ -461,9 +407,7 @@ class TestCLICommands:
     def test_plugin_publish_command(self):
         """Test plugin publish command."""
         with patch("coffeebreak.config.ConfigManager"):
-            with patch(
-                "coffeebreak.environments.plugin.PluginEnvironment"
-            ) as mock_plugin_env:
+            with patch("coffeebreak.environments.plugin.PluginEnvironment") as mock_plugin_env:
                 with patch("os.getcwd", return_value="/tmp/plugin"):
                     with patch("os.path.exists", return_value=True):
                         with patch("os.listdir", return_value=["test-plugin.pyz"]):
@@ -473,24 +417,14 @@ class TestCLICommands:
                                         "builtins.open",
                                         mock_open(read_data=b"fake_data"),
                                     ):
-                                        with patch(
-                                            "click.prompt", return_value="test-token"
-                                        ):
-                                            with patch(
-                                                "tempfile.TemporaryDirectory"
-                                            ) as mock_temp_dir:
-                                                with patch(
-                                                    "json.dump"
-                                                ):
-                                                    with patch(
-                                                        "tarfile.open"
-                                                    ) as mock_tar:
+                                        with patch("click.prompt", return_value="test-token"):
+                                            with patch("tempfile.TemporaryDirectory") as mock_temp_dir:
+                                                with patch("json.dump"):
+                                                    with patch("tarfile.open") as mock_tar:
                                                         mock_temp_dir.return_value.__enter__.return_value = "/tmp/test_temp"
                                                         mock_temp_dir.return_value.__exit__.return_value = None
 
-                                                        mock_plugin_env_instance = (
-                                                            MagicMock()
-                                                        )
+                                                        mock_plugin_env_instance = MagicMock()
                                                         mock_plugin_env_instance.get_plugin_info.return_value = {
                                                             "name": "test-plugin",
                                                             "version": "1.0.0",
@@ -501,12 +435,8 @@ class TestCLICommands:
                                                             "valid": True,
                                                             "errors": [],
                                                         }
-                                                        mock_plugin_env_instance.build_plugin.return_value = {
-                                                            "success": True
-                                                        }
-                                                        mock_plugin_env.return_value = (
-                                                            mock_plugin_env_instance
-                                                        )
+                                                        mock_plugin_env_instance.build_plugin.return_value = {"success": True}
+                                                        mock_plugin_env.return_value = mock_plugin_env_instance
 
                                                         mock_tar_instance = MagicMock()
                                                         mock_tar.return_value.__enter__.return_value = mock_tar_instance
@@ -519,12 +449,8 @@ class TestCLICommands:
                                                                 "--force",
                                                             ],
                                                         )
-                                                        print(
-                                                            f"Output: {result.output}"
-                                                        )
-                                                        print(
-                                                            f"Exception: {result.exception}"
-                                                        )
+                                                        print(f"Output: {result.output}")
+                                                        print(f"Exception: {result.exception}")
                                                         assert result.exit_code == 0
 
     def test_secrets_rotate_command(self):
@@ -556,24 +482,18 @@ class TestCLICommands:
                 "service": "postgres",
             }
         }
-        secrets_manager.SecretManager.get_secrets_by_type = (
-            lambda self, secret_type=None: {
-                "db_password": {
-                    "value": "secret123",
-                    "type": "database",
-                    "service": "postgres",
-                }
+        secrets_manager.SecretManager.get_secrets_by_type = lambda self, secret_type=None: {
+            "db_password": {
+                "value": "secret123",
+                "type": "database",
+                "service": "postgres",
             }
-        )
+        }
         with patch("coffeebreak.config.ConfigManager"):
             with patch("coffeebreak.secrets.manager.SecretManager") as mock_secrets:
-                with patch(
-                    "coffeebreak.environments.detector.EnvironmentDetector"
-                ) as mock_detector:
+                with patch("coffeebreak.environments.detector.EnvironmentDetector") as mock_detector:
                     mock_detector_instance = MagicMock()
-                    mock_detector_instance.detect_environment.return_value = (
-                        "development"
-                    )
+                    mock_detector_instance.detect_environment.return_value = "development"
                     mock_detector.return_value = mock_detector_instance
 
                     mock_secrets_instance = MagicMock()
@@ -605,27 +525,19 @@ class TestCLICommands:
         }
         with patch("coffeebreak.config.ConfigManager"):
             with patch("coffeebreak.secrets.manager.SecretManager") as mock_secrets:
-                with patch(
-                    "coffeebreak.environments.detector.EnvironmentDetector"
-                ) as mock_detector:
-                    with patch(
-                        "builtins.open", mock_open(read_data=b"fake_backup_data")
-                    ):
+                with patch("coffeebreak.environments.detector.EnvironmentDetector") as mock_detector:
+                    with patch("builtins.open", mock_open(read_data=b"fake_backup_data")):
                         with patch("tarfile.open") as mock_tar:
                             with patch("json.dump"):
                                 with patch("datetime.datetime") as mock_datetime:
-                                    with patch(
-                                        "click.prompt", return_value="dummy-password"
-                                    ):
+                                    with patch("click.prompt", return_value="dummy-password"):
                                         with patch("os.path.exists", return_value=True):
                                             with patch("os.chmod"):
                                                 with patch(
                                                     "os.urandom",
                                                     return_value=b"test_key",
                                                 ):
-                                                    with patch(
-                                                        "os.remove"
-                                                    ):
+                                                    with patch("os.remove"):
                                                         with patch(
                                                             "os.path.getsize",
                                                             return_value=1024,
@@ -633,39 +545,27 @@ class TestCLICommands:
                                                             mock_datetime.now.return_value.strftime.return_value = "20230101_120000"
                                                             mock_datetime.now.return_value.isoformat.return_value = "2023-01-01T12:00:00"
 
-                                                            mock_detector_instance = (
-                                                                MagicMock()
-                                                            )
+                                                            mock_detector_instance = MagicMock()
                                                             mock_detector_instance.detect_environment.return_value = "development"
                                                             mock_detector.return_value = mock_detector_instance
 
-                                                            mock_secrets_instance = (
-                                                                MagicMock()
-                                                            )
+                                                            mock_secrets_instance = MagicMock()
                                                             mock_secrets.return_value = mock_secrets_instance
 
-                                                            mock_tar_instance = (
-                                                                MagicMock()
-                                                            )
+                                                            mock_tar_instance = MagicMock()
                                                             mock_tar.return_value.__enter__.return_value = mock_tar_instance
 
                                                             result = self.runner.invoke(
                                                                 cli,
                                                                 ["secrets", "backup"],
                                                             )
-                                                            print(
-                                                                f"Output: {result.output}"
-                                                            )
-                                                            print(
-                                                                f"Exception: {result.exception}"
-                                                            )
+                                                            print(f"Output: {result.output}")
+                                                            print(f"Exception: {result.exception}")
                                                             assert result.exit_code == 0
 
     def test_production_install_command(self):
         """Test production install command."""
-        result = self.runner.invoke(
-            cli, ["production", "install", "--domain", "example.com"]
-        )
+        result = self.runner.invoke(cli, ["production", "install", "--domain", "example.com"])
 
         assert result.exit_code == 0
         assert "Installing CoffeeBreak for domain: example.com" in result.output

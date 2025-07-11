@@ -128,9 +128,7 @@ def get_realm_config() -> dict:
                 "enabled": True,
                 "email": "admin@coffeebreak.local",
                 "emailVerified": True,
-                "credentials": [
-                    {"type": "password", "value": "admin123", "temporary": False}
-                ],
+                "credentials": [{"type": "password", "value": "admin123", "temporary": False}],
             }
         ],
     }

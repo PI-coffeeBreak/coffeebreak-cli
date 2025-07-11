@@ -9,16 +9,20 @@ def _get_docker_imports():
     try:
         import docker
         from docker.errors import APIError, DockerException, NotFound
+
         return docker, APIError, DockerException, NotFound
     except ImportError:
         # Return dummy classes if docker is not available
         class DummyDockerClient:
             def __init__(self, *args, **kwargs):
                 pass
+
             def ping(self):
                 pass
+
             def networks(self):
                 return DummyNetworks()
+
             def containers(self):
                 return DummyContainers()
 
@@ -29,12 +33,14 @@ def _get_docker_imports():
         class DummyNetworks:
             def get(self, name):
                 raise DummyNotFound()
+
             def create(self, name, driver):
                 pass
 
         class DummyContainers:
             def get(self, name):
                 raise DummyNotFound()
+
             def run(self, **kwargs):
                 pass
 
@@ -48,6 +54,7 @@ def _get_docker_imports():
             pass
 
         return DummyDockerClient, DummyAPIError, DummyDockerException, DummyNotFound
+
 
 docker, APIError, DockerException, NotFound = _get_docker_imports()
 
@@ -194,9 +201,7 @@ class ContainerManager:
                 image = config["image"]
                 self._pull_image_if_needed(image)
             else:
-                raise ContainerManagerError(
-                    "Either 'image' or 'build' must be specified in configuration"
-                )
+                raise ContainerManagerError("Either 'image' or 'build' must be specified in configuration")
 
             # Prepare container configuration with resolved image
             run_config = self._prepare_run_config(config, image)
@@ -210,9 +215,7 @@ class ContainerManager:
             return container.id
 
         except APIError as e:
-            raise ContainerManagerError(
-                f"Failed to start container '{container_name}': {e}"
-            )
+            raise ContainerManagerError(f"Failed to start container '{container_name}': {e}")
         except Exception as e:
             raise ContainerManagerError(f"Unexpected error starting container: {e}")
 
@@ -291,9 +294,7 @@ class ContainerManager:
                 "name": container.name,
                 "id": container.short_id,
                 "status": container.status,
-                "image": container.image.tags[0]
-                if container.image.tags
-                else container.image.id,
+                "image": container.image.tags[0] if container.image.tags else container.image.id,
                 "created": container.attrs["Created"],
                 "ports": self._extract_port_mappings(container),
                 "networks": list(container.attrs["NetworkSettings"]["Networks"].keys()),
@@ -331,9 +332,7 @@ class ContainerManager:
                     "name": container.name,
                     "id": container.short_id,
                     "status": container.status,
-                    "image": container.image.tags[0]
-                    if container.image.tags
-                    else container.image.id,
+                    "image": container.image.tags[0] if container.image.tags else container.image.id,
                     "ports": self._extract_port_mappings(container),
                 }
                 container_list.append(status)
@@ -443,9 +442,7 @@ class ContainerManager:
                 volume_map[volume] = {"bind": volume, "mode": "rw"}
         return volume_map
 
-    def _build_image_from_context(
-        self, build_config: Dict[str, Any], container_name: str
-    ) -> str:
+    def _build_image_from_context(self, build_config: Dict[str, Any], container_name: str) -> str:
         """Build Docker image from build context."""
         context = build_config["context"]
         dockerfile = build_config.get("dockerfile", "Dockerfile")
@@ -453,9 +450,7 @@ class ContainerManager:
 
         try:
             if self.verbose:
-                print(
-                    f"Building image '{tag}' from context '{context}' with dockerfile '{dockerfile}'"
-                )
+                print(f"Building image '{tag}' from context '{context}' with dockerfile '{dockerfile}'")
 
             # Build image using Docker API
             image, build_logs = self.client.images.build(
@@ -476,9 +471,7 @@ class ContainerManager:
             return tag
 
         except APIError as e:
-            raise ContainerManagerError(
-                f"Failed to build image from context '{context}': {e}"
-            )
+            raise ContainerManagerError(f"Failed to build image from context '{context}': {e}")
         except Exception as e:
             raise ContainerManagerError(f"Unexpected error building image: {e}")
 

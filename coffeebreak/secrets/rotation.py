@@ -50,40 +50,20 @@ class SecretRotationManager:
         # Default rotation schedules
         self.default_schedules = {
             # Critical secrets - rotate more frequently
-            "api_secret_key": RotationSchedule(
-                "api_secret_key", 30, priority="critical"
-            ),
-            "session_secret": RotationSchedule(
-                "session_secret", 30, priority="critical"
-            ),
+            "api_secret_key": RotationSchedule("api_secret_key", 30, priority="critical"),
+            "session_secret": RotationSchedule("session_secret", 30, priority="critical"),
             "jwt_secret": RotationSchedule("jwt_secret", 30, priority="critical"),
             # High priority secrets
-            "postgres_password": RotationSchedule(
-                "postgres_password", 90, priority="high"
-            ),
-            "mongodb_password": RotationSchedule(
-                "mongodb_password", 90, priority="high"
-            ),
-            "keycloak_admin_password": RotationSchedule(
-                "keycloak_admin_password", 90, priority="high"
-            ),
+            "postgres_password": RotationSchedule("postgres_password", 90, priority="high"),
+            "mongodb_password": RotationSchedule("mongodb_password", 90, priority="high"),
+            "keycloak_admin_password": RotationSchedule("keycloak_admin_password", 90, priority="high"),
             # Medium priority secrets
-            "rabbitmq_password": RotationSchedule(
-                "rabbitmq_password", 180, priority="medium"
-            ),
-            "redis_password": RotationSchedule(
-                "redis_password", 180, priority="medium"
-            ),
-            "backup_encryption_key": RotationSchedule(
-                "backup_encryption_key", 180, priority="medium"
-            ),
+            "rabbitmq_password": RotationSchedule("rabbitmq_password", 180, priority="medium"),
+            "redis_password": RotationSchedule("redis_password", 180, priority="medium"),
+            "backup_encryption_key": RotationSchedule("backup_encryption_key", 180, priority="medium"),
             # Lower priority secrets
-            "monitoring_password": RotationSchedule(
-                "monitoring_password", 365, priority="low"
-            ),
-            "ssl_session_ticket_key": RotationSchedule(
-                "ssl_session_ticket_key", 365, priority="low"
-            ),
+            "monitoring_password": RotationSchedule("monitoring_password", 365, priority="low"),
+            "ssl_session_ticket_key": RotationSchedule("ssl_session_ticket_key", 365, priority="low"),
         }
 
         # Load existing schedules
@@ -111,13 +91,9 @@ class SecretRotationManager:
 
                     # Parse datetime strings
                     if data.get("last_rotation"):
-                        schedule.last_rotation = datetime.fromisoformat(
-                            data["last_rotation"]
-                        )
+                        schedule.last_rotation = datetime.fromisoformat(data["last_rotation"])
                     if data.get("next_rotation"):
-                        schedule.next_rotation = datetime.fromisoformat(
-                            data["next_rotation"]
-                        )
+                        schedule.next_rotation = datetime.fromisoformat(data["next_rotation"])
 
                     schedules[name] = schedule
 
@@ -153,12 +129,8 @@ class SecretRotationManager:
                     "interval_days": schedule.interval_days,
                     "enabled": schedule.enabled,
                     "priority": schedule.priority,
-                    "last_rotation": schedule.last_rotation.isoformat()
-                    if schedule.last_rotation
-                    else None,
-                    "next_rotation": schedule.next_rotation.isoformat()
-                    if schedule.next_rotation
-                    else None,
+                    "last_rotation": schedule.last_rotation.isoformat() if schedule.last_rotation else None,
+                    "next_rotation": schedule.next_rotation.isoformat() if schedule.next_rotation else None,
                 }
 
             # Write config file
@@ -240,9 +212,7 @@ class SecretRotationManager:
                 print(f"Updated rotation schedule for {secret_name}")
 
         except Exception as e:
-            raise SecurityError(
-                f"Failed to update rotation schedule for {secret_name}: {e}"
-            ) from e
+            raise SecurityError(f"Failed to update rotation schedule for {secret_name}: {e}") from e
 
     def get_secrets_due_for_rotation(self) -> List[RotationSchedule]:
         """
@@ -298,9 +268,7 @@ class SecretRotationManager:
 
             schedule = self.schedules.get(secret_name)
             if not schedule:
-                raise SecurityError(
-                    f"No rotation schedule found for secret: {secret_name}"
-                )
+                raise SecurityError(f"No rotation schedule found for secret: {secret_name}")
 
             if not schedule.enabled and not force:
                 raise SecurityError(f"Rotation is disabled for secret: {secret_name}")
@@ -309,10 +277,7 @@ class SecretRotationManager:
             if not force:
                 if schedule.next_rotation and datetime.now() < schedule.next_rotation:
                     time_until_due = schedule.next_rotation - datetime.now()
-                    raise SecurityError(
-                        f"Secret {secret_name} is not due for rotation "
-                        f"(due in {time_until_due.days} days)"
-                    )
+                    raise SecurityError(f"Secret {secret_name} is not due for rotation (due in {time_until_due.days} days)")
 
             start_time = time.time()
             rotation_result = {
@@ -339,9 +304,7 @@ class SecretRotationManager:
                 try:
                     # Try to get old value for length comparison
                     if self.secret_manager.deployment_type == "standalone":
-                        old_value = self.secret_manager.load_encrypted_secret(
-                            secret_name, "/etc/coffeebreak/secrets"
-                        )
+                        old_value = self.secret_manager.load_encrypted_secret(secret_name, "/etc/coffeebreak/secrets")
                         rotation_result["old_value_length"] = len(old_value)
                 except Exception:
                     pass  # Old value not available, continue
@@ -384,9 +347,7 @@ class SecretRotationManager:
             if isinstance(e, SecurityError):
                 raise
             else:
-                raise SecurityError(
-                    f"Failed to rotate secret {secret_name}: {e}"
-                ) from e
+                raise SecurityError(f"Failed to rotate secret {secret_name}: {e}") from e
 
     def rotate_due_secrets(self, max_rotations: int = 5) -> List[Dict[str, Any]]:
         """
@@ -438,9 +399,7 @@ class SecretRotationManager:
         except Exception as e:
             raise SecurityError(f"Failed to rotate due secrets: {e}") from e
 
-    def emergency_rotation(
-        self, secret_names: List[str], reason: str = ""
-    ) -> List[Dict[str, Any]]:
+    def emergency_rotation(self, secret_names: List[str], reason: str = "") -> List[Dict[str, Any]]:
         """
         Perform emergency rotation of specific secrets.
 
@@ -484,9 +443,7 @@ class SecretRotationManager:
         except Exception as e:
             raise SecurityError(f"Failed to perform emergency rotation: {e}") from e
 
-    def _log_emergency_rotation(
-        self, secret_names: List[str], reason: str, results: List[Dict[str, Any]]
-    ) -> None:
+    def _log_emergency_rotation(self, secret_names: List[str], reason: str, results: List[Dict[str, Any]]) -> None:
         """Log emergency rotation event."""
         try:
             log_entry = {
@@ -539,36 +496,23 @@ class SecretRotationManager:
 
                 time_until_rotation = None
                 if schedule.next_rotation:
-                    time_until_rotation = (
-                        schedule.next_rotation - current_time
-                    ).total_seconds()
+                    time_until_rotation = (schedule.next_rotation - current_time).total_seconds()
 
-                    if (
-                        not next_rotation_time
-                        or schedule.next_rotation < next_rotation_time
-                    ):
+                    if not next_rotation_time or schedule.next_rotation < next_rotation_time:
                         next_rotation_time = schedule.next_rotation
 
                 schedule_info = {
                     "enabled": schedule.enabled,
                     "priority": schedule.priority,
                     "interval_days": schedule.interval_days,
-                    "last_rotation": schedule.last_rotation.isoformat()
-                    if schedule.last_rotation
-                    else None,
-                    "next_rotation": schedule.next_rotation.isoformat()
-                    if schedule.next_rotation
-                    else None,
+                    "last_rotation": schedule.last_rotation.isoformat() if schedule.last_rotation else None,
+                    "next_rotation": schedule.next_rotation.isoformat() if schedule.next_rotation else None,
                     "time_until_rotation_seconds": time_until_rotation,
-                    "due_for_rotation": time_until_rotation is not None
-                    and time_until_rotation <= 0,
+                    "due_for_rotation": time_until_rotation is not None and time_until_rotation <= 0,
                 }
 
                 # Check if overdue (more than 7 days past due)
-                if (
-                    time_until_rotation is not None
-                    and time_until_rotation < -7 * 24 * 3600
-                ):
+                if time_until_rotation is not None and time_until_rotation < -7 * 24 * 3600:
                     status["overdue_secrets"].append(name)
 
                 status["schedules"][name] = schedule_info
@@ -599,9 +543,7 @@ class SecretRotationManager:
                 raise SecurityError(f"Secret not found: {secret_name}")
 
         except Exception as e:
-            raise SecurityError(
-                f"Failed to disable rotation for {secret_name}: {e}"
-            ) from e
+            raise SecurityError(f"Failed to disable rotation for {secret_name}: {e}") from e
 
     def enable_rotation(self, secret_name: str) -> None:
         """
@@ -614,11 +556,7 @@ class SecretRotationManager:
             if secret_name in self.schedules:
                 self.schedules[secret_name].enabled = True
                 # Recalculate next rotation
-                self.schedules[
-                    secret_name
-                ].next_rotation = self.calculate_next_rotation(
-                    self.schedules[secret_name]
-                )
+                self.schedules[secret_name].next_rotation = self.calculate_next_rotation(self.schedules[secret_name])
                 self._save_schedules(self.schedules)
 
                 if self.verbose:
@@ -627,6 +565,4 @@ class SecretRotationManager:
                 raise SecurityError(f"Secret not found: {secret_name}")
 
         except Exception as e:
-            raise SecurityError(
-                f"Failed to enable rotation for {secret_name}: {e}"
-            ) from e
+            raise SecurityError(f"Failed to enable rotation for {secret_name}: {e}") from e

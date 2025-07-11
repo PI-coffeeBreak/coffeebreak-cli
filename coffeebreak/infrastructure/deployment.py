@@ -18,9 +18,7 @@ class DeploymentOrchestrator:
         self.deployment_type = deployment_type
         self.verbose = verbose
 
-    def setup_deployment_orchestration(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def setup_deployment_orchestration(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Setup deployment orchestration system.
 
@@ -45,9 +43,7 @@ class DeploymentOrchestrator:
             os.makedirs(deployment_dir, exist_ok=True)
 
             # Create deployment scripts
-            scripts_result = self._create_deployment_scripts(
-                domain, config, scripts_dir, deployment_dir
-            )
+            scripts_result = self._create_deployment_scripts(domain, config, scripts_dir, deployment_dir)
             if scripts_result["success"]:
                 setup_result["scripts"] = scripts_result["scripts"]
             else:
@@ -69,9 +65,7 @@ class DeploymentOrchestrator:
 
         return setup_result
 
-    def _create_deployment_scripts(
-        self, domain: str, config: Dict[str, Any], scripts_dir: str, deployment_dir: str
-    ) -> Dict[str, Any]:
+    def _create_deployment_scripts(self, domain: str, config: Dict[str, Any], scripts_dir: str, deployment_dir: str) -> Dict[str, Any]:
         """Create deployment scripts for different strategies."""
         setup_result = {"success": True, "errors": [], "scripts": []}
 
@@ -563,9 +557,7 @@ main "$@"
 
         return setup_result
 
-    def _setup_deployment_tracking(
-        self, deployment_dir: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_deployment_tracking(self, deployment_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup deployment tracking and history."""
         setup_result = {"success": True, "errors": []}
 

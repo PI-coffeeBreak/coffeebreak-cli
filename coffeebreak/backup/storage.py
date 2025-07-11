@@ -80,9 +80,7 @@ class BackupStorage:
 
         return setup_result
 
-    def _setup_local_storage(
-        self, backup_dir: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_local_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup local backup storage."""
         setup_result = {
             "success": True,
@@ -105,9 +103,7 @@ class BackupStorage:
             if self.deployment_type == "standalone":
                 # Create coffeebreak user if it doesn't exist
                 try:
-                    subprocess.run(
-                        ["id", "coffeebreak"], capture_output=True, check=True
-                    )
+                    subprocess.run(["id", "coffeebreak"], capture_output=True, check=True)
                 except subprocess.CalledProcessError:
                     # User doesn't exist, create it
                     subprocess.run(
@@ -129,9 +125,7 @@ class BackupStorage:
                 # Set permissions for subdirectories
                 for subdir in subdirs:
                     subdir_path = backup_path / subdir
-                    shutil.chown(
-                        str(subdir_path), user="coffeebreak", group="coffeebreak"
-                    )
+                    shutil.chown(str(subdir_path), user="coffeebreak", group="coffeebreak")
                     os.chmod(str(subdir_path), 0o750)
 
             # Get storage information
@@ -158,9 +152,7 @@ class BackupStorage:
 
             if self.verbose:
                 print(f"Local backup storage created: {backup_dir}")
-                print(
-                    f"Available space: {storage_info.get('available_gb', 'unknown')} GB"
-                )
+                print(f"Available space: {storage_info.get('available_gb', 'unknown')} GB")
 
         except Exception as e:
             setup_result["success"] = False
@@ -168,9 +160,7 @@ class BackupStorage:
 
         return setup_result
 
-    def _setup_remote_storage(
-        self, backup_dir: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_remote_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup remote backup storage."""
         setup_result = {"success": True, "errors": [], "info": {}}
 
@@ -188,9 +178,7 @@ class BackupStorage:
                 setup_result.update(sftp_setup)
             else:
                 setup_result["success"] = False
-                setup_result["errors"].append(
-                    f"Unsupported remote storage type: {remote_type}"
-                )
+                setup_result["errors"].append(f"Unsupported remote storage type: {remote_type}")
 
         except Exception as e:
             setup_result["success"] = False
@@ -198,9 +186,7 @@ class BackupStorage:
 
         return setup_result
 
-    def _setup_s3_storage(
-        self, backup_dir: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_s3_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup S3-compatible storage."""
         setup_result = {"success": True, "errors": [], "info": {"remote_type": "s3"}}
 
@@ -210,12 +196,7 @@ class BackupStorage:
             if result.returncode != 0:
                 # Try to install AWS CLI
                 try:
-                    if (
-                        subprocess.run(
-                            ["which", "pip3"], capture_output=True
-                        ).returncode
-                        == 0
-                    ):
+                    if subprocess.run(["which", "pip3"], capture_output=True).returncode == 0:
                         subprocess.run(["pip3", "install", "awscli"], check=True)
                     else:
                         raise Exception("AWS CLI not available and pip3 not found")
@@ -229,9 +210,7 @@ class BackupStorage:
             s3_prefix = config.get("s3_prefix", "coffeebreak-backups")
 
             if not s3_bucket:
-                setup_result["errors"].append(
-                    "S3 bucket not specified in configuration"
-                )
+                setup_result["errors"].append("S3 bucket not specified in configuration")
                 return setup_result
 
             if self.deployment_type == "standalone":
@@ -318,20 +297,14 @@ main "$@"
             cron_entry = f"0 */6 * * * {s3_script_path} sync"
 
             try:
-                current_crontab = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
-                crontab_content = (
-                    current_crontab.stdout if current_crontab.returncode == 0 else ""
-                )
+                current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
             except Exception:
                 crontab_content = ""
 
             if "s3-sync.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\\n" + cron_entry + "\\n"
-                process = subprocess.Popen(
-                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
-                )
+                process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
                 process.communicate(input=new_crontab)
 
             setup_result["info"].update(
@@ -352,9 +325,7 @@ main "$@"
 
         return setup_result
 
-    def _setup_rsync_storage(
-        self, backup_dir: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_rsync_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup rsync-based remote storage."""
         setup_result = {"success": True, "errors": [], "info": {"remote_type": "rsync"}}
 
@@ -454,9 +425,7 @@ main "$@"
             )
 
             if self.verbose:
-                print(
-                    f"Rsync storage configured: {rsync_user}@{rsync_host}:{rsync_path}"
-                )
+                print(f"Rsync storage configured: {rsync_user}@{rsync_host}:{rsync_path}")
 
         except Exception as e:
             setup_result["success"] = False
@@ -464,9 +433,7 @@ main "$@"
 
         return setup_result
 
-    def _setup_sftp_storage(
-        self, backup_dir: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_sftp_storage(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup SFTP-based remote storage."""
         setup_result = {"success": True, "errors": [], "info": {"remote_type": "sftp"}}
 
@@ -585,9 +552,7 @@ main "$@"
 
         return setup_result
 
-    def _setup_storage_monitoring(
-        self, backup_dir: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_storage_monitoring(self, backup_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup storage monitoring and alerts."""
         setup_result = {"success": True, "errors": []}
 
@@ -742,20 +707,14 @@ main "$@"
             cron_entry = f"0 */4 * * * {monitoring_script_path}"
 
             try:
-                current_crontab = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
-                crontab_content = (
-                    current_crontab.stdout if current_crontab.returncode == 0 else ""
-                )
+                current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
             except Exception:
                 crontab_content = ""
 
             if "storage-monitor.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\\n" + cron_entry + "\\n"
-                process = subprocess.Popen(
-                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
-                )
+                process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
                 process.communicate(input=new_crontab)
 
             if self.verbose:

@@ -23,14 +23,10 @@ from coffeebreak.utils.logging import setup_logging
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
 @click.version_option(version=__version__)
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
-@click.option(
-    "--dry-run", is_flag=True, help="Show what would be done without executing"
-)
+@click.option("--dry-run", is_flag=True, help="Show what would be done without executing")
 @click.option("--log-file", help="Log to file in addition to console")
 @click.pass_context
-def cli(
-    ctx: click.Context, verbose: bool, dry_run: bool, log_file: Optional[str]
-) -> None:
+def cli(ctx: click.Context, verbose: bool, dry_run: bool, log_file: Optional[str]) -> None:
     """CoffeeBreak CLI - Development and deployment automation tool.
 
     CoffeeBreak is a comprehensive tool for managing development environments,
@@ -65,9 +61,7 @@ def init(ctx: click.Context) -> None:
 
 
 @init.command()
-@click.option(
-    "--organization", default="PI-coffeeBreak", help="GitHub organization name"
-)
+@click.option("--organization", default="PI-coffeeBreak", help="GitHub organization name")
 @click.option("--version", default="1.0.0", help="Project version")
 @click.option(
     "--venv",
@@ -151,18 +145,14 @@ def dev(
             click.echo("✓ Development environment initialized successfully!")
             click.echo("\nNext steps:")
             click.echo("  1. Run 'coffeebreak activate' to activate your environment")
-            click.echo(
-                "  2. Run 'coffeebreak start' to start the development environment"
-            )
+            click.echo("  2. Run 'coffeebreak start' to start the development environment")
             click.echo("  3. Check environment status with 'coffeebreak status'")
         else:
             click.echo("✗ Failed to initialize development environment", err=True)
             ctx.exit(1)
 
     except Exception as e:
-        ctx.obj["error_handler"].exit_with_error(
-            e, "Development environment initialization"
-        )
+        ctx.obj["error_handler"].exit_with_error(e, "Development environment initialization")
 
 
 @cli.command()
@@ -174,9 +164,7 @@ def dev(
     help="Show activation command instead of auto-executing",
 )
 @click.pass_context
-def activate(
-    ctx: click.Context, shell: Optional[str], info: bool, show_command: bool
-) -> None:
+def activate(ctx: click.Context, shell: Optional[str], info: bool, show_command: bool) -> None:
     """Activate the configured Python environment for the current project.
 
     By default, launches a new shell with the environment activated.
@@ -224,9 +212,7 @@ def activate(
         env_info = activator.get_environment_info()
         detected_shell = shell or activator._detect_shell()
 
-        click.echo(
-            f"Starting new {detected_shell} shell with CoffeeBreak environment activated..."
-        )
+        click.echo(f"Starting new {detected_shell} shell with CoffeeBreak environment activated...")
         click.echo("Type 'exit' to return to your original shell.")
 
         # Set up environment variables
@@ -235,9 +221,7 @@ def activate(
         if env_info["type"] == "venv":
             venv_path = env_info["path"]
             new_env["VIRTUAL_ENV"] = venv_path
-            new_env["PATH"] = (
-                f"{os.path.join(venv_path, 'bin')}:{new_env.get('PATH', '')}"
-            )
+            new_env["PATH"] = f"{os.path.join(venv_path, 'bin')}:{new_env.get('PATH', '')}"
 
             # Remove PYTHONHOME if present (can interfere with venv)
             if "PYTHONHOME" in new_env:
@@ -250,9 +234,7 @@ def activate(
         elif env_info["type"] == "conda":
             # For conda environments, we need to use conda's activation
             conda_env_name = env_info.get("name", "")
-            click.echo(
-                f"Note: Conda environment '{conda_env_name}' - using conda activation"
-            )
+            click.echo(f"Note: Conda environment '{conda_env_name}' - using conda activation")
 
             # Try to activate conda environment
             try:
@@ -264,9 +246,7 @@ def activate(
                     subprocess.run(shell_cmd, shell=True, env=new_env)
                     return
                 else:
-                    click.echo(
-                        f"Auto-activation for conda with {detected_shell} not fully supported."
-                    )
+                    click.echo(f"Auto-activation for conda with {detected_shell} not fully supported.")
                     click.echo(f"Please run: {conda_activate_cmd}")
                     return
             except Exception as e:
@@ -284,9 +264,7 @@ def activate(
             elif detected_shell == "powershell":
                 subprocess.run(["powershell"], env=new_env)
             else:
-                click.echo(
-                    f"Shell '{detected_shell}' not supported for auto-activation."
-                )
+                click.echo(f"Shell '{detected_shell}' not supported for auto-activation.")
                 click.echo("Use --show-command to see manual activation instructions.")
 
         except FileNotFoundError:
@@ -304,9 +282,7 @@ def activate(
 @click.option("--docker", is_flag=True, help="Generate Docker production project")
 @click.option("--domain", help="Specify production domain")
 @click.option("--ssl-email", help="Email for SSL certificate generation")
-@click.option(
-    "--standalone", is_flag=True, help="Setup standalone production installation"
-)
+@click.option("--standalone", is_flag=True, help="Setup standalone production installation")
 @click.option("--output-dir", default=".", help="Output directory for production files")
 @click.pass_context
 def production(
@@ -352,17 +328,13 @@ def production(
             domain = click.prompt("Production domain (e.g., your-domain.com)")
 
         if not ssl_email:
-            ssl_email = click.prompt(
-                "Email for SSL certificates", default=f"admin@{domain}"
-            )
+            ssl_email = click.prompt("Email for SSL certificates", default=f"admin@{domain}")
 
         if standalone:
             # Standalone installation
             click.echo(f"\nSetting up standalone production for {domain}...")
 
-            result = prod_env.setup_standalone_production(
-                domain=domain, ssl_email=ssl_email, output_dir=output_dir
-            )
+            result = prod_env.setup_standalone_production(domain=domain, ssl_email=ssl_email, output_dir=output_dir)
 
             if result["success"]:
                 click.echo("✓ Standalone production environment setup completed!")
@@ -376,9 +348,7 @@ def production(
                 click.echo(f"  2. Run installation: sudo {result['install_script']}")
                 click.echo("  3. Configure domain DNS to point to this server")
             else:
-                click.echo(
-                    f"✗ Standalone setup failed: {result.get('error', 'Unknown error')}"
-                )
+                click.echo(f"✗ Standalone setup failed: {result.get('error', 'Unknown error')}")
                 ctx.exit(1)
 
         elif docker:
@@ -404,9 +374,7 @@ def production(
                 click.echo("  2. Review docker-compose.yml and configuration")
                 click.echo("  3. Deploy with: ./deploy.sh")
             else:
-                click.echo(
-                    f"✗ Docker project generation failed: {result.get('error', 'Unknown error')}"
-                )
+                click.echo(f"✗ Docker project generation failed: {result.get('error', 'Unknown error')}")
                 ctx.exit(1)
 
         else:
@@ -430,32 +398,24 @@ def production(
                     click.echo("✓ Docker production project generated!")
                     click.echo(f"Project directory: {result['project_dir']}")
                 else:
-                    click.echo(
-                        f"✗ Docker project generation failed: {result.get('error', 'Unknown error')}"
-                    )
+                    click.echo(f"✗ Docker project generation failed: {result.get('error', 'Unknown error')}")
                     ctx.exit(1)
 
             else:
                 # Standalone setup
-                result = prod_env.setup_standalone_production(
-                    domain=domain, ssl_email=ssl_email, output_dir=output_dir
-                )
+                result = prod_env.setup_standalone_production(domain=domain, ssl_email=ssl_email, output_dir=output_dir)
 
                 if result["success"]:
                     click.echo("✓ Standalone production environment setup completed!")
                     click.echo(f"Installation scripts: {result['scripts_dir']}")
                 else:
-                    click.echo(
-                        f"✗ Standalone setup failed: {result.get('error', 'Unknown error')}"
-                    )
+                    click.echo(f"✗ Standalone setup failed: {result.get('error', 'Unknown error')}")
                     ctx.exit(1)
 
         click.echo(f"\n✓ Production environment initialization completed for {domain}")
 
     except Exception as e:
-        ctx.obj["error_handler"].exit_with_error(
-            e, "Production environment initialization"
-        )
+        ctx.obj["error_handler"].exit_with_error(e, "Production environment initialization")
 
 
 @cli.command()
@@ -534,9 +494,7 @@ def start(
                         click.echo(f"  - {service}")
 
             if result.get("repositories_cloned"):
-                click.echo(
-                    f"\nRepositories cloned: {len(result['repositories_cloned'])}"
-                )
+                click.echo(f"\nRepositories cloned: {len(result['repositories_cloned'])}")
                 if ctx.obj["verbose"]:
                     for repo in result["repositories_cloned"]:
                         click.echo(f"  - {repo}")
@@ -549,9 +507,7 @@ def start(
                 click.echo("\nEnvironment is ready for development!")
                 click.echo("Press Ctrl+C to stop the environment")
         else:
-            click.echo(
-                f"✗ Failed to start development environment: {result.get('error', 'Unknown error')}"
-            )
+            click.echo(f"✗ Failed to start development environment: {result.get('error', 'Unknown error')}")
 
             if result.get("errors"):
                 click.echo("\nErrors encountered:")
@@ -600,9 +556,7 @@ def stop(ctx: click.Context) -> None:
                     for service in result["services_stopped"]:
                         click.echo(f"  - {service}")
         else:
-            click.echo(
-                f"✗ Failed to stop development environment: {result.get('error', 'Unknown error')}"
-            )
+            click.echo(f"✗ Failed to stop development environment: {result.get('error', 'Unknown error')}")
 
             if result.get("errors"):
                 click.echo("\nErrors encountered:")
@@ -681,22 +635,12 @@ def status(ctx: click.Context) -> None:
                     click.echo(f"    Port: {info['port']}")
 
         # Display summary
-        total_components = (
-            len(status_info.get("services", {}))
-            + len(status_info.get("repositories", {}))
-            + len(status_info.get("applications", {}))
-        )
+        total_components = len(status_info.get("services", {})) + len(status_info.get("repositories", {})) + len(status_info.get("applications", {}))
 
-        running_components = sum(
-            1 for s in status_info.get("services", {}).values() if s["running"]
-        )
-        running_components += sum(
-            1 for a in status_info.get("applications", {}).values() if a["running"]
-        )
+        running_components = sum(1 for s in status_info.get("services", {}).values() if s["running"])
+        running_components += sum(1 for a in status_info.get("applications", {}).values() if a["running"])
 
-        click.echo(
-            f"\nSummary: {running_components}/{total_components} components running"
-        )
+        click.echo(f"\nSummary: {running_components}/{total_components} components running")
 
     except Exception as e:
         ctx.obj["error_handler"].exit_with_error(e, "Status check")
@@ -704,9 +648,7 @@ def status(ctx: click.Context) -> None:
 
 @cli.command()
 @click.argument("service", required=False)
-@click.option(
-    "--tail", "-n", default=100, help="Number of lines to show from the end of logs"
-)
+@click.option("--tail", "-n", default=100, help="Number of lines to show from the end of logs")
 @click.option("--follow", "-f", is_flag=True, help="Follow log output in real-time")
 @click.option(
     "--since",
@@ -754,9 +696,7 @@ def logs(
             click.echo(f"Showing logs for service: {service}")
 
             # Get logs for specific service
-            logs_result = dev_env.get_service_logs(
-                service_name=service, tail=tail, follow=follow, since=since
-            )
+            logs_result = dev_env.get_service_logs(service_name=service, tail=tail, follow=follow, since=since)
 
             if logs_result["success"]:
                 if follow:
@@ -770,20 +710,14 @@ def logs(
                 else:
                     click.echo(logs_result["logs"])
             else:
-                click.echo(
-                    f"Failed to get logs: {logs_result.get('error', 'Unknown error')}"
-                )
+                click.echo(f"Failed to get logs: {logs_result.get('error', 'Unknown error')}")
                 ctx.exit(1)
         else:
             click.echo("Showing logs for all services...")
 
             # Get all running services
             status_info = dev_env.get_environment_status()
-            running_services = [
-                name
-                for name, info in status_info.get("services", {}).items()
-                if info["running"]
-            ]
+            running_services = [name for name, info in status_info.get("services", {}).items() if info["running"]]
 
             if not running_services:
                 click.echo("No services are currently running")
@@ -794,9 +728,7 @@ def logs(
 
                 logs_result = dev_env.get_service_logs(
                     service_name=service_name,
-                    tail=min(
-                        tail // len(running_services), 20
-                    ),  # Distribute lines among services
+                    tail=min(tail // len(running_services), 20),  # Distribute lines among services
                     follow=False,
                     since=since,
                 )
@@ -808,9 +740,7 @@ def logs(
                     else:
                         click.echo("No recent logs")
                 else:
-                    click.echo(
-                        f"Failed to get logs: {logs_result.get('error', 'Unknown error')}"
-                    )
+                    click.echo(f"Failed to get logs: {logs_result.get('error', 'Unknown error')}")
 
                 click.echo("")  # Add spacing between services
 
@@ -877,9 +807,7 @@ def build(
                 click.echo(f"Building plugin: {target}")
                 from coffeebreak.environments.plugin import PluginEnvironment
 
-                plugin_env = PluginEnvironment(
-                    config_manager, verbose=ctx.obj["verbose"]
-                )
+                plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
 
                 # Build plugin
                 result = plugin_env.build_plugin(
@@ -891,11 +819,7 @@ def build(
                 if result:
                     click.echo(f"✓ Plugin built successfully: {result}")
                     file_size = os.path.getsize(result)
-                    size_str = (
-                        f"{file_size / (1024 * 1024):.1f} MB"
-                        if file_size > 1024 * 1024
-                        else f"{file_size / 1024:.1f} KB"
-                    )
+                    size_str = f"{file_size / (1024 * 1024):.1f} MB" if file_size > 1024 * 1024 else f"{file_size / 1024:.1f} KB"
                     click.echo(f"Package size: {size_str}")
                 else:
                     click.echo("✗ Plugin build failed")
@@ -903,9 +827,7 @@ def build(
             else:
                 click.echo(f"Building component: {target}")
                 # Build specific component or service
-                result = _build_component(
-                    target, output, production, ctx.obj["verbose"]
-                )
+                result = _build_component(target, output, production, ctx.obj["verbose"])
 
                 if result["success"]:
                     click.echo(f"✓ Component '{target}' built successfully")
@@ -914,9 +836,7 @@ def build(
                         for artifact in result["artifacts"]:
                             click.echo(f"  - {artifact}")
                 else:
-                    click.echo(
-                        f"✗ Failed to build component '{target}': {result.get('error', 'Unknown error')}"
-                    )
+                    click.echo(f"✗ Failed to build component '{target}': {result.get('error', 'Unknown error')}")
                     ctx.exit(1)
         else:
             # Build entire system
@@ -924,9 +844,7 @@ def build(
                 click.echo("Building current plugin...")
                 from coffeebreak.environments.plugin import PluginEnvironment
 
-                plugin_env = PluginEnvironment(
-                    config_manager, verbose=ctx.obj["verbose"]
-                )
+                plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
 
                 result = plugin_env.build_plugin(
                     plugin_dir=".",
@@ -951,9 +869,7 @@ def build(
                         for image in result["images"]:
                             click.echo(f"  - {image}")
                 else:
-                    click.echo(
-                        f"✗ Docker build failed: {result.get('error', 'Unknown error')}"
-                    )
+                    click.echo(f"✗ Docker build failed: {result.get('error', 'Unknown error')}")
                     ctx.exit(1)
 
             else:
@@ -973,9 +889,7 @@ def build(
 
                 for component in components:
                     click.echo(f"\nBuilding {component}...")
-                    result = _build_component(
-                        component, output, production, ctx.obj["verbose"]
-                    )
+                    result = _build_component(component, output, production, ctx.obj["verbose"])
                     build_results.append(result)
 
                     if result["success"]:
@@ -987,20 +901,14 @@ def build(
                             for artifact in result["artifacts"][:5]:  # Show first 5
                                 click.echo(f"    - {artifact}")
                             if len(result["artifacts"]) > 5:
-                                click.echo(
-                                    f"    ... and {len(result['artifacts']) - 5} more"
-                                )
+                                click.echo(f"    ... and {len(result['artifacts']) - 5} more")
                     else:
-                        click.echo(
-                            f"✗ {component} build failed: {result.get('error', 'Unknown error')}"
-                        )
+                        click.echo(f"✗ {component} build failed: {result.get('error', 'Unknown error')}")
 
                 # Summary
                 successful = sum(1 for r in build_results if r["success"])
                 total = len(build_results)
-                total_artifacts = sum(
-                    len(r.get("artifacts", [])) for r in build_results if r["success"]
-                )
+                total_artifacts = sum(len(r.get("artifacts", [])) for r in build_results if r["success"])
 
                 if successful == total:
                     click.echo(f"\n✓ All {total} components built successfully")
@@ -1011,25 +919,19 @@ def build(
                     click.echo("\nDirectory structure:")
                     for result in build_results:
                         if result["success"] and result.get("build_dir"):
-                            click.echo(
-                                f"  {result['component']}/  ({len(result.get('artifacts', []))} files)"
-                            )
+                            click.echo(f"  {result['component']}/  ({len(result.get('artifacts', []))} files)")
 
                     click.echo("\nTo see detailed artifacts, run with --verbose")
                 else:
                     failed = total - successful
-                    click.echo(
-                        f"\n✗ Build completed with {failed} failures ({successful}/{total} successful)"
-                    )
+                    click.echo(f"\n✗ Build completed with {failed} failures ({successful}/{total} successful)")
                     ctx.exit(1)
 
     except Exception as e:
         ctx.obj["error_handler"].exit_with_error(e, "Build process")
 
 
-def _build_component(
-    component: str, output_dir: str, production: bool, verbose: bool
-) -> Dict[str, Any]:
+def _build_component(component: str, output_dir: str, production: bool, verbose: bool) -> Dict[str, Any]:
     """Build a specific component.
 
     This function builds a specific component (frontend, backend, core, etc.)
@@ -1068,15 +970,11 @@ def _build_component(
         # Check for different build systems and build accordingly
         if component == "frontend":
             # Frontend build (React/Vue/Angular)
-            artifacts.extend(
-                _build_frontend(component_dir, build_dir, production, verbose)
-            )
+            artifacts.extend(_build_frontend(component_dir, build_dir, production, verbose))
 
         elif component == "backend":
             # Backend build (Node.js/Python/Java)
-            artifacts.extend(
-                _build_backend(component_dir, build_dir, production, verbose)
-            )
+            artifacts.extend(_build_backend(component_dir, build_dir, production, verbose))
 
         elif component == "core":
             # Core build (shared libraries/utilities)
@@ -1084,9 +982,7 @@ def _build_component(
 
         else:
             # Generic component build
-            artifacts.extend(
-                _build_generic(component_dir, build_dir, production, verbose)
-            )
+            artifacts.extend(_build_generic(component_dir, build_dir, production, verbose))
 
         if artifacts:
             return {
@@ -1105,9 +1001,7 @@ def _build_component(
         return {"success": False, "error": str(e)}
 
 
-def _build_frontend(
-    component_dir: Path, build_dir: Path, production: bool, verbose: bool
-) -> List[str]:
+def _build_frontend(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> List[str]:
     """Build frontend component.
 
     This function builds frontend components by detecting the build system
@@ -1165,9 +1059,7 @@ def _build_frontend(
                     # List artifacts
                     for file_path in dest_dir.rglob("*"):
                         if file_path.is_file():
-                            artifacts.append(
-                                str(file_path.relative_to(build_dir.parent))
-                            )
+                            artifacts.append(str(file_path.relative_to(build_dir.parent)))
                     break
 
         # Check for static files
@@ -1198,9 +1090,7 @@ def _build_frontend(
     return artifacts
 
 
-def _build_backend(
-    component_dir: Path, build_dir: Path, production: bool, verbose: bool
-) -> List[str]:
+def _build_backend(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> List[str]:
     """Build backend component.
 
     This function builds backend components by detecting the technology stack
@@ -1225,9 +1115,7 @@ def _build_backend(
         # Check for different backend technologies
 
         # Python project
-        if (component_dir / "requirements.txt").exists() or (
-            component_dir / "pyproject.toml"
-        ).exists():
+        if (component_dir / "requirements.txt").exists() or (component_dir / "pyproject.toml").exists():
             if verbose:
                 print(f"Found Python project in {component_dir}")
 
@@ -1236,11 +1124,7 @@ def _build_backend(
             subprocess.run(["python", "-m", "venv", str(venv_dir)], check=True)
 
             # Install dependencies
-            pip_cmd = (
-                str(venv_dir / "bin" / "pip")
-                if os.name != "nt"
-                else str(venv_dir / "Scripts" / "pip.exe")
-            )
+            pip_cmd = str(venv_dir / "bin" / "pip") if os.name != "nt" else str(venv_dir / "Scripts" / "pip.exe")
 
             if (component_dir / "requirements.txt").exists():
                 subprocess.run(
@@ -1251,12 +1135,8 @@ def _build_backend(
             # Copy source files
             for ext in ["*.py", "*.pyx", "*.pyi"]:
                 for file_path in component_dir.rglob(ext):
-                    if "venv" not in str(file_path) and "__pycache__" not in str(
-                        file_path
-                    ):
-                        dest_path = (
-                            build_dir / "src" / file_path.relative_to(component_dir)
-                        )
+                    if "venv" not in str(file_path) and "__pycache__" not in str(file_path):
+                        dest_path = build_dir / "src" / file_path.relative_to(component_dir)
                         dest_path.parent.mkdir(parents=True, exist_ok=True)
                         shutil.copy2(file_path, dest_path)
                         artifacts.append(str(dest_path.relative_to(build_dir.parent)))
@@ -1286,9 +1166,7 @@ def _build_backend(
                         artifacts.append(str(dest_path.relative_to(build_dir.parent)))
 
         # Java project
-        elif (component_dir / "pom.xml").exists() or (
-            component_dir / "build.gradle"
-        ).exists():
+        elif (component_dir / "pom.xml").exists() or (component_dir / "build.gradle").exists():
             if verbose:
                 print(f"Found Java project in {component_dir}")
 
@@ -1299,9 +1177,7 @@ def _build_backend(
 
                 target_dir = component_dir / "target"
                 if target_dir.exists():
-                    shutil.copytree(
-                        target_dir, build_dir / "target", dirs_exist_ok=True
-                    )
+                    shutil.copytree(target_dir, build_dir / "target", dirs_exist_ok=True)
                     for jar_file in (build_dir / "target").glob("*.jar"):
                         artifacts.append(str(jar_file.relative_to(build_dir.parent)))
 
@@ -1342,9 +1218,7 @@ def _build_backend(
     return artifacts
 
 
-def _build_core(
-    component_dir: Path, build_dir: Path, production: bool, verbose: bool
-) -> List[str]:
+def _build_core(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> List[str]:
     """Build core component.
 
     This function builds core components by copying all source files and
@@ -1367,10 +1241,7 @@ def _build_core(
     try:
         # Copy all source files for core component
         for file_path in component_dir.rglob("*"):
-            if file_path.is_file() and not any(
-                ignore in str(file_path)
-                for ignore in [".git", "__pycache__", "node_modules", ".env"]
-            ):
+            if file_path.is_file() and not any(ignore in str(file_path) for ignore in [".git", "__pycache__", "node_modules", ".env"]):
                 dest_path = build_dir / file_path.relative_to(component_dir)
                 dest_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(file_path, dest_path)
@@ -1396,9 +1267,7 @@ def _build_core(
     return artifacts
 
 
-def _build_generic(
-    component_dir: Path, build_dir: Path, production: bool, verbose: bool
-) -> List[str]:
+def _build_generic(component_dir: Path, build_dir: Path, production: bool, verbose: bool) -> List[str]:
     """Build generic component.
 
     This function builds generic components by copying all source files
@@ -1420,10 +1289,7 @@ def _build_generic(
     try:
         # Copy all source files
         for file_path in component_dir.rglob("*"):
-            if file_path.is_file() and not any(
-                ignore in str(file_path)
-                for ignore in [".git", "__pycache__", "node_modules"]
-            ):
+            if file_path.is_file() and not any(ignore in str(file_path) for ignore in [".git", "__pycache__", "node_modules"]):
                 dest_path = build_dir / file_path.relative_to(component_dir)
                 dest_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(file_path, dest_path)
@@ -1436,9 +1302,7 @@ def _build_generic(
     return artifacts
 
 
-def _build_docker_images(
-    output_dir: str, production: bool, verbose: bool
-) -> Dict[str, Any]:
+def _build_docker_images(output_dir: str, production: bool, verbose: bool) -> Dict[str, Any]:
     """Build Docker images for the system.
 
     This function builds Docker images for the CoffeeBreak system components
@@ -1557,9 +1421,7 @@ def deploy(
         if not skip_validation:
             click.echo("\nRunning pre-deployment validation...")
 
-            validation_result = deployment_manager.validate_deployment_readiness(
-                target_environment=environment, strategy=strategy
-            )
+            validation_result = deployment_manager.validate_deployment_readiness(target_environment=environment, strategy=strategy)
 
             if not validation_result["ready"] and not force:
                 click.echo("✗ Pre-deployment validation failed:")
@@ -1584,21 +1446,15 @@ def deploy(
             else:
                 if not force:
                     click.echo(f"✗ Backup failed: {backup_result['error']}")
-                    click.echo(
-                        "Use --skip-backup or --force to continue without backup"
-                    )
+                    click.echo("Use --skip-backup or --force to continue without backup")
                     ctx.exit(1)
                 else:
-                    click.echo(
-                        f"⚠ Backup failed: {backup_result['error']} (continuing with --force)"
-                    )
+                    click.echo(f"⚠ Backup failed: {backup_result['error']} (continuing with --force)")
 
         # Execute deployment
         click.echo(f"\nExecuting {strategy} deployment...")
 
-        deployment_result = deployment_manager.execute_deployment(
-            target_environment=environment, strategy=strategy, timeout=timeout
-        )
+        deployment_result = deployment_manager.execute_deployment(target_environment=environment, strategy=strategy, timeout=timeout)
 
         if deployment_result["success"]:
             click.echo("✓ Deployment completed successfully!")
@@ -1607,9 +1463,7 @@ def deploy(
             summary = deployment_result.get("summary", {})
             if summary:
                 click.echo("\nDeployment Summary:")
-                click.echo(
-                    f"  Deployment ID: {summary.get('deployment_id', 'unknown')}"
-                )
+                click.echo(f"  Deployment ID: {summary.get('deployment_id', 'unknown')}")
                 click.echo(f"  Duration: {summary.get('duration', 'unknown')}")
                 click.echo(f"  Services updated: {summary.get('services_updated', 0)}")
 
@@ -1643,9 +1497,7 @@ def deploy(
                     click.echo("Deployment may have failed - consider rollback")
                     ctx.exit(1)
         else:
-            click.echo(
-                f"✗ Deployment failed: {deployment_result.get('error', 'Unknown error')}"
-            )
+            click.echo(f"✗ Deployment failed: {deployment_result.get('error', 'Unknown error')}")
 
             # Show rollback information if available
             if deployment_result.get("rollback_available"):
@@ -1775,9 +1627,7 @@ def status(ctx, detailed, history):
         from coffeebreak.containers import DependencyManager
 
         config_manager = ConfigManager()
-        dependency_manager = DependencyManager(
-            config_manager, verbose=ctx.obj["verbose"]
-        )
+        dependency_manager = DependencyManager(config_manager, verbose=ctx.obj["verbose"])
 
         if history:
             # Show health history
@@ -1789,9 +1639,7 @@ def status(ctx, detailed, history):
                     overall_status = entry.get("overall_status", "unknown")
                     healthy_count = entry.get("healthy", 0)
                     total_count = entry.get("total_containers", 0)
-                    click.echo(
-                        f"  {i}. {timestamp}: {overall_status} ({healthy_count}/{total_count} healthy)"
-                    )
+                    click.echo(f"  {i}. {timestamp}: {overall_status} ({healthy_count}/{total_count} healthy)")
             else:
                 click.echo("No health history available")
 
@@ -1837,9 +1685,7 @@ def status(ctx, detailed, history):
 @deps.command()
 @click.argument("service", required=False)
 @click.option("--follow", "-f", is_flag=True, help="Follow log output")
-@click.option(
-    "--tail", "-n", default=50, help="Number of lines to show from end of logs"
-)
+@click.option("--tail", "-n", default=50, help="Number of lines to show from end of logs")
 @click.option("--since", help="Show logs since timestamp (e.g. 2m, 1h, 2023-01-01)")
 @click.pass_context
 def logs(ctx, service, follow, tail, since):
@@ -1857,27 +1703,21 @@ def logs(ctx, service, follow, tail, since):
 
         # Initialize managers
         config_manager = ConfigManager()
-        dependency_manager = DependencyManager(
-            config_manager, verbose=ctx.obj["verbose"]
-        )
+        dependency_manager = DependencyManager(config_manager, verbose=ctx.obj["verbose"])
 
         if service:
             click.echo(f"Showing logs for service: {service}")
 
             # Check if service exists
             running_containers = dependency_manager.get_running_containers()
-            service_found = any(
-                container["name"] == service for container in running_containers
-            )
+            service_found = any(container["name"] == service for container in running_containers)
 
             if not service_found:
                 click.echo(f"Service '{service}' not found or not running")
                 ctx.exit(1)
 
             # Show logs for specific service
-            logs_result = dependency_manager.get_service_logs(
-                service_name=service, follow=follow, tail=tail, since=since
-            )
+            logs_result = dependency_manager.get_service_logs(service_name=service, follow=follow, tail=tail, since=since)
 
             if logs_result["success"]:
                 if follow:
@@ -1891,9 +1731,7 @@ def logs(ctx, service, follow, tail, since):
                 else:
                     click.echo(logs_result["logs"])
             else:
-                click.echo(
-                    f"Failed to get logs: {logs_result.get('error', 'Unknown error')}"
-                )
+                click.echo(f"Failed to get logs: {logs_result.get('error', 'Unknown error')}")
                 ctx.exit(1)
         else:
             click.echo("Showing logs for all dependencies...")
@@ -1911,9 +1749,7 @@ def logs(ctx, service, follow, tail, since):
                 logs_result = dependency_manager.get_service_logs(
                     service_name=service_name,
                     follow=False,
-                    tail=min(
-                        tail // len(running_containers), 20
-                    ),  # Distribute lines among services
+                    tail=min(tail // len(running_containers), 20),  # Distribute lines among services
                     since=since,
                 )
 
@@ -1924,9 +1760,7 @@ def logs(ctx, service, follow, tail, since):
                     else:
                         click.echo("No recent logs")
                 else:
-                    click.echo(
-                        f"Failed to get logs: {logs_result.get('error', 'Unknown error')}"
-                    )
+                    click.echo(f"Failed to get logs: {logs_result.get('error', 'Unknown error')}")
 
                 click.echo("")  # Add spacing between services
 
@@ -1935,9 +1769,7 @@ def logs(ctx, service, follow, tail, since):
 
 
 @deps.command()
-@click.option(
-    "--include-secrets", is_flag=True, help="Include development secrets in output"
-)
+@click.option("--include-secrets", is_flag=True, help="Include development secrets in output")
 @click.option("--output", default=".env.local", help="Output file path")
 @click.pass_context
 def env(ctx, include_secrets, output):
@@ -1955,9 +1787,7 @@ def env(ctx, include_secrets, output):
 
         # Initialize managers
         config_manager = ConfigManager()
-        dependency_manager = DependencyManager(
-            config_manager, verbose=ctx.obj["verbose"]
-        )
+        dependency_manager = DependencyManager(config_manager, verbose=ctx.obj["verbose"])
         file_manager = FileManager(verbose=ctx.obj["verbose"])
 
         # Get connection information from running containers
@@ -1979,18 +1809,14 @@ def env(ctx, include_secrets, output):
                     click.echo(f"  {key}: {value}")
         else:
             click.echo("\nNo running dependency services found.")
-            click.echo(
-                "Run 'coffeebreak deps start' to start dependency services first."
-            )
+            click.echo("Run 'coffeebreak deps start' to start dependency services first.")
 
     except Exception as e:
         ctx.obj["error_handler"].exit_with_error(e, "Environment file generation")
 
 
 @deps.command()
-@click.option(
-    "--volumes", is_flag=True, help="Also remove volumes (WARNING: destroys data)"
-)
+@click.option("--volumes", is_flag=True, help="Also remove volumes (WARNING: destroys data)")
 @click.option("--images", is_flag=True, help="Also remove unused images")
 @click.option("--force", is_flag=True, help="Force removal without confirmation")
 @click.pass_context
@@ -2010,9 +1836,7 @@ def clean(ctx, volumes, images, force):
 
         # Initialize managers
         config_manager = ConfigManager()
-        dependency_manager = DependencyManager(
-            config_manager, verbose=ctx.obj["verbose"]
-        )
+        dependency_manager = DependencyManager(config_manager, verbose=ctx.obj["verbose"])
 
         # Warning for destructive operations
         if volumes and not force:
@@ -2032,9 +1856,7 @@ def clean(ctx, volumes, images, force):
         dependency_manager.stop_health_monitoring()
 
         # Clean up containers
-        result = dependency_manager.clean_all_containers(
-            remove_volumes=volumes, remove_images=images
-        )
+        result = dependency_manager.clean_all_containers(remove_volumes=volumes, remove_images=images)
 
         if result["success"]:
             click.echo("✓ Container cleanup completed")
@@ -2125,9 +1947,7 @@ def create(ctx, name, template, description, author, version):
 
 
 @plugin.command()
-@click.option(
-    "--force", is_flag=True, help="Force initialization even if directory has content"
-)
+@click.option("--force", is_flag=True, help="Force initialization even if directory has content")
 @click.pass_context
 def init_plugin(ctx, force):
     """Initialize existing directory as plugin."""
@@ -2161,12 +1981,8 @@ def init_plugin(ctx, force):
 
 @plugin.command()
 @click.argument("name", required=False)
-@click.option(
-    "--output", "-o", default="dist", help="Output directory for built plugin"
-)
-@click.option(
-    "--include-native", is_flag=True, help="Include native modules (may cause issues)"
-)
+@click.option("--output", "-o", default="dist", help="Output directory for built plugin")
+@click.option("--include-native", is_flag=True, help="Include native modules (may cause issues)")
 @click.pass_context
 def build_plugin(ctx, name, output, include_native):
     """Build plugin into .pyz package."""
@@ -2192,9 +2008,7 @@ def build_plugin(ctx, name, output, include_native):
             plugin_dir = "."
 
         # Build plugin
-        pyz_path = plugin_env.build_plugin(
-            plugin_dir=plugin_dir, output_dir=output, exclude_native=not include_native
-        )
+        pyz_path = plugin_env.build_plugin(plugin_dir=plugin_dir, output_dir=output, exclude_native=not include_native)
 
         click.echo(f"Plugin built successfully: {pyz_path}")
 
@@ -2215,9 +2029,7 @@ def build_plugin(ctx, name, output, include_native):
 
 @plugin.command()
 @click.argument("name", required=False)
-@click.option(
-    "--validate", is_flag=True, default=True, help="Validate plugin before publishing"
-)
+@click.option("--validate", is_flag=True, default=True, help="Validate plugin before publishing")
 @click.option("--registry", help="Registry URL to publish to")
 @click.option("--token", help="Authentication token for registry")
 @click.option("--tag", help="Tag for this release (default: auto-generate)")
@@ -2306,18 +2118,14 @@ def publish(ctx, name, validate, registry, token, tag, changelog, force, public)
                 pass
 
             if not registry:
-                registry = click.prompt(
-                    "Registry URL", default="https://plugins.coffeebreak.dev"
-                )
+                registry = click.prompt("Registry URL", default="https://plugins.coffeebreak.dev")
 
         if not token:
             # Try to get from environment or config
             token = os.environ.get("COFFEEBREAK_REGISTRY_TOKEN")
             if not token:
                 try:
-                    registry_config = config_manager.get_config().get(
-                        "plugin_registry", {}
-                    )
+                    registry_config = config_manager.get_config().get("plugin_registry", {})
                     token = registry_config.get("token")
                 except Exception:
                     pass
@@ -2338,9 +2146,7 @@ def publish(ctx, name, validate, registry, token, tag, changelog, force, public)
             dist_dir = os.path.join(plugin_dir, "dist")
 
             if not os.path.exists(dist_dir):
-                click.echo(
-                    "✗ No dist directory found. Run 'coffeebreak plugin build' first."
-                )
+                click.echo("✗ No dist directory found. Run 'coffeebreak plugin build' first.")
                 ctx.exit(1)
 
             # Find .pyz or .zip file
@@ -2379,15 +2185,11 @@ def publish(ctx, name, validate, registry, token, tag, changelog, force, public)
                 "public": public,
                 "changelog": changelog or f"Release {tag}",
                 "requirements": plugin_info.get("requirements", []),
-                "coffeebreak_version": plugin_info.get(
-                    "min_coffeebreak_version", ">=0.1.0"
-                ),
+                "coffeebreak_version": plugin_info.get("min_coffeebreak_version", ">=0.1.0"),
             }
 
             # Create publication package
-            pub_package_path = os.path.join(
-                temp_dir, f"{name}-{plugin_info['version']}.pub"
-            )
+            pub_package_path = os.path.join(temp_dir, f"{name}-{plugin_info['version']}.pub")
 
             with tarfile.open(pub_package_path, "w:gz") as tar:
                 # Add metadata
@@ -2417,9 +2219,7 @@ def publish(ctx, name, validate, registry, token, tag, changelog, force, public)
                 for changelog_file in changelog_files:
                     changelog_path = os.path.join(plugin_dir, changelog_file)
                     if os.path.exists(changelog_path):
-                        tar.add(
-                            changelog_path, arcname=os.path.basename(changelog_file)
-                        )
+                        tar.add(changelog_path, arcname=os.path.basename(changelog_file))
                         break
 
             # Simulate registry upload (in real implementation, this would use HTTP API)
@@ -2528,13 +2328,9 @@ def secrets(ctx):
 
 @secrets.command()
 @click.option("--service", help="Rotate secrets for specific service")
-@click.option(
-    "--secret-type", help="Rotate specific type of secrets (database, api, ssl)"
-)
+@click.option("--secret-type", help="Rotate specific type of secrets (database, api, ssl)")
 @click.option("--force", is_flag=True, help="Force rotation even if not due")
-@click.option(
-    "--backup", is_flag=True, default=True, help="Backup secrets before rotation"
-)
+@click.option("--backup", is_flag=True, default=True, help="Backup secrets before rotation")
 @click.pass_context
 def rotate(ctx, service, secret_type, force, backup):
     """Rotate secrets."""
@@ -2556,13 +2352,9 @@ def rotate(ctx, service, secret_type, force, backup):
         environment_type = env_detector.detect_environment()
 
         # Initialize secret managers
-        secret_manager = SecretManager(
-            deployment_type=environment_type, verbose=ctx.obj["verbose"]
-        )
+        secret_manager = SecretManager(deployment_type=environment_type, verbose=ctx.obj["verbose"])
 
-        rotation_manager = SecretRotationManager(
-            secret_manager=secret_manager, verbose=ctx.obj["verbose"]
-        )
+        rotation_manager = SecretRotationManager(secret_manager=secret_manager, verbose=ctx.obj["verbose"])
 
         if service:
             click.echo(f"Rotating secrets for service: {service}")
@@ -2575,17 +2367,13 @@ def rotate(ctx, service, secret_type, force, backup):
                 return
 
             # Rotate service secrets
-            results = rotation_manager.rotate_service_secrets(
-                service_name=service, force=force, create_backup=backup
-            )
+            results = rotation_manager.rotate_service_secrets(service_name=service, force=force, create_backup=backup)
 
         elif secret_type:
             click.echo(f"Rotating {secret_type} secrets...")
 
             # Rotate specific type of secrets
-            results = rotation_manager.rotate_secrets_by_type(
-                secret_type=secret_type, force=force, create_backup=backup
-            )
+            results = rotation_manager.rotate_secrets_by_type(secret_type=secret_type, force=force, create_backup=backup)
 
         else:
             click.echo("Rotating all secrets...")
@@ -2595,11 +2383,7 @@ def rotate(ctx, service, secret_type, force, backup):
 
             if not force:
                 # Only rotate secrets that are due
-                due_secrets = [
-                    name
-                    for name, info in rotation_status["schedules"].items()
-                    if info.get("rotation_due", False)
-                ]
+                due_secrets = [name for name, info in rotation_status["schedules"].items() if info.get("rotation_due", False)]
 
                 if not due_secrets:
                     click.echo("No secrets are due for rotation")
@@ -2615,9 +2399,7 @@ def rotate(ctx, service, secret_type, force, backup):
                     return
 
             # Rotate all (or due) secrets
-            results = rotation_manager.rotate_due_secrets(
-                max_rotations=10, force=force, create_backup=backup
-            )
+            results = rotation_manager.rotate_due_secrets(max_rotations=10, force=force, create_backup=backup)
 
         # Process results
         if results:
@@ -2632,9 +2414,7 @@ def rotate(ctx, service, secret_type, force, backup):
                 click.echo("\nFailed rotations:")
                 for result in results:
                     if not result["success"]:
-                        click.echo(
-                            f"  - {result['secret_name']}: {result.get('error', 'Unknown error')}"
-                        )
+                        click.echo(f"  - {result['secret_name']}: {result.get('error', 'Unknown error')}")
                 ctx.exit(1)
 
             # Show rotation summary
@@ -2644,9 +2424,7 @@ def rotate(ctx, service, secret_type, force, backup):
                     if result["success"]:
                         old_value = result.get("old_value_preview", "hidden")
                         new_value = result.get("new_value_preview", "hidden")
-                        click.echo(
-                            f"  ✓ {result['secret_name']}: {old_value} → {new_value}"
-                        )
+                        click.echo(f"  ✓ {result['secret_name']}: {old_value} → {new_value}")
         else:
             click.echo("No secrets were rotated")
 
@@ -2655,13 +2433,9 @@ def rotate(ctx, service, secret_type, force, backup):
 
 
 @secrets.command()
-@click.option(
-    "--masked", is_flag=True, default=True, help="Show secrets with masking (default)"
-)
+@click.option("--masked", is_flag=True, default=True, help="Show secrets with masking (default)")
 @click.option("--service", help="Show secrets for specific service only")
-@click.option(
-    "--secret-type", help="Show specific type of secrets (database, api, ssl)"
-)
+@click.option("--secret-type", help="Show specific type of secrets (database, api, ssl)")
 @click.option("--format", default="table", help="Output format (table, json, yaml)")
 @click.option("--export", help="Export secrets to file (use with caution)")
 @click.pass_context
@@ -2684,9 +2458,7 @@ def show(ctx, masked, service, secret_type, format, export):
         environment_type = env_detector.detect_environment()
 
         # Initialize secret manager
-        secret_manager = SecretManager(
-            deployment_type=environment_type, verbose=ctx.obj["verbose"]
-        )
+        secret_manager = SecretManager(deployment_type=environment_type, verbose=ctx.obj["verbose"])
 
         # Get secrets based on filters
         if service:
@@ -2741,29 +2513,19 @@ def show(ctx, masked, service, secret_type, format, export):
         else:
             # Table format (default)
             if not masked and not export:
-                click.echo(
-                    "⚠️  WARNING: Displaying unmasked secrets! Use --masked for safe viewing."
-                )
+                click.echo("⚠️  WARNING: Displaying unmasked secrets! Use --masked for safe viewing.")
                 if not click.confirm("Continue with unmasked display?"):
                     return
 
             # Display as table
             click.echo(f"\nFound {len(display_secrets)} secrets:")
             click.echo("-" * 80)
-            click.echo(
-                f"{'Name':<20} {'Type':<12} {'Service':<15} {'Value':<20} {'Last Rotated':<15}"
-            )
+            click.echo(f"{'Name':<20} {'Type':<12} {'Service':<15} {'Value':<20} {'Last Rotated':<15}")
             click.echo("-" * 80)
 
             for name, info in display_secrets.items():
-                value_display = (
-                    info["value"][:15] + "..."
-                    if len(info["value"]) > 15
-                    else info["value"]
-                )
-                click.echo(
-                    f"{name:<20} {info['type']:<12} {info['service']:<15} {value_display:<20} {info['last_rotated']:<15}"
-                )
+                value_display = info["value"][:15] + "..." if len(info["value"]) > 15 else info["value"]
+                click.echo(f"{name:<20} {info['type']:<12} {info['service']:<15} {value_display:<20} {info['last_rotated']:<15}")
 
         # Export to file if requested
         if export:
@@ -2799,9 +2561,7 @@ def show(ctx, masked, service, secret_type, format, export):
                         json.dump(export_data, f, indent=2)
 
                 click.echo(f"✓ Secrets exported to {export}")
-                click.echo(
-                    f"⚠️  Remember to securely delete {export} when no longer needed"
-                )
+                click.echo(f"⚠️  Remember to securely delete {export} when no longer needed")
 
                 # Set restrictive permissions
                 import os
@@ -2822,12 +2582,8 @@ def show(ctx, masked, service, secret_type, format, export):
     "-o",
     help="Output file path for backup (default: secrets-backup-{timestamp}.tar.gz)",
 )
-@click.option(
-    "--encrypt", is_flag=True, default=True, help="Encrypt backup file (default: true)"
-)
-@click.option(
-    "--password", help="Password for backup encryption (will prompt if not provided)"
-)
+@click.option("--encrypt", is_flag=True, default=True, help="Encrypt backup file (default: true)")
+@click.option("--password", help="Password for backup encryption (will prompt if not provided)")
 @click.option("--service", help="Backup secrets for specific service only")
 @click.option("--include-metadata", is_flag=True, help="Include metadata in backup")
 @click.option("--compression", default="gz", help="Compression type (gz, xz, none)")
@@ -2857,9 +2613,7 @@ def backup(ctx, output, encrypt, password, service, include_metadata, compressio
         environment_type = env_detector.detect_environment()
 
         # Initialize secret manager
-        secret_manager = SecretManager(
-            deployment_type=environment_type, verbose=ctx.obj["verbose"]
-        )
+        secret_manager = SecretManager(deployment_type=environment_type, verbose=ctx.obj["verbose"])
 
         # Get secrets to backup
         if service:
@@ -2914,13 +2668,7 @@ def backup(ctx, output, encrypt, password, service, include_metadata, compressio
                 json.dump(backup_data, f, indent=2)
 
             # Create tar archive
-            compression_mode = (
-                "w:gz"
-                if compression == "gz"
-                else "w:xz"
-                if compression == "xz"
-                else "w"
-            )
+            compression_mode = "w:gz" if compression == "gz" else "w:xz" if compression == "xz" else "w"
 
             with tarfile.open(output, compression_mode) as tar:
                 tar.add(backup_json_path, arcname="secrets_backup.json")
@@ -2986,9 +2734,7 @@ def backup(ctx, output, encrypt, password, service, include_metadata, compressio
                 click.echo(f"✓ Backup encrypted and saved to: {output}")
 
             except ImportError:
-                click.echo(
-                    "⚠️  Cryptography library not available, backup saved unencrypted"
-                )
+                click.echo("⚠️  Cryptography library not available, backup saved unencrypted")
                 click.echo(f"✓ Backup saved to: {output}")
             except Exception as e:
                 click.echo(f"✗ Encryption failed: {e}")
@@ -3052,9 +2798,7 @@ def validate(ctx, detailed):
                 for error in validation_result["errors"][:3]:  # Show first 3 errors
                     click.echo(f"  - {error}")
                 if len(validation_result["errors"]) > 3:
-                    click.echo(
-                        f"  ... and {len(validation_result['errors']) - 3} more errors"
-                    )
+                    click.echo(f"  ... and {len(validation_result['errors']) - 3} more errors")
 
             if validation_result["warnings"]:
                 click.echo(f"Warnings: {len(validation_result['warnings'])}")
@@ -3108,12 +2852,8 @@ def info(ctx):
         build_info = plugin_info.get("build_info", {})
         if build_info:
             click.echo("\nBuild Information:")
-            click.echo(
-                f"  Estimated size: {build_info.get('estimated_size', 'Unknown')}"
-            )
-            click.echo(
-                f"  Has requirements: {build_info.get('has_requirements', False)}"
-            )
+            click.echo(f"  Estimated size: {build_info.get('estimated_size', 'Unknown')}")
+            click.echo(f"  Has requirements: {build_info.get('has_requirements', False)}")
             click.echo(f"  Has source: {build_info.get('has_src', False)}")
 
     except Exception as e:
@@ -3154,9 +2894,7 @@ def templates(ctx):
 @click.option("--test-types", help="Comma-separated list of test types to run")
 @click.option("--coverage", is_flag=True, help="Generate coverage reports")
 @click.option("--fail-fast", is_flag=True, help="Stop on first test failure")
-@click.option(
-    "--report-format", default="text", help="Report format (text, json, html)"
-)
+@click.option("--report-format", default="text", help="Report format (text, json, html)")
 @click.pass_context
 def test(ctx, test_types, coverage, fail_fast, report_format):
     """Run plugin tests."""
@@ -3171,9 +2909,7 @@ def test(ctx, test_types, coverage, fail_fast, report_format):
         test_types_list = test_types.split(",") if test_types else None
 
         # Run tests
-        test_results = plugin_env.run_plugin_tests(
-            test_types=test_types_list, coverage=coverage, fail_fast=fail_fast
-        )
+        test_results = plugin_env.run_plugin_tests(test_types=test_types_list, coverage=coverage, fail_fast=fail_fast)
 
         # Generate and display report
         if report_format == "json":
@@ -3200,9 +2936,7 @@ def test(ctx, test_types, coverage, fail_fast, report_format):
     help="Comma-separated formats (markdown, html, json)",
 )
 @click.option("--include-api/--no-api", default=True, help="Include API documentation")
-@click.option(
-    "--include-examples/--no-examples", default=True, help="Include usage examples"
-)
+@click.option("--include-examples/--no-examples", default=True, help="Include usage examples")
 @click.pass_context
 def docs(ctx, output_dir, formats, include_api, include_examples):
     """Generate plugin documentation."""
@@ -3259,9 +2993,7 @@ def qa(ctx, tools, fix, no_report):
         tools_list = tools.split(",") if tools else None
 
         # Run quality assurance
-        results = plugin_env.run_quality_assurance(
-            tools=tools_list, fix_issues=fix, generate_report=not no_report
-        )
+        results = plugin_env.run_quality_assurance(tools=tools_list, fix_issues=fix, generate_report=not no_report)
 
         click.echo(f"Quality Assurance for plugin '{results['plugin_name']}'")
         click.echo(f"Overall Score: {results['overall_score']}/100")
@@ -3293,9 +3025,7 @@ def qa(ctx, tools, fix, no_report):
 @click.option("--no-tests", is_flag=True, help="Skip running tests")
 @click.option("--no-docs", is_flag=True, help="Skip generating documentation")
 @click.option("--no-qa", is_flag=True, help="Skip quality assurance")
-@click.option(
-    "--no-dev-env", is_flag=True, help="Skip starting development environment"
-)
+@click.option("--no-dev-env", is_flag=True, help="Skip starting development environment")
 @click.pass_context
 def workflow(ctx, no_tests, no_docs, no_qa, no_dev_env):
     """Run complete plugin development workflow."""
@@ -3335,9 +3065,7 @@ def workflow(ctx, no_tests, no_docs, no_qa, no_dev_env):
 
 
 @plugin.command()
-@click.option(
-    "--analyze-only", is_flag=True, help="Only analyze dependencies without installing"
-)
+@click.option("--analyze-only", is_flag=True, help="Only analyze dependencies without installing")
 @click.option("--no-python", is_flag=True, help="Skip Python dependencies")
 @click.option("--no-node", is_flag=True, help="Skip Node.js dependencies")
 @click.option("--no-services", is_flag=True, help="Skip starting services")
@@ -3372,9 +3100,7 @@ def deps(ctx, analyze_only, no_python, no_node, no_services):
             if node_deps["has_package_json"]:
                 dep_count = len(node_deps["dependencies"])
                 dev_count = len(node_deps["dev_dependencies"])
-                click.echo(
-                    f"\nNode.js: {dep_count} dependencies, {dev_count} dev dependencies"
-                )
+                click.echo(f"\nNode.js: {dep_count} dependencies, {dev_count} dev dependencies")
 
             # Service dependencies
             service_deps = analysis["services"]
@@ -3404,18 +3130,14 @@ def deps(ctx, analyze_only, no_python, no_node, no_services):
             # Python results
             python_result = results["python"]
             if python_result["installed"]:
-                click.echo(
-                    f"✓ Python: {len(python_result['packages_installed'])} packages installed"
-                )
+                click.echo(f"✓ Python: {len(python_result['packages_installed'])} packages installed")
             elif python_result["details"]:
                 click.echo(f"✗ Python: {python_result['details'][0]}")
 
             # Node results
             node_result = results["node"]
             if node_result["installed"]:
-                click.echo(
-                    f"✓ Node.js: {len(node_result['packages_installed'])} packages installed"
-                )
+                click.echo(f"✓ Node.js: {len(node_result['packages_installed'])} packages installed")
             elif node_result["details"]:
                 click.echo(f"✗ Node.js: {node_result['details'][0]}")
 
@@ -3490,14 +3212,10 @@ def dev_plugin(ctx, stop, status):
 
             click.echo(f"✓ Development workflow started for '{results['plugin_name']}'")
             click.echo(f"Plugin mounted: {'✓' if results['mounted'] else '✗'}")
-            click.echo(
-                f"Hot reload active: {'✓' if results['hot_reload_active'] else '✗'}"
-            )
+            click.echo(f"Hot reload active: {'✓' if results['hot_reload_active'] else '✗'}")
 
             if not results["mounted"]:
-                click.echo(
-                    "\nNote: Plugin mounting failed. Check that CoffeeBreak core is running."
-                )
+                click.echo("\nNote: Plugin mounting failed. Check that CoffeeBreak core is running.")
 
             if not results["hot_reload_active"]:
                 click.echo("\nNote: Hot reload could not be activated.")
@@ -3521,9 +3239,7 @@ def prod(ctx):
 
 @prod.command()
 @click.argument("domain")
-@click.option(
-    "--output-dir", "-o", default=".", help="Output directory for production project"
-)
+@click.option("--output-dir", "-o", default=".", help="Output directory for production project")
 @click.option("--ssl-email", help="Email address for SSL certificate generation")
 @click.option("--postgres-port", default="5432", help="PostgreSQL port")
 @click.option("--mongodb-port", default="27017", help="MongoDB port")
@@ -3607,9 +3323,7 @@ def generate(
             click.echo("2. ./setup-ssl.sh")
             click.echo("3. docker-compose up -d")
         else:
-            click.echo(
-                f"✗ Failed to generate production project: {result.get('error', 'Unknown error')}"
-            )
+            click.echo(f"✗ Failed to generate production project: {result.get('error', 'Unknown error')}")
             ctx.exit(1)
 
     except Exception as e:
@@ -3620,9 +3334,7 @@ def generate(
 @click.argument("domain")
 @click.option("--ssl-email", help="Email address for SSL certificate generation")
 @click.option("--user", default="coffeebreak", help="System user for CoffeeBreak")
-@click.option(
-    "--install-dir", default="/opt/coffeebreak", help="Installation directory"
-)
+@click.option("--install-dir", default="/opt/coffeebreak", help="Installation directory")
 @click.option("--data-dir", default="/var/lib/coffeebreak", help="Data directory")
 @click.option("--log-dir", default="/var/log/coffeebreak", help="Log directory")
 @click.pass_context
@@ -3682,20 +3394,14 @@ def validate(ctx, domain, config_file, comprehensive):
         from coffeebreak.validation import ProductionValidator
 
         # Determine deployment type
-        deployment_type = (
-            "docker" if os.path.exists("docker-compose.yml") else "standalone"
-        )
+        deployment_type = "docker" if os.path.exists("docker-compose.yml") else "standalone"
 
         # Initialize validator
-        validator = ProductionValidator(
-            deployment_type=deployment_type, verbose=ctx.obj["verbose"]
-        )
+        validator = ProductionValidator(deployment_type=deployment_type, verbose=ctx.obj["verbose"])
 
         if comprehensive:
             # Run comprehensive validation
-            validation_result = validator.validate_production_readiness(
-                domain=domain, config_path=config_file
-            )
+            validation_result = validator.validate_production_readiness(domain=domain, config_path=config_file)
 
             click.echo(f"\nProduction Readiness Validation for {domain}")
             click.echo("=" * 50)
@@ -3714,9 +3420,7 @@ def validate(ctx, domain, config_file, comprehensive):
 
             # Show critical issues
             if validation_result["critical_issues"]:
-                click.echo(
-                    f"\nCritical Issues ({len(validation_result['critical_issues'])}):"
-                )
+                click.echo(f"\nCritical Issues ({len(validation_result['critical_issues'])}):")
                 for issue in validation_result["critical_issues"]:
                     click.echo(f"  ✗ {issue}")
 
@@ -3728,33 +3432,19 @@ def validate(ctx, domain, config_file, comprehensive):
 
             # Show passed checks
             if ctx.obj["verbose"] and validation_result["passed_checks"]:
-                click.echo(
-                    f"\nPassed Checks ({len(validation_result['passed_checks'])}):"
-                )
+                click.echo(f"\nPassed Checks ({len(validation_result['passed_checks'])}):")
                 for check in validation_result["passed_checks"][:10]:  # Show first 10
                     click.echo(f"  ✓ {check}")
                 if len(validation_result["passed_checks"]) > 10:
-                    click.echo(
-                        f"  ... and {len(validation_result['passed_checks']) - 10} more"
-                    )
+                    click.echo(f"  ... and {len(validation_result['passed_checks']) - 10} more")
 
             # Show detailed results if verbose
             if ctx.obj["verbose"]:
                 click.echo("\nDetailed Validation Results:")
-                for category, details in validation_result[
-                    "validation_details"
-                ].items():
+                for category, details in validation_result["validation_details"].items():
                     status = details["status"]
-                    status_icon = (
-                        "✓"
-                        if status == "passed"
-                        else "⚠"
-                        if status == "warning"
-                        else "✗"
-                    )
-                    click.echo(
-                        f"  {status_icon} {category.replace('_', ' ').title()}: {status}"
-                    )
+                    status_icon = "✓" if status == "passed" else "⚠" if status == "warning" else "✗"
+                    click.echo(f"  {status_icon} {category.replace('_', ' ').title()}: {status}")
 
             if not ready:
                 ctx.exit(1)
@@ -3763,20 +3453,14 @@ def validate(ctx, domain, config_file, comprehensive):
             # Quick validation - just secrets and basic checks
             from coffeebreak.secrets import SecretManager
 
-            secret_manager = SecretManager(
-                deployment_type=deployment_type, verbose=ctx.obj["verbose"]
-            )
+            secret_manager = SecretManager(deployment_type=deployment_type, verbose=ctx.obj["verbose"])
             validation = secret_manager.validate_secrets_deployment()
 
             click.echo(f"\nQuick Validation for {domain}")
             click.echo("=" * 30)
             click.echo(f"Deployment Type: {deployment_type}")
-            click.echo(
-                f"Secrets Status: {'✓ Valid' if validation['valid'] else '✗ Invalid'}"
-            )
-            click.echo(
-                f"Found: {validation['found']}/{validation['total_required']} required secrets"
-            )
+            click.echo(f"Secrets Status: {'✓ Valid' if validation['valid'] else '✗ Invalid'}")
+            click.echo(f"Found: {validation['found']}/{validation['total_required']} required secrets")
 
             if validation["missing"]:
                 click.echo("\nMissing secrets:")
@@ -3817,13 +3501,9 @@ def rotate_secrets(ctx, rotation_config, max_rotations, force):
 
         # Determine deployment type
         if os.path.exists("docker-compose.yml"):
-            secret_manager = SecretManager(
-                deployment_type="docker", verbose=ctx.obj["verbose"]
-            )
+            secret_manager = SecretManager(deployment_type="docker", verbose=ctx.obj["verbose"])
         else:
-            secret_manager = SecretManager(
-                deployment_type="standalone", verbose=ctx.obj["verbose"]
-            )
+            secret_manager = SecretManager(deployment_type="standalone", verbose=ctx.obj["verbose"])
 
         # Initialize rotation manager
         config_file = rotation_config or "/etc/coffeebreak/rotation.json"
@@ -3839,9 +3519,7 @@ def rotate_secrets(ctx, rotation_config, max_rotations, force):
             secret_names = list(status["schedules"].keys())
 
             click.echo(f"Force rotating {len(secret_names)} secrets")
-            results = rotation_manager.emergency_rotation(
-                secret_names=secret_names, reason="Manual force rotation via CLI"
-            )
+            results = rotation_manager.emergency_rotation(secret_names=secret_names, reason="Manual force rotation via CLI")
         else:
             # Rotate only secrets that are due
             results = rotation_manager.rotate_due_secrets(max_rotations=max_rotations)
@@ -3859,9 +3537,7 @@ def rotate_secrets(ctx, rotation_config, max_rotations, force):
                 click.echo("\nFailed rotations:")
                 for result in results:
                     if not result["success"]:
-                        click.echo(
-                            f"  - {result['secret_name']}: {result.get('error', 'Unknown error')}"
-                        )
+                        click.echo(f"  - {result['secret_name']}: {result.get('error', 'Unknown error')}")
                 ctx.exit(1)
         else:
             click.echo("No secrets were rotated")
@@ -3880,16 +3556,10 @@ def rotate_secrets(ctx, rotation_config, max_rotations, force):
     help="Challenge method (standalone, webroot, dns)",
 )
 @click.option("--webroot-path", help="Webroot path for webroot challenge")
-@click.option(
-    "--cert-dir", default="/etc/ssl/certs", help="Directory to install certificates"
-)
-@click.option(
-    "--dry-run-cert", is_flag=True, help="Test certificate generation without obtaining"
-)
+@click.option("--cert-dir", default="/etc/ssl/certs", help="Directory to install certificates")
+@click.option("--dry-run-cert", is_flag=True, help="Test certificate generation without obtaining")
 @click.pass_context
-def ssl_obtain(
-    ctx, domain, email, staging, challenge, webroot_path, cert_dir, dry_run_cert
-):
+def ssl_obtain(ctx, domain, email, staging, challenge, webroot_path, cert_dir, dry_run_cert):
     """Obtain SSL certificate from Let's Encrypt."""
     try:
         if ctx.obj["verbose"]:
@@ -3908,9 +3578,7 @@ def ssl_obtain(
             email = click.prompt("Email address for Let's Encrypt registration")
 
         # Initialize Let's Encrypt manager
-        le_manager = LetsEncryptManager(
-            email=email, staging=staging, verbose=ctx.obj["verbose"]
-        )
+        le_manager = LetsEncryptManager(email=email, staging=staging, verbose=ctx.obj["verbose"])
 
         # Obtain certificate
         result = le_manager.obtain_certificate(
@@ -3961,9 +3629,7 @@ def ssl_obtain(
 
 @prod.command()
 @click.option("--domain", help="Specific domain to renew (default: all)")
-@click.option(
-    "--dry-run-cert", is_flag=True, help="Test renewal without actually renewing"
-)
+@click.option("--dry-run-cert", is_flag=True, help="Test renewal without actually renewing")
 @click.pass_context
 def ssl_renew(ctx, domain, dry_run_cert):
     """Renew SSL certificates."""
@@ -3995,9 +3661,7 @@ def ssl_renew(ctx, domain, dry_run_cert):
             else:
                 click.echo("✓ SSL certificates renewed successfully")
         else:
-            click.echo(
-                f"✗ Certificate renewal failed: {result.get('error', 'Unknown error')}"
-            )
+            click.echo(f"✗ Certificate renewal failed: {result.get('error', 'Unknown error')}")
             ctx.exit(1)
 
     except Exception as e:
@@ -4075,9 +3739,7 @@ def ssl_validate(ctx, cert_path, key_path, domain):
         ssl_manager = SSLManager(verbose=ctx.obj["verbose"])
 
         # Validate certificate
-        validation = ssl_manager.validate_certificate(
-            cert_path=cert_path, key_path=key_path, domain=domain
-        )
+        validation = ssl_manager.validate_certificate(cert_path=cert_path, key_path=key_path, domain=domain)
 
         click.echo(f"Certificate validation for {domain}:")
         click.echo(f"Status: {'✓ Valid' if validation['valid'] else '✗ Invalid'}")

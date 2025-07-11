@@ -32,9 +32,7 @@ class TestCoffeeBreakError:
     def test_coffeebreak_error_with_details(self):
         """Test CoffeeBreakError with details and suggestions."""
         suggestions = ["Try this", "Or try that"]
-        error = CoffeeBreakError(
-            "Test error", details="Detailed explanation", suggestions=suggestions
-        )
+        error = CoffeeBreakError("Test error", details="Detailed explanation", suggestions=suggestions)
 
         assert error.message == "Test error"
         assert error.details == "Detailed explanation"
@@ -74,9 +72,7 @@ class TestErrorHandler:
             assert mock_echo.call_count >= 4  # Error, context, details, suggestions
 
             # Check that error symbol and message appear
-            error_calls = [
-                call for call in mock_echo.call_args_list if "✗" in str(call)
-            ]
+            error_calls = [call for call in mock_echo.call_args_list if "✗" in str(call)]
             assert len(error_calls) > 0
 
     def test_handle_generic_error_file_not_found(self):
@@ -138,9 +134,7 @@ class TestErrorUtilities:
         suggestions = create_error_suggestions("git_auth_failed")
 
         assert len(suggestions) > 0
-        assert any(
-            "SSH" in suggestion or "token" in suggestion for suggestion in suggestions
-        )
+        assert any("SSH" in suggestion or "token" in suggestion for suggestion in suggestions)
 
     def test_create_error_suggestions_unknown(self):
         """Test suggestions for unknown error type."""

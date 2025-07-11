@@ -34,9 +34,7 @@ class GitValidator:
 
         if not (re.match(https_pattern, url) or re.match(ssh_pattern, url)):
             errors.append(f"Invalid repository URL format: {url}")
-            errors.append(
-                "Supported formats: https://github.com/user/repo.git or git@github.com:user/repo.git"
-            )
+            errors.append("Supported formats: https://github.com/user/repo.git or git@github.com:user/repo.git")
 
         return errors
 
@@ -72,9 +70,7 @@ class GitValidator:
                     errors.append("Please check your SSH keys or personal access token")
                 elif "not found" in result.stderr.lower():
                     errors.append(f"Repository not found: {url}")
-                    errors.append(
-                        "Please check the repository URL and your access permissions"
-                    )
+                    errors.append("Please check the repository URL and your access permissions")
                 else:
                     errors.append(f"Cannot access repository {url}: {result.stderr}")
 
@@ -110,16 +106,12 @@ class GitValidator:
             )
 
             if result.returncode != 0:
-                errors.append(
-                    f"Error checking branch {branch} in repository {url}: {result.stderr}"
-                )
+                errors.append(f"Error checking branch {branch} in repository {url}: {result.stderr}")
             elif not result.stdout.strip():
                 errors.append(f"Branch '{branch}' not found in repository {url}")
 
         except subprocess.TimeoutExpired:
-            errors.append(
-                f"Timeout while checking branch {branch} in repository: {url}"
-            )
+            errors.append(f"Timeout while checking branch {branch} in repository: {url}")
         except FileNotFoundError:
             errors.append("Git is not installed or not available in PATH")
         except Exception as e:
@@ -174,9 +166,7 @@ class GitValidator:
             Optional[dict]: Repository info (owner, name) or None if invalid
         """
         # HTTPS format: https://github.com/owner/repo.git
-        https_match = re.match(
-            r"^https://github\.com/([\w\-\.]+)/([\w\-\.]+)\.git$", url
-        )
+        https_match = re.match(r"^https://github\.com/([\w\-\.]+)/([\w\-\.]+)\.git$", url)
         if https_match:
             return {
                 "owner": https_match.group(1),

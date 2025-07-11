@@ -58,9 +58,7 @@ class PluginTestFramework:
 
             # Determine which tests to run
             if test_types is None:
-                test_types = self._detect_available_test_types(
-                    plugin_dir, plugin_config
-                )
+                test_types = self._detect_available_test_types(plugin_dir, plugin_config)
 
             if self.verbose:
                 print(f"Running test types: {test_types}")
@@ -94,28 +92,20 @@ class PluginTestFramework:
                         print(f"Running {test_type} tests...")
 
                     try:
-                        test_result = self.test_runners[test_type](
-                            plugin_dir, plugin_config, coverage
-                        )
+                        test_result = self.test_runners[test_type](plugin_dir, plugin_config, coverage)
                         results["results"][test_type] = test_result
 
                         # Update summary
                         if test_result.get("success", False):
-                            results["summary"]["passed"] += test_result.get(
-                                "test_count", 0
-                            )
+                            results["summary"]["passed"] += test_result.get("test_count", 0)
                         else:
-                            results["summary"]["failed"] += test_result.get(
-                                "test_count", 0
-                            )
+                            results["summary"]["failed"] += test_result.get("test_count", 0)
                             results["overall_success"] = False
 
                             if fail_fast:
                                 break
 
-                        results["summary"]["total_tests"] += test_result.get(
-                            "test_count", 0
-                        )
+                        results["summary"]["total_tests"] += test_result.get("test_count", 0)
 
                         # Collect coverage data
                         if coverage and "coverage" in test_result:
@@ -146,9 +136,7 @@ class PluginTestFramework:
         except Exception as e:
             raise PluginError(f"Failed to run plugin tests: {e}") from e
 
-    def _detect_available_test_types(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> List[str]:
+    def _detect_available_test_types(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> List[str]:
         """Detect which test types are available for the plugin."""
         available_tests = []
 
@@ -167,9 +155,7 @@ class PluginTestFramework:
                     break
 
         # Check for pytest.ini or setup.cfg
-        if os.path.exists(os.path.join(plugin_dir, "pytest.ini")) or os.path.exists(
-            os.path.join(plugin_dir, "setup.cfg")
-        ):
+        if os.path.exists(os.path.join(plugin_dir, "pytest.ini")) or os.path.exists(os.path.join(plugin_dir, "setup.cfg")):
             if "python" not in available_tests:
                 available_tests.append("python")
 
@@ -181,9 +167,7 @@ class PluginTestFramework:
                     package_data = json.load(f)
 
                 scripts = package_data.get("scripts", {})
-                if "test" in scripts or any(
-                    "test" in script for script in scripts.keys()
-                ):
+                if "test" in scripts or any("test" in script for script in scripts.keys()):
                     available_tests.append("node")
             except (OSError, json.JSONDecodeError):
                 pass
@@ -207,9 +191,7 @@ class PluginTestFramework:
 
         return available_tests
 
-    def _run_python_tests(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool
-    ) -> Dict[str, Any]:
+    def _run_python_tests(self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool) -> Dict[str, Any]:
         """Run Python tests using pytest."""
         result = {
             "success": False,
@@ -252,9 +234,7 @@ class PluginTestFramework:
                 print(f"Running: {' '.join(cmd)}")
 
             # Run pytest
-            process_result = subprocess.run(
-                cmd, cwd=plugin_dir, capture_output=True, text=True
-            )
+            process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
             result["output"] = process_result.stdout
 
@@ -265,9 +245,7 @@ class PluginTestFramework:
                     with open(report_path) as f:
                         test_report = json.load(f)
 
-                    result["test_count"] = test_report.get("summary", {}).get(
-                        "total", 0
-                    )
+                    result["test_count"] = test_report.get("summary", {}).get("total", 0)
                     result["success"] = process_result.returncode == 0
 
                     # Extract test details
@@ -286,9 +264,7 @@ class PluginTestFramework:
             else:
                 # Fall back to return code
                 result["success"] = process_result.returncode == 0
-                result["details"].append(
-                    "Test completed (no detailed report available)"
-                )
+                result["details"].append("Test completed (no detailed report available)")
 
             # Parse coverage if available
             if coverage:
@@ -299,15 +275,9 @@ class PluginTestFramework:
                             coverage_data = json.load(f)
 
                         result["coverage"] = {
-                            "percent_covered": coverage_data.get("totals", {}).get(
-                                "percent_covered", 0
-                            ),
-                            "lines_covered": coverage_data.get("totals", {}).get(
-                                "covered_lines", 0
-                            ),
-                            "lines_total": coverage_data.get("totals", {}).get(
-                                "num_statements", 0
-                            ),
+                            "percent_covered": coverage_data.get("totals", {}).get("percent_covered", 0),
+                            "lines_covered": coverage_data.get("totals", {}).get("covered_lines", 0),
+                            "lines_total": coverage_data.get("totals", {}).get("num_statements", 0),
                         }
 
                         # Clean up coverage file
@@ -320,17 +290,13 @@ class PluginTestFramework:
                 result["details"].append(f"Stderr: {process_result.stderr}")
 
         except FileNotFoundError:
-            result["details"].append(
-                "pytest not found - install pytest to run Python tests"
-            )
+            result["details"].append("pytest not found - install pytest to run Python tests")
         except Exception as e:
             result["details"].append(f"Error running Python tests: {e}")
 
         return result
 
-    def _run_node_tests(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool
-    ) -> Dict[str, Any]:
+    def _run_node_tests(self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool) -> Dict[str, Any]:
         """Run Node.js tests using npm/yarn test."""
         result = {
             "success": False,
@@ -359,9 +325,7 @@ class PluginTestFramework:
                 print(f"Running Node.js tests with {package_manager}")
 
             # Run tests
-            process_result = subprocess.run(
-                cmd, cwd=plugin_dir, capture_output=True, text=True
-            )
+            process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
             result["output"] = process_result.stdout
             result["success"] = process_result.returncode == 0
@@ -392,18 +356,10 @@ class PluginTestFramework:
                             if "total" in coverage_data:
                                 total_coverage = coverage_data["total"]
                                 result["coverage"] = {
-                                    "lines": total_coverage.get("lines", {}).get(
-                                        "pct", 0
-                                    ),
-                                    "statements": total_coverage.get(
-                                        "statements", {}
-                                    ).get("pct", 0),
-                                    "functions": total_coverage.get(
-                                        "functions", {}
-                                    ).get("pct", 0),
-                                    "branches": total_coverage.get("branches", {}).get(
-                                        "pct", 0
-                                    ),
+                                    "lines": total_coverage.get("lines", {}).get("pct", 0),
+                                    "statements": total_coverage.get("statements", {}).get("pct", 0),
+                                    "functions": total_coverage.get("functions", {}).get("pct", 0),
+                                    "branches": total_coverage.get("branches", {}).get("pct", 0),
                                 }
 
                             break
@@ -418,9 +374,7 @@ class PluginTestFramework:
 
         return result
 
-    def _run_integration_tests(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool
-    ) -> Dict[str, Any]:
+    def _run_integration_tests(self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool) -> Dict[str, Any]:
         """Run integration tests."""
         result = {
             "success": False,
@@ -449,22 +403,16 @@ class PluginTestFramework:
                 # Run custom script
                 cmd = test_script.split()
 
-                process_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 result["output"] = process_result.stdout
                 result["success"] = process_result.returncode == 0
-                result["details"].append(
-                    f"Ran custom integration script: {test_script}"
-                )
+                result["details"].append(f"Ran custom integration script: {test_script}")
 
             else:
                 # Default integration test approach
                 # This could be enhanced to run docker-compose based tests
-                result["details"].append(
-                    "Integration tests detected but no runner configured"
-                )
+                result["details"].append("Integration tests detected but no runner configured")
                 result["success"] = True  # Default to success if no specific runner
 
         except Exception as e:
@@ -472,9 +420,7 @@ class PluginTestFramework:
 
         return result
 
-    def _run_lint_tests(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool
-    ) -> Dict[str, Any]:
+    def _run_lint_tests(self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool) -> Dict[str, Any]:
         """Run linting tests."""
         result = {
             "success": True,
@@ -500,9 +446,7 @@ class PluginTestFramework:
             if python_files:
                 try:
                     cmd = ["flake8", "--max-line-length=100", src_path]
-                    process_result = subprocess.run(
-                        cmd, cwd=plugin_dir, capture_output=True, text=True
-                    )
+                    process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                     if process_result.returncode == 0:
                         result["details"].append("Python linting passed")
@@ -514,9 +458,7 @@ class PluginTestFramework:
                     result["test_count"] += len(python_files)
 
                 except FileNotFoundError:
-                    result["details"].append(
-                        "flake8 not found - skipping Python linting"
-                    )
+                    result["details"].append("flake8 not found - skipping Python linting")
 
             # JavaScript/TypeScript linting with eslint
             js_files = []
@@ -528,9 +470,7 @@ class PluginTestFramework:
             if js_files:
                 try:
                     cmd = ["npx", "eslint", src_path]
-                    process_result = subprocess.run(
-                        cmd, cwd=plugin_dir, capture_output=True, text=True
-                    )
+                    process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                     if process_result.returncode == 0:
                         result["details"].append("JavaScript linting passed")
@@ -542,9 +482,7 @@ class PluginTestFramework:
                     result["test_count"] += len(js_files)
 
                 except FileNotFoundError:
-                    result["details"].append(
-                        "eslint not found - skipping JavaScript linting"
-                    )
+                    result["details"].append("eslint not found - skipping JavaScript linting")
 
             if not python_files and not js_files:
                 result["details"].append("No files found for linting")
@@ -555,9 +493,7 @@ class PluginTestFramework:
 
         return result
 
-    def _run_security_tests(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool
-    ) -> Dict[str, Any]:
+    def _run_security_tests(self, plugin_dir: str, plugin_config: Dict[str, Any], coverage: bool) -> Dict[str, Any]:
         """Run security tests."""
         result = {
             "success": True,
@@ -576,9 +512,7 @@ class PluginTestFramework:
                 if python_files:
                     try:
                         cmd = ["bandit", "-r", src_path, "-f", "json"]
-                        process_result = subprocess.run(
-                            cmd, cwd=plugin_dir, capture_output=True, text=True
-                        )
+                        process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                         # Parse bandit JSON output
                         if process_result.stdout:
@@ -590,45 +524,29 @@ class PluginTestFramework:
                                 result["vulnerabilities"] = vulnerabilities
 
                                 if vulnerabilities:
-                                    high_severity = [
-                                        v
-                                        for v in vulnerabilities
-                                        if v.get("issue_severity") == "HIGH"
-                                    ]
+                                    high_severity = [v for v in vulnerabilities if v.get("issue_severity") == "HIGH"]
                                     if high_severity:
                                         result["success"] = False
-                                        result["details"].append(
-                                            f"Found {len(high_severity)} high-severity "
-                                            f"security issues"
-                                        )
+                                        result["details"].append(f"Found {len(high_severity)} high-severity security issues")
                                     else:
-                                        result["details"].append(
-                                            f"Found {len(vulnerabilities)} low/medium "
-                                            f"security issues"
-                                        )
+                                        result["details"].append(f"Found {len(vulnerabilities)} low/medium security issues")
                                 else:
                                     result["details"].append("No security issues found")
 
                             except json.JSONDecodeError:
-                                result["details"].append(
-                                    "Could not parse bandit output"
-                                )
+                                result["details"].append("Could not parse bandit output")
                         else:
                             result["details"].append("Python security scan completed")
 
                     except FileNotFoundError:
-                        result["details"].append(
-                            "bandit not found - skipping Python security scanning"
-                        )
+                        result["details"].append("bandit not found - skipping Python security scanning")
 
             # Node.js security scanning
             package_json_path = os.path.join(plugin_dir, "package.json")
             if os.path.exists(package_json_path):
                 try:
                     cmd = ["npm", "audit", "--json"]
-                    process_result = subprocess.run(
-                        cmd, cwd=plugin_dir, capture_output=True, text=True
-                    )
+                    process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                     if process_result.stdout:
                         try:
@@ -636,22 +554,12 @@ class PluginTestFramework:
                             vulnerabilities = audit_results.get("vulnerabilities", {})
 
                             if vulnerabilities:
-                                high_vuln = sum(
-                                    1
-                                    for v in vulnerabilities.values()
-                                    if v.get("severity") in ["high", "critical"]
-                                )
+                                high_vuln = sum(1 for v in vulnerabilities.values() if v.get("severity") in ["high", "critical"])
                                 if high_vuln > 0:
                                     result["success"] = False
-                                    result["details"].append(
-                                        f"Found {high_vuln} high/critical npm "
-                                        f"vulnerabilities"
-                                    )
+                                    result["details"].append(f"Found {high_vuln} high/critical npm vulnerabilities")
                                 else:
-                                    result["details"].append(
-                                        f"Found {len(vulnerabilities)} low/medium "
-                                        f"npm vulnerabilities"
-                                    )
+                                    result["details"].append(f"Found {len(vulnerabilities)} low/medium npm vulnerabilities")
                             else:
                                 result["details"].append("No npm vulnerabilities found")
 
@@ -659,9 +567,7 @@ class PluginTestFramework:
                             result["details"].append("Could not parse npm audit output")
 
                 except FileNotFoundError:
-                    result["details"].append(
-                        "npm not found - skipping Node.js security scanning"
-                    )
+                    result["details"].append("npm not found - skipping Node.js security scanning")
 
         except Exception as e:
             result["details"].append(f"Error running security tests: {e}")
@@ -709,9 +615,7 @@ class PluginTestFramework:
                 if isinstance(coverage, dict) and "percent_covered" in coverage:
                     print(f"{test_type}: {coverage['percent_covered']:.1f}%")
 
-    def generate_test_report(
-        self, results: Dict[str, Any], format: str = "text"
-    ) -> str:
+    def generate_test_report(self, results: Dict[str, Any], format: str = "text") -> str:
         """
         Generate a formatted test report.
 
@@ -730,10 +634,8 @@ class PluginTestFramework:
             html_lines = [
                 "<html><head><title>Plugin Test Report</title></head><body>",
                 f"<h1>Test Report for {results['plugin_name']}</h1>",
-                f"<p><strong>Overall Success:</strong> "
-                f"{'✓' if results['overall_success'] else '✗'}</p>",
-                f"<p><strong>Execution Time:</strong> "
-                f"{results['execution_time']:.2f}s</p>",
+                f"<p><strong>Overall Success:</strong> {'✓' if results['overall_success'] else '✗'}</p>",
+                f"<p><strong>Execution Time:</strong> {results['execution_time']:.2f}s</p>",
                 "<h2>Summary</h2>",
                 "<ul>",
                 f"<li>Total Tests: {results['summary']['total_tests']}</li>",
@@ -780,9 +682,7 @@ class PluginTestFramework:
 
             for test_type, result in results["results"].items():
                 status = "✓" if result.get("success", False) else "✗"
-                lines.append(
-                    f"  {status} {test_type}: {result.get('test_count', 0)} tests"
-                )
+                lines.append(f"  {status} {test_type}: {result.get('test_count', 0)} tests")
 
                 for detail in result.get("details", []):
                     lines.append(f"    - {detail}")

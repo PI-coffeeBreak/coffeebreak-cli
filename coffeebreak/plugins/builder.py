@@ -107,9 +107,7 @@ class PluginBuilder:
 
             # Handle native module exclusion
             if exclude_native:
-                excluded_modules = self._exclude_native_modules(
-                    build_dir, additional_excludes or []
-                )
+                excluded_modules = self._exclude_native_modules(build_dir, additional_excludes or [])
                 if self.verbose and excluded_modules:
                     print(f"Excluded {len(excluded_modules)} native modules")
 
@@ -117,9 +115,7 @@ class PluginBuilder:
             self._run_build_hooks(plugin_dir, config, "build")
 
             # Create .pyz package
-            pyz_path = self._create_pyz_package(
-                plugin_name, build_dir, output_dir, config
-            )
+            pyz_path = self._create_pyz_package(plugin_name, build_dir, output_dir, config)
 
             # Run post-build hooks
             self._run_build_hooks(plugin_dir, config, "post_build")
@@ -159,9 +155,7 @@ class PluginBuilder:
         if os.path.exists(build_dir):
             shutil.rmtree(build_dir, ignore_errors=True)
 
-    def _copy_plugin_source(
-        self, plugin_dir: str, build_dir: str, config: Dict[str, Any]
-    ) -> None:
+    def _copy_plugin_source(self, plugin_dir: str, build_dir: str, config: Dict[str, Any]) -> None:
         """Copy plugin source files to build directory."""
         plugin_name = config["plugin"]["name"]
         package_name = plugin_name.replace("-", "_")
@@ -181,9 +175,7 @@ class PluginBuilder:
         exclude_patterns = build_config.get("exclude_patterns", [])
 
         for file_pattern in include_files:
-            self._copy_matching_files(
-                plugin_dir, build_dir, file_pattern, exclude_patterns
-            )
+            self._copy_matching_files(plugin_dir, build_dir, file_pattern, exclude_patterns)
 
         # Create __main__.py entry point
         main_file = os.path.join(build_dir, "__main__.py")
@@ -195,9 +187,7 @@ class PluginBuilder:
         if self.verbose:
             print("Created __main__.py entry point")
 
-    def _copy_matching_files(
-        self, source_dir: str, build_dir: str, pattern: str, exclude_patterns: List[str]
-    ) -> None:
+    def _copy_matching_files(self, source_dir: str, build_dir: str, pattern: str, exclude_patterns: List[str]) -> None:
         """Copy files matching pattern, excluding specified patterns."""
         source_files = glob.glob(os.path.join(source_dir, pattern))
 
@@ -262,9 +252,7 @@ class PluginBuilder:
         except subprocess.CalledProcessError as e:
             raise PluginError(f"Failed to install dependencies: {e.stderr}") from e
 
-    def _exclude_native_modules(
-        self, build_dir: str, additional_excludes: List[str]
-    ) -> Set[str]:
+    def _exclude_native_modules(self, build_dir: str, additional_excludes: List[str]) -> Set[str]:
         """Detect and exclude native modules from build."""
         excluded_modules = set()
 
@@ -365,9 +353,7 @@ class PluginBuilder:
             if self.verbose:
                 print(f"Warning: Could not remove module {module_name}: {e}")
 
-    def _create_pyz_package(
-        self, plugin_name: str, build_dir: str, output_dir: str, config: Dict[str, Any]
-    ) -> str:
+    def _create_pyz_package(self, plugin_name: str, build_dir: str, output_dir: str, config: Dict[str, Any]) -> str:
         """Create .pyz package from build directory."""
         pyz_filename = f"{plugin_name}.pyz"
         pyz_path = os.path.join(output_dir, pyz_filename)
@@ -387,9 +373,7 @@ class PluginBuilder:
         except Exception as e:
             raise PluginError(f"Failed to create .pyz package: {e}") from e
 
-    def _run_build_hooks(
-        self, plugin_dir: str, config: Dict[str, Any], hook_type: str
-    ) -> None:
+    def _run_build_hooks(self, plugin_dir: str, config: Dict[str, Any], hook_type: str) -> None:
         """Run build hooks if configured."""
         build_config = config.get("build", {})
         hooks = build_config.get("hooks", {})
@@ -412,10 +396,7 @@ class PluginBuilder:
             )
 
             if result.returncode != 0:
-                raise PluginError(
-                    f"{hook_type} hook failed with exit code {result.returncode}: "
-                    f"{result.stderr}"
-                )
+                raise PluginError(f"{hook_type} hook failed with exit code {result.returncode}: {result.stderr}")
 
             if self.verbose and result.stdout:
                 print(f"{hook_type} hook output: {result.stdout}")
@@ -434,9 +415,7 @@ class PluginBuilder:
             info = {
                 "plugin_name": plugin_name,
                 "plugin_dir": os.path.abspath(plugin_dir),
-                "has_requirements": os.path.exists(
-                    os.path.join(plugin_dir, "requirements.txt")
-                ),
+                "has_requirements": os.path.exists(os.path.join(plugin_dir, "requirements.txt")),
                 "has_src": os.path.exists(os.path.join(plugin_dir, "src")),
                 "build_config": config.get("build", {}),
                 "estimated_size": self._estimate_build_size(plugin_dir),
@@ -462,11 +441,7 @@ class PluginBuilder:
             if os.path.exists(requirements_file):
                 # Rough estimate: 1MB per dependency line
                 with open(requirements_file) as f:
-                    lines = [
-                        line.strip()
-                        for line in f
-                        if line.strip() and not line.startswith("#")
-                    ]
+                    lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
                     total_size += len(lines) * 1024 * 1024
 
             # Format size

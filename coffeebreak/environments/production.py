@@ -52,9 +52,7 @@ class ProductionEnvironment:
                 print(f"Generating Docker production project for {domain}")
 
             # Create output directory
-            project_dir = (
-                Path(output_dir) / f"coffeebreak-production-{domain.replace('.', '-')}"
-            )
+            project_dir = Path(output_dir) / f"coffeebreak-production-{domain.replace('.', '-')}"
             project_dir.mkdir(parents=True, exist_ok=True)
 
             result = {
@@ -90,17 +88,13 @@ class ProductionEnvironment:
                 config.update(deployment_config)
 
             # Initialize Docker secrets manager
-            self.secret_manager = SecretManager(
-                deployment_type="docker", verbose=self.verbose
-            )
+            self.secret_manager = SecretManager(deployment_type="docker", verbose=self.verbose)
 
             # Generate all production secrets
             all_secrets = self.secret_generator.generate_all_secrets()
 
             # Create Docker Compose file
-            compose_template = self.jinja_env.get_template(
-                "docker-compose.production.yml.j2"
-            )
+            compose_template = self.jinja_env.get_template("docker-compose.production.yml.j2")
             compose_content = compose_template.render(**config)
 
             compose_file = project_dir / "docker-compose.yml"
@@ -272,9 +266,7 @@ class ProductionEnvironment:
             }
 
             # Initialize standalone secrets manager
-            self.secret_manager = SecretManager(
-                deployment_type="standalone", verbose=self.verbose
-            )
+            self.secret_manager = SecretManager(deployment_type="standalone", verbose=self.verbose)
 
             # Generate all production secrets
             all_secrets = self.secret_generator.generate_all_secrets()
@@ -290,9 +282,7 @@ class ProductionEnvironment:
 
             # Deploy secrets
             secrets_dir = f"{install_dir}/secrets"
-            secrets_result = self.secret_manager.deploy_all_secrets(
-                all_secrets, secrets_dir
-            )
+            secrets_result = self.secret_manager.deploy_all_secrets(all_secrets, secrets_dir)
 
             if secrets_result["failed"] > 0:
                 installation_result["errors"].extend(secrets_result["errors"])
@@ -300,14 +290,10 @@ class ProductionEnvironment:
             # Setup SSL certificates
             ssl_result = self._setup_ssl_standalone(domain, ssl_email, install_dir)
             if not ssl_result["success"]:
-                installation_result["errors"].append(
-                    f"SSL setup failed: {ssl_result.get('error', 'Unknown error')}"
-                )
+                installation_result["errors"].append(f"SSL setup failed: {ssl_result.get('error', 'Unknown error')}")
 
             # Install and configure services
-            services_result = self._install_services(
-                domain, user, install_dir, data_dir, log_dir
-            )
+            services_result = self._install_services(domain, user, install_dir, data_dir, log_dir)
             installation_result["services_created"] = services_result["services"]
             if services_result["errors"]:
                 installation_result["errors"].extend(services_result["errors"])
@@ -315,30 +301,22 @@ class ProductionEnvironment:
             # Configure nginx
             nginx_result = self._configure_nginx_standalone(domain, install_dir)
             if not nginx_result["success"]:
-                installation_result["errors"].append(
-                    f"Nginx configuration failed: {nginx_result.get('error', 'Unknown error')}"
-                )
+                installation_result["errors"].append(f"Nginx configuration failed: {nginx_result.get('error', 'Unknown error')}")
 
             # Setup monitoring and logging
             monitoring_result = self._setup_monitoring_standalone(domain, log_dir)
             if not monitoring_result["success"]:
-                installation_result["errors"].append(
-                    f"Monitoring setup failed: {monitoring_result.get('error', 'Unknown error')}"
-                )
+                installation_result["errors"].append(f"Monitoring setup failed: {monitoring_result.get('error', 'Unknown error')}")
 
             # Setup backup system
             backup_result = self._setup_backup_standalone(domain, data_dir, install_dir)
             if not backup_result["success"]:
-                installation_result["errors"].append(
-                    f"Backup setup failed: {backup_result.get('error', 'Unknown error')}"
-                )
+                installation_result["errors"].append(f"Backup setup failed: {backup_result.get('error', 'Unknown error')}")
 
             # Start services
             start_result = self._start_services(installation_result["services_created"])
             if not start_result["success"]:
-                installation_result["errors"].append(
-                    f"Failed to start services: {start_result.get('error', 'Unknown error')}"
-                )
+                installation_result["errors"].append(f"Failed to start services: {start_result.get('error', 'Unknown error')}")
 
             # Final validation
             validation_result = self._validate_installation(domain, install_dir)
@@ -349,13 +327,9 @@ class ProductionEnvironment:
 
             if self.verbose:
                 if installation_result["success"]:
-                    print(
-                        f"CoffeeBreak standalone installation completed successfully for {domain}"
-                    )
+                    print(f"CoffeeBreak standalone installation completed successfully for {domain}")
                 else:
-                    print(
-                        f"Installation completed with {len(installation_result['errors'])} errors"
-                    )
+                    print(f"Installation completed with {len(installation_result['errors'])} errors")
 
             return installation_result
 
@@ -392,9 +366,7 @@ class ProductionEnvironment:
 
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
-                raise ConfigurationError(
-                    f"Failed to create user {user}: {result.stderr}"
-                )
+                raise ConfigurationError(f"Failed to create user {user}: {result.stderr}")
 
             if self.verbose:
                 print(f"Created system user: {user}")
@@ -402,9 +374,7 @@ class ProductionEnvironment:
         except Exception as e:
             raise ConfigurationError(f"Failed to create system user: {e}")
 
-    def _create_directories(
-        self, install_dir: str, data_dir: str, log_dir: str, user: str
-    ) -> None:
+    def _create_directories(self, install_dir: str, data_dir: str, log_dir: str, user: str) -> None:
         """Create directory structure."""
         try:
             import subprocess
@@ -441,9 +411,7 @@ class ProductionEnvironment:
         except Exception as e:
             raise ConfigurationError(f"Failed to create directories: {e}")
 
-    def _install_application_files(
-        self, install_dir: str, domain: str, user: str
-    ) -> None:
+    def _install_application_files(self, install_dir: str, domain: str, user: str) -> None:
         """Install application files and configuration."""
         try:
             # Create systemd service templates
@@ -491,9 +459,7 @@ esac
         except Exception as e:
             raise ConfigurationError(f"Failed to install application files: {e}")
 
-    def _setup_ssl_standalone(
-        self, domain: str, ssl_email: str, install_dir: str
-    ) -> Dict[str, Any]:
+    def _setup_ssl_standalone(self, domain: str, ssl_email: str, install_dir: str) -> Dict[str, Any]:
         """Setup SSL certificates for standalone installation."""
         try:
             from ..ssl import LetsEncryptManager
@@ -502,9 +468,7 @@ esac
             le_manager = LetsEncryptManager(email=ssl_email, verbose=self.verbose)
 
             # Obtain certificate
-            cert_result = le_manager.obtain_certificate(
-                domain=domain, challenge_method="standalone"
-            )
+            cert_result = le_manager.obtain_certificate(domain=domain, challenge_method="standalone")
 
             if cert_result["success"]:
                 # Copy certificates to install directory
@@ -529,9 +493,7 @@ esac
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def _install_services(
-        self, domain: str, user: str, install_dir: str, data_dir: str, log_dir: str
-    ) -> Dict[str, Any]:
+    def _install_services(self, domain: str, user: str, install_dir: str, data_dir: str, log_dir: str) -> Dict[str, Any]:
         """Install and configure system services."""
         try:
             import subprocess
@@ -656,9 +618,7 @@ esac
                 "rabbitmqctl",
                 "add_user",
                 "coffeebreak",
-                self.secret_manager.load_encrypted_secret(
-                    "rabbitmq_password", "/opt/coffeebreak/secrets"
-                ),
+                self.secret_manager.load_encrypted_secret("rabbitmq_password", "/opt/coffeebreak/secrets"),
             ],
             check=True,
         )
@@ -690,18 +650,13 @@ esac
         subprocess.run(["systemctl", "start", "redis"], check=True)
         subprocess.run(["systemctl", "enable", "redis"], check=True)
 
-    def _configure_nginx_standalone(
-        self, domain: str, install_dir: str
-    ) -> Dict[str, Any]:
+    def _configure_nginx_standalone(self, domain: str, install_dir: str) -> Dict[str, Any]:
         """Configure nginx for standalone installation."""
         try:
             import subprocess
 
             # Install nginx
-            if (
-                subprocess.run(["which", "apt-get"], capture_output=True).returncode
-                == 0
-            ):
+            if subprocess.run(["which", "apt-get"], capture_output=True).returncode == 0:
                 subprocess.run(["apt-get", "install", "-y", "nginx"], check=True)
             elif subprocess.run(["which", "yum"], capture_output=True).returncode == 0:
                 subprocess.run(["yum", "install", "-y", "nginx"], check=True)
@@ -757,9 +712,7 @@ esac
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def _setup_backup_standalone(
-        self, domain: str, data_dir: str, install_dir: str
-    ) -> Dict[str, Any]:
+    def _setup_backup_standalone(self, domain: str, data_dir: str, install_dir: str) -> Dict[str, Any]:
         """Setup backup system for standalone installation."""
         try:
             # Create backup script
@@ -797,12 +750,8 @@ echo "Backup completed: $BACKUP_DIR/$BACKUP_NAME"
             cron_entry = f"0 2 * * * {backup_script_path}"
 
             try:
-                current_crontab = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
-                crontab_content = (
-                    current_crontab.stdout if current_crontab.returncode == 0 else ""
-                )
+                current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
             except Exception:
                 crontab_content = ""
 
@@ -884,9 +833,7 @@ echo "Backup completed: $BACKUP_DIR/$BACKUP_NAME"
             time.sleep(10)  # Wait for services to be fully ready
 
             try:
-                response = requests.get(
-                    f"https://{domain}/health", timeout=10, verify=False
-                )
+                response = requests.get(f"https://{domain}/health", timeout=10, verify=False)
                 if response.status_code != 200:
                     errors.append(f"Health check failed: HTTP {response.status_code}")
             except Exception as e:
@@ -901,9 +848,7 @@ echo "Backup completed: $BACKUP_DIR/$BACKUP_NAME"
 
                 ssl_manager = SSLManager(verbose=self.verbose)
 
-                validation = ssl_manager.validate_certificate(
-                    cert_path, key_path, domain
-                )
+                validation = ssl_manager.validate_certificate(cert_path, key_path, domain)
                 if not validation["valid"]:
                     errors.extend([f"SSL: {error}" for error in validation["errors"]])
             else:

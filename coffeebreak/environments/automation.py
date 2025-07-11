@@ -21,9 +21,7 @@ class DevEnvironmentAutomation:
         """Initialize development environment automation."""
         self.verbose = verbose
         self.config_manager = ConfigManager()
-        self.dependency_manager = DependencyManager(
-            self.config_manager, verbose=verbose
-        )
+        self.dependency_manager = DependencyManager(self.config_manager, verbose=verbose)
         self.git_operations = GitOperations(verbose=verbose)
         self.file_manager = FileManager(verbose=verbose)
         self.processes = {}  # Track running processes
@@ -88,9 +86,7 @@ class DevEnvironmentAutomation:
 
         return running
 
-    def _save_process_info(
-        self, service: str, pid: int, command: List[str], cwd: str, log_file: str = None
-    ):
+    def _save_process_info(self, service: str, pid: int, command: List[str], cwd: str, log_file: str = None):
         """Save process information."""
         try:
             import json
@@ -212,13 +208,9 @@ class DevEnvironmentAutomation:
             config = self.config_manager.load_config()
 
             if env_type == EnvironmentType.FULL_DEV:
-                return self._start_full_dev_environment(
-                    config, profile, services, skip_clone, skip_deps, detach
-                )
+                return self._start_full_dev_environment(config, profile, services, skip_clone, skip_deps, detach)
             elif env_type == EnvironmentType.PLUGIN_DEV:
-                return self._start_plugin_dev_environment(
-                    config, profile, services, skip_deps
-                )
+                return self._start_plugin_dev_environment(config, profile, services, skip_deps)
             else:
                 raise EnvironmentError(f"Unsupported environment type: {env_type}")
 
@@ -398,9 +390,7 @@ class DevEnvironmentAutomation:
 
                 repo_path = os.path.abspath(path)
 
-                if os.path.exists(repo_path) and os.path.isdir(
-                    os.path.join(repo_path, ".git")
-                ):
+                if os.path.exists(repo_path) and os.path.isdir(os.path.join(repo_path, ".git")):
                     existing_repos.append(name)
                 else:
                     repos_to_clone.append(repo_config)
@@ -408,9 +398,7 @@ class DevEnvironmentAutomation:
             # Only show output if there's work to do OR if verbose mode
             if repos_to_clone or self.verbose:
                 if repos_to_clone:
-                    print(
-                        f"\nSetting up repositories... ({len(repos_to_clone)} to clone)"
-                    )
+                    print(f"\nSetting up repositories... ({len(repos_to_clone)} to clone)")
                 elif self.verbose:
                     print("\nVerifying repositories...")
 
@@ -509,9 +497,7 @@ class DevEnvironmentAutomation:
             print(f"Environment file generation error: {e}")
             return False
 
-    def _start_development_servers(
-        self, config: Dict[str, Any], detach: bool = False
-    ) -> bool:
+    def _start_development_servers(self, config: Dict[str, Any], detach: bool = False) -> bool:
         """Start development servers for all repositories."""
         try:
             coffeebreak_config = config.get("coffeebreak", {})
@@ -522,9 +508,7 @@ class DevEnvironmentAutomation:
             try:
                 connection_info = self.dependency_manager.generate_connection_info()
                 if self.verbose and connection_info:
-                    print(
-                        f"    Generated connection info for {len(connection_info)} services"
-                    )
+                    print(f"    Generated connection info for {len(connection_info)} services")
             except Exception as e:
                 if self.verbose:
                     print(f"    Warning: Could not generate connection info: {e}")
@@ -693,9 +677,7 @@ class DevEnvironmentAutomation:
                 log_thread.start()
 
             # Save process info with log file path
-            self._save_process_info(
-                name, process.pid, command, repo_path, str(log_file)
-            )
+            self._save_process_info(name, process.pid, command, repo_path, str(log_file))
 
             # Store process for later management
             self.processes[name] = process
@@ -706,9 +688,7 @@ class DevEnvironmentAutomation:
             print(f"      ✗ Failed to start {name}: {e}")
             return None
 
-    def _prepare_process_environment(
-        self, env_vars: Optional[Dict[str, str]] = None
-    ) -> Dict[str, str]:
+    def _prepare_process_environment(self, env_vars: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """
         Prepare enhanced environment variables for development processes.
 
@@ -770,9 +750,7 @@ class DevEnvironmentAutomation:
                     venv_path = Path(venv_path).resolve()
                     if venv_path.exists():
                         venv_vars["VIRTUAL_ENV"] = str(venv_path)
-                        venv_vars["PATH"] = (
-                            f"{venv_path / 'bin'}:{os.environ.get('PATH', '')}"
-                        )
+                        venv_vars["PATH"] = f"{venv_path / 'bin'}:{os.environ.get('PATH', '')}"
 
                         # Remove PYTHONHOME if present
                         if "PYTHONHOME" in venv_vars:
@@ -831,9 +809,7 @@ class DevEnvironmentAutomation:
                         try:
                             # Use select to check if there's data to read (Unix only)
                             if hasattr(select, "select"):
-                                ready, _, _ = select.select(
-                                    [process.stdout], [], [], 0.1
-                                )
+                                ready, _, _ = select.select([process.stdout], [], [], 0.1)
                                 if ready:
                                     line = process.stdout.readline()
                                     if line:
@@ -1004,9 +980,7 @@ class DevEnvironmentAutomation:
             # Check service status using health monitoring
             try:
                 health_status = self.dependency_manager.get_health_status()
-                status["monitoring_active"] = health_status.get(
-                    "monitoring_active", False
-                )
+                status["monitoring_active"] = health_status.get("monitoring_active", False)
 
                 # Add container health info
                 containers_info = health_status.get("containers", {})
@@ -1018,9 +992,7 @@ class DevEnvironmentAutomation:
                     }
 
                 # Add overall health status
-                status["overall_health"] = health_status.get(
-                    "overall_status", "unknown"
-                )
+                status["overall_health"] = health_status.get("overall_status", "unknown")
 
             except Exception as e:
                 status["errors"].append(f"Service check error: {e}")
@@ -1036,9 +1008,7 @@ class DevEnvironmentAutomation:
                         path = repo_config.get("path", f"./{name}")
 
                         if name:
-                            repo_status = self.git_operations.check_repository_status(
-                                path
-                            )
+                            repo_status = self.git_operations.check_repository_status(path)
                             status["repositories"][name] = repo_status
 
                 except Exception as e:

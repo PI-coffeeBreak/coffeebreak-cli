@@ -51,21 +51,15 @@ class DevelopmentEnvironment:
         try:
             # Check if already initialized
             if self.detector.is_initialized():
-                raise DevelopmentEnvironmentError(
-                    "Development environment already initialized"
-                )
+                raise DevelopmentEnvironmentError("Development environment already initialized")
 
             # Setup Python environment first
             if self.verbose:
                 click.echo("Setting up Python environment...")
-            env_info = self._setup_python_environment(
-                env_type, env_path_or_name, python_path
-            )
+            env_info = self._setup_python_environment(env_type, env_path_or_name, python_path)
 
             # Create configuration file with environment info
-            config_path = self.config_manager.initialize_main_config(
-                organization=organization, version=version, environment=env_info
-            )
+            config_path = self.config_manager.initialize_main_config(organization=organization, version=version, environment=env_info)
 
             if self.verbose:
                 click.echo(f"Created configuration file: {config_path}")
@@ -88,9 +82,7 @@ class DevelopmentEnvironment:
                 click.echo("Setting up Keycloak configuration...")
             success = self._setup_keycloak_configuration()
             if not success:
-                click.echo(
-                    "Warning: Keycloak configuration setup failed, continuing anyway..."
-                )
+                click.echo("Warning: Keycloak configuration setup failed, continuing anyway...")
 
             if self.verbose:
                 click.echo("✓ Development environment initialized successfully")
@@ -98,9 +90,7 @@ class DevelopmentEnvironment:
             return True
 
         except Exception as e:
-            raise DevelopmentEnvironmentError(
-                f"Failed to initialize development environment: {e}"
-            )
+            raise DevelopmentEnvironmentError(f"Failed to initialize development environment: {e}")
 
     def start(self) -> bool:
         """
@@ -141,9 +131,7 @@ class DevelopmentEnvironment:
             repos_config = self.config_manager.get_repositories_config()
             for repo in repos_config:
                 repo_status = self.git_ops.check_repository_status(repo["path"])
-                status[repo["name"]] = (
-                    "cloned" if repo_status["is_valid"] else "not cloned"
-                )
+                status[repo["name"]] = "cloned" if repo_status["is_valid"] else "not cloned"
         except Exception as e:
             status["repositories"] = f"error: {e}"
 
@@ -177,16 +165,12 @@ class DevelopmentEnvironment:
             for repo in repos_config:
                 url = repo.get("url")
                 if not url:
-                    raise DevelopmentEnvironmentError(
-                        f"No URL configured for repository {repo.get('name')}"
-                    )
+                    raise DevelopmentEnvironmentError(f"No URL configured for repository {repo.get('name')}")
 
                 try:
                     self.git_ops.validate_repository_access(url)
                 except GitOperationError as e:
-                    raise DevelopmentEnvironmentError(
-                        f"Repository access validation failed for {repo.get('name')}: {e}"
-                    )
+                    raise DevelopmentEnvironmentError(f"Repository access validation failed for {repo.get('name')}: {e}")
 
             # Clone repositories
             cloned_repos = self.git_ops.clone_multiple_repositories(repos_config)
@@ -201,9 +185,7 @@ class DevelopmentEnvironment:
         except GitOperationError as e:
             raise DevelopmentEnvironmentError(f"Git operation failed: {e}")
         except Exception as e:
-            raise DevelopmentEnvironmentError(
-                f"Unexpected error cloning repositories: {e}"
-            )
+            raise DevelopmentEnvironmentError(f"Unexpected error cloning repositories: {e}")
 
     def _setup_keycloak_configuration(self) -> bool:
         """
@@ -219,15 +201,9 @@ class DevelopmentEnvironment:
 
             # Create subdirectories
             (keycloak_dir / "exports").mkdir(exist_ok=True)
-            (
-                keycloak_dir / "themes" / "coffeebreak" / "login" / "resources" / "css"
-            ).mkdir(parents=True, exist_ok=True)
-            (
-                keycloak_dir / "themes" / "coffeebreak" / "login" / "resources" / "js"
-            ).mkdir(parents=True, exist_ok=True)
-            (
-                keycloak_dir / "themes" / "coffeebreak" / "login" / "resources" / "img"
-            ).mkdir(parents=True, exist_ok=True)
+            (keycloak_dir / "themes" / "coffeebreak" / "login" / "resources" / "css").mkdir(parents=True, exist_ok=True)
+            (keycloak_dir / "themes" / "coffeebreak" / "login" / "resources" / "js").mkdir(parents=True, exist_ok=True)
+            (keycloak_dir / "themes" / "coffeebreak" / "login" / "resources" / "img").mkdir(parents=True, exist_ok=True)
             (keycloak_dir / "providers").mkdir(exist_ok=True)
 
             # Generate Dockerfile
@@ -344,9 +320,7 @@ class DevelopmentEnvironment:
                     failed_repos.append(f"{name}: {e}")
 
             if failed_repos:
-                raise DevelopmentEnvironmentError(
-                    f"Failed to update repositories: {'; '.join(failed_repos)}"
-                )
+                raise DevelopmentEnvironmentError(f"Failed to update repositories: {'; '.join(failed_repos)}")
 
             if self.verbose:
                 click.echo(f"✓ Successfully updated {len(updated_repos)} repositories")
@@ -356,9 +330,7 @@ class DevelopmentEnvironment:
         except Exception as e:
             raise DevelopmentEnvironmentError(f"Error updating repositories: {e}")
 
-    def _setup_python_environment(
-        self, env_type: str, env_path_or_name: Optional[str], python_path: Optional[str]
-    ) -> Dict:
+    def _setup_python_environment(self, env_type: str, env_path_or_name: Optional[str], python_path: Optional[str]) -> Dict:
         """
         Setup Python environment (venv or conda).
 
@@ -377,9 +349,7 @@ class DevelopmentEnvironment:
             from .python_env import PythonEnvironmentManager
 
             env_manager = PythonEnvironmentManager(verbose=self.verbose)
-            env_info = env_manager.setup_environment(
-                env_type, env_path_or_name, python_path
-            )
+            env_info = env_manager.setup_environment(env_type, env_path_or_name, python_path)
 
             if self.verbose:
                 if env_info["created"]:
@@ -390,9 +360,7 @@ class DevelopmentEnvironment:
             return env_info
 
         except Exception as e:
-            raise DevelopmentEnvironmentError(
-                f"Failed to setup Python environment: {e}"
-            )
+            raise DevelopmentEnvironmentError(f"Failed to setup Python environment: {e}")
 
     def _install_repository_dependencies(self, env_info: Dict) -> None:
         """
@@ -424,18 +392,12 @@ class DevelopmentEnvironment:
                 requirements_file = Path(repo_path) / "requirements.txt"
                 if requirements_file.exists():
                     try:
-                        python_env_manager.install_requirements(
-                            env_info, str(requirements_file)
-                        )
+                        python_env_manager.install_requirements(env_info, str(requirements_file))
                         if self.verbose:
-                            click.echo(
-                                f"  ✓ Python requirements installed for {repo_name}"
-                            )
+                            click.echo(f"  ✓ Python requirements installed for {repo_name}")
                     except Exception as e:
                         if self.verbose:
-                            click.echo(
-                                f"  ⚠ Python requirements failed for {repo_name}: {e}"
-                            )
+                            click.echo(f"  ⚠ Python requirements failed for {repo_name}: {e}")
 
                 # Install npm dependencies if package.json exists
                 package_json = Path(repo_path) / "package.json"
@@ -443,14 +405,10 @@ class DevelopmentEnvironment:
                     try:
                         npm_manager.install_dependencies(repo_path)
                         if self.verbose:
-                            click.echo(
-                                f"  ✓ npm dependencies installed for {repo_name}"
-                            )
+                            click.echo(f"  ✓ npm dependencies installed for {repo_name}")
                     except Exception as e:
                         if self.verbose:
-                            click.echo(
-                                f"  ⚠ npm dependencies failed for {repo_name}: {e}"
-                            )
+                            click.echo(f"  ⚠ npm dependencies failed for {repo_name}: {e}")
 
         except Exception as e:
             if self.verbose:

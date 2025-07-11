@@ -22,9 +22,7 @@ class PluginContainerIntegration:
         self.container_manager = ContainerManager(verbose=verbose)
         self.compose_orchestrator = DockerComposeOrchestrator(verbose=verbose)
 
-    def mount_plugin_in_development(
-        self, plugin_dir: str, core_container_name: str = "coffeebreak-core"
-    ) -> bool:
+    def mount_plugin_in_development(self, plugin_dir: str, core_container_name: str = "coffeebreak-core") -> bool:
         """
         Mount plugin directory into running CoffeeBreak core container for development.
 
@@ -39,10 +37,7 @@ class PluginContainerIntegration:
             plugin_dir = os.path.abspath(plugin_dir)
 
             if self.verbose:
-                print(
-                    f"Mounting plugin {plugin_dir} into container "
-                    f"{core_container_name}"
-                )
+                print(f"Mounting plugin {plugin_dir} into container {core_container_name}")
 
             # Validate plugin directory
             if not self._validate_plugin_directory(plugin_dir):
@@ -54,9 +49,7 @@ class PluginContainerIntegration:
 
             # Check if container is running
             if not self._is_container_running(core_container_name):
-                raise PluginError(
-                    f"Core container '{core_container_name}' is not running"
-                )
+                raise PluginError(f"Core container '{core_container_name}' is not running")
 
             # Create mount points
             mount_paths = self._create_plugin_mount_paths(plugin_config, plugin_dir)
@@ -66,9 +59,7 @@ class PluginContainerIntegration:
 
             if success:
                 # Register plugin with core instance
-                self._register_plugin_with_core(
-                    core_container_name, plugin_name, plugin_config
-                )
+                self._register_plugin_with_core(core_container_name, plugin_name, plugin_config)
 
                 if self.verbose:
                     print(f"Plugin '{plugin_name}' mounted successfully")
@@ -83,9 +74,7 @@ class PluginContainerIntegration:
             else:
                 raise PluginError(f"Failed to mount plugin in development: {e}") from e
 
-    def unmount_plugin_from_development(
-        self, plugin_name: str, core_container_name: str = "coffeebreak-core"
-    ) -> bool:
+    def unmount_plugin_from_development(self, plugin_name: str, core_container_name: str = "coffeebreak-core") -> bool:
         """
         Unmount plugin from running CoffeeBreak core container.
 
@@ -98,10 +87,7 @@ class PluginContainerIntegration:
         """
         try:
             if self.verbose:
-                print(
-                    f"Unmounting plugin '{plugin_name}' from container "
-                    f"{core_container_name}"
-                )
+                print(f"Unmounting plugin '{plugin_name}' from container {core_container_name}")
 
             # Check if container is running
             if not self._is_container_running(core_container_name):
@@ -123,9 +109,7 @@ class PluginContainerIntegration:
         except Exception as e:
             raise PluginError(f"Failed to unmount plugin: {e}") from e
 
-    def list_mounted_plugins(
-        self, core_container_name: str = "coffeebreak-core"
-    ) -> List[Dict[str, Any]]:
+    def list_mounted_plugins(self, core_container_name: str = "coffeebreak-core") -> List[Dict[str, Any]]:
         """
         List all plugins currently mounted in the core container.
 
@@ -179,9 +163,7 @@ class PluginContainerIntegration:
             mount_success = self.mount_plugin_in_development(plugin_dir, core_container)
 
             # Setup hot reload if configured
-            hot_reload_enabled = self._setup_hot_reload(
-                plugin_dir, plugin_config, core_container
-            )
+            hot_reload_enabled = self._setup_hot_reload(plugin_dir, plugin_config, core_container)
 
             result = {
                 "plugin_name": plugin_name,
@@ -198,9 +180,7 @@ class PluginContainerIntegration:
             return result
 
         except Exception as e:
-            raise PluginError(
-                f"Failed to setup plugin development environment: {e}"
-            ) from e
+            raise PluginError(f"Failed to setup plugin development environment: {e}") from e
 
     def _validate_plugin_directory(self, plugin_dir: str) -> bool:
         """Validate that directory is a valid plugin."""
@@ -222,21 +202,15 @@ class PluginContainerIntegration:
         except Exception:
             return False
 
-    def _create_plugin_mount_paths(
-        self, plugin_config: Dict[str, Any], plugin_dir: str
-    ) -> Dict[str, str]:
+    def _create_plugin_mount_paths(self, plugin_config: Dict[str, Any], plugin_dir: str) -> Dict[str, str]:
         """Create mapping of local paths to container mount points."""
         plugin_name = plugin_config["plugin"]["name"]
         development_config = plugin_config.get("development", {})
 
         # Default mount paths
         mount_paths = {
-            os.path.join(
-                plugin_dir, "src"
-            ): f"/opt/coffeebreak/plugins/{plugin_name}/src",
-            os.path.join(
-                plugin_dir, "assets"
-            ): f"/opt/coffeebreak/plugins/{plugin_name}/assets",
+            os.path.join(plugin_dir, "src"): f"/opt/coffeebreak/plugins/{plugin_name}/src",
+            os.path.join(plugin_dir, "assets"): f"/opt/coffeebreak/plugins/{plugin_name}/assets",
         }
 
         # Add custom mount paths from config
@@ -255,9 +229,7 @@ class PluginContainerIntegration:
 
         return valid_mount_paths
 
-    def _mount_plugin_volumes(
-        self, container_name: str, mount_paths: Dict[str, str]
-    ) -> bool:
+    def _mount_plugin_volumes(self, container_name: str, mount_paths: Dict[str, str]) -> bool:
         """Mount plugin volumes into container."""
         try:
             # Note: Docker doesn't support dynamic volume mounting after
@@ -271,9 +243,7 @@ class PluginContainerIntegration:
                     print(f"Copying {host_path} -> {container_path}")
 
                 # Create container directory
-                container.exec_run(
-                    f"mkdir -p {os.path.dirname(container_path)}"
-                )
+                container.exec_run(f"mkdir -p {os.path.dirname(container_path)}")
 
                 # Copy files to container
                 self._copy_to_container(container, host_path, container_path)
@@ -285,9 +255,7 @@ class PluginContainerIntegration:
                 print(f"Error mounting plugin volumes: {e}")
             return False
 
-    def _copy_to_container(
-        self, container, host_path: str, container_path: str
-    ) -> None:
+    def _copy_to_container(self, container, host_path: str, container_path: str) -> None:
         """Copy files from host to container."""
         try:
             # Create a tar archive of the directory
@@ -303,9 +271,7 @@ class PluginContainerIntegration:
             if self.verbose:
                 print(f"Error copying to container: {e}")
 
-    def _register_plugin_with_core(
-        self, container_name: str, plugin_name: str, plugin_config: Dict[str, Any]
-    ) -> None:
+    def _register_plugin_with_core(self, container_name: str, plugin_name: str, plugin_config: Dict[str, Any]) -> None:
         """Register plugin with CoffeeBreak core instance."""
         try:
             container = self.container_manager.client.containers.get(container_name)
@@ -328,50 +294,37 @@ EOF
 
             if exec_result.exit_code != 0:
                 if self.verbose:
-                    print(
-                        f"Warning: Failed to register plugin in core: "
-                        f"{exec_result.output}"
-                    )
+                    print(f"Warning: Failed to register plugin in core: {exec_result.output}")
 
         except Exception as e:
             if self.verbose:
                 print(f"Warning: Failed to register plugin with core: {e}")
 
-    def _unregister_plugin_from_core(
-        self, container_name: str, plugin_name: str
-    ) -> None:
+    def _unregister_plugin_from_core(self, container_name: str, plugin_name: str) -> None:
         """Unregister plugin from CoffeeBreak core instance."""
         try:
             container = self.container_manager.client.containers.get(container_name)
 
             # Remove plugin registry entry
-            container.exec_run(
-                ["rm", "-f", f"/opt/coffeebreak/plugins/.registry/{plugin_name}.json"]
-            )
+            container.exec_run(["rm", "-f", f"/opt/coffeebreak/plugins/.registry/{plugin_name}.json"])
 
         except Exception as e:
             if self.verbose:
                 print(f"Warning: Failed to unregister plugin from core: {e}")
 
-    def _cleanup_plugin_from_container(
-        self, container_name: str, plugin_name: str
-    ) -> None:
+    def _cleanup_plugin_from_container(self, container_name: str, plugin_name: str) -> None:
         """Clean up plugin files from container."""
         try:
             container = self.container_manager.client.containers.get(container_name)
 
             # Remove plugin directory
-            container.exec_run(
-                ["rm", "-rf", f"/opt/coffeebreak/plugins/{plugin_name}"]
-            )
+            container.exec_run(["rm", "-rf", f"/opt/coffeebreak/plugins/{plugin_name}"])
 
         except Exception as e:
             if self.verbose:
                 print(f"Warning: Failed to cleanup plugin from container: {e}")
 
-    def _get_mounted_plugins_from_core(
-        self, container_name: str
-    ) -> List[Dict[str, Any]]:
+    def _get_mounted_plugins_from_core(self, container_name: str) -> List[Dict[str, Any]]:
         """Get list of mounted plugins from core container."""
         try:
             container = self.container_manager.client.containers.get(container_name)
@@ -425,9 +378,7 @@ EOF
                 # Use dependency manager to start required services
                 from coffeebreak.containers.dependencies import DependencyManager
 
-                dep_manager = DependencyManager(
-                    self.config_manager, verbose=self.verbose
-                )
+                dep_manager = DependencyManager(self.config_manager, verbose=self.verbose)
 
                 # Start plugin-dev profile or specific services
                 dep_manager.start_profile("plugin-dev")
@@ -445,10 +396,7 @@ EOF
                 return core_container_name
 
             if self.verbose:
-                print(
-                    f"Core container '{core_container_name}' not running, "
-                    f"attempting to start..."
-                )
+                print(f"Core container '{core_container_name}' not running, attempting to start...")
 
             # Try to start using docker-compose if available
             if self.compose_orchestrator.is_compose_available():
@@ -462,14 +410,8 @@ EOF
                 return core_container_name
             else:
                 if self.verbose:
-                    print(
-                        f"Warning: Core container '{core_container_name}' "
-                        f"is not running"
-                    )
-                    print(
-                        "You may need to start the CoffeeBreak core "
-                        "development environment first"
-                    )
+                    print(f"Warning: Core container '{core_container_name}' is not running")
+                    print("You may need to start the CoffeeBreak core development environment first")
                 return core_container_name  # Return name anyway for error handling
 
         except Exception as e:
@@ -477,9 +419,7 @@ EOF
                 print(f"Warning: Could not ensure core container running: {e}")
             return core_container_name
 
-    def _setup_hot_reload(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], core_container: str
-    ) -> bool:
+    def _setup_hot_reload(self, plugin_dir: str, plugin_config: Dict[str, Any], core_container: str) -> bool:
         """Setup hot reload for plugin development."""
         try:
             development_config = plugin_config.get("development", {})

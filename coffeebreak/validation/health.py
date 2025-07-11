@@ -17,9 +17,7 @@ class HealthChecker:
         """Initialize health checker."""
         self.verbose = verbose
 
-    def comprehensive_health_check(
-        self, domain: str, timeout: int = 30
-    ) -> Dict[str, Any]:
+    def comprehensive_health_check(self, domain: str, timeout: int = 30) -> Dict[str, Any]:
         """
         Perform comprehensive health check.
 
@@ -115,14 +113,10 @@ class HealthChecker:
                     check_result["details"]["message"] = "HTTPS connectivity successful"
                 elif response.status_code in [301, 302, 307, 308]:
                     check_result["status"] = "healthy"
-                    check_result["details"]["message"] = (
-                        f"HTTPS redirect: {response.status_code}"
-                    )
+                    check_result["details"]["message"] = f"HTTPS redirect: {response.status_code}"
                 else:
                     check_result["status"] = "unhealthy"
-                    check_result["issues"].append(
-                        f"HTTP {response.status_code} response"
-                    )
+                    check_result["issues"].append(f"HTTP {response.status_code} response")
 
             except requests.exceptions.SSLError as e:
                 check_result["status"] = "unhealthy"
@@ -132,9 +126,7 @@ class HealthChecker:
                 try:
                     response = requests.get(f"http://{domain}", timeout=timeout)
                     if response.status_code == 200:
-                        check_result["details"]["fallback"] = (
-                            "HTTP accessible but SSL issues"
-                        )
+                        check_result["details"]["fallback"] = "HTTP accessible but SSL issues"
                 except Exception:
                     check_result["issues"].append("HTTP also inaccessible")
 
@@ -185,23 +177,17 @@ class HealthChecker:
                     # Check certificate validity
                     import datetime
 
-                    not_after = datetime.datetime.strptime(
-                        cert["notAfter"], "%b %d %H:%M:%S %Y %Z"
-                    )
+                    not_after = datetime.datetime.strptime(cert["notAfter"], "%b %d %H:%M:%S %Y %Z")
                     days_until_expiry = (not_after - datetime.datetime.now()).days
 
                     check_result["metrics"]["days_until_expiry"] = days_until_expiry
 
                     if days_until_expiry > 30:
                         check_result["status"] = "healthy"
-                        check_result["details"]["message"] = (
-                            f"SSL certificate valid for {days_until_expiry} days"
-                        )
+                        check_result["details"]["message"] = f"SSL certificate valid for {days_until_expiry} days"
                     elif days_until_expiry > 0:
                         check_result["status"] = "warning"
-                        check_result["issues"].append(
-                            f"SSL certificate expires in {days_until_expiry} days"
-                        )
+                        check_result["issues"].append(f"SSL certificate expires in {days_until_expiry} days")
                     else:
                         check_result["status"] = "unhealthy"
                         check_result["issues"].append("SSL certificate has expired")
@@ -277,9 +263,7 @@ class HealthChecker:
             if successful_endpoints:
                 check_result["status"] = "healthy"
                 check_result["details"]["endpoints"] = successful_endpoints
-                check_result["details"]["message"] = (
-                    f"Found {len(successful_endpoints)} health endpoints"
-                )
+                check_result["details"]["message"] = f"Found {len(successful_endpoints)} health endpoints"
             else:
                 check_result["status"] = "warning"
                 check_result["issues"].append("No standard health endpoints responding")
@@ -354,9 +338,7 @@ class HealthChecker:
 
             # Redis check
             try:
-                result = subprocess.run(
-                    ["redis-cli", "ping"], capture_output=True, text=True, timeout=10
-                )
+                result = subprocess.run(["redis-cli", "ping"], capture_output=True, text=True, timeout=10)
 
                 if result.returncode == 0 and "PONG" in result.stdout:
                     database_checks["redis"] = {
@@ -377,21 +359,15 @@ class HealthChecker:
             check_result["details"]["databases"] = database_checks
 
             # Determine overall database health
-            healthy_dbs = sum(
-                1 for db in database_checks.values() if db["status"] == "healthy"
-            )
-            unhealthy_dbs = sum(
-                1 for db in database_checks.values() if db["status"] == "unhealthy"
-            )
+            healthy_dbs = sum(1 for db in database_checks.values() if db["status"] == "healthy")
+            unhealthy_dbs = sum(1 for db in database_checks.values() if db["status"] == "unhealthy")
 
             if unhealthy_dbs > 0:
                 check_result["status"] = "unhealthy"
                 check_result["issues"].append(f"{unhealthy_dbs} database(s) unhealthy")
             elif healthy_dbs > 0:
                 check_result["status"] = "healthy"
-                check_result["details"]["message"] = (
-                    f"{healthy_dbs} database(s) healthy"
-                )
+                check_result["details"]["message"] = f"{healthy_dbs} database(s) healthy"
             else:
                 check_result["status"] = "warning"
                 check_result["issues"].append("Cannot verify database health")
@@ -475,19 +451,13 @@ class HealthChecker:
 
             if unhealthy_services == 0:
                 check_result["status"] = "healthy"
-                check_result["details"]["message"] = (
-                    f"All {total_services} services healthy"
-                )
+                check_result["details"]["message"] = f"All {total_services} services healthy"
             elif unhealthy_services <= 2:
                 check_result["status"] = "warning"
-                check_result["issues"].append(
-                    f"{unhealthy_services} service(s) unhealthy"
-                )
+                check_result["issues"].append(f"{unhealthy_services} service(s) unhealthy")
             else:
                 check_result["status"] = "unhealthy"
-                check_result["issues"].append(
-                    f"{unhealthy_services} service(s) unhealthy"
-                )
+                check_result["issues"].append(f"{unhealthy_services} service(s) unhealthy")
 
             check_result["metrics"]["healthy_services"] = healthy_services
             check_result["metrics"]["total_services"] = total_services
@@ -514,9 +484,7 @@ class HealthChecker:
             for _ in range(3):  # Test 3 times
                 try:
                     start_time = time.time()
-                    requests.get(
-                        f"https://{domain}", timeout=timeout, verify=False
-                    )
+                    requests.get(f"https://{domain}", timeout=timeout, verify=False)
                     response_time = (time.time() - start_time) * 1000
                     response_times.append(response_time)
                 except Exception:
@@ -529,19 +497,13 @@ class HealthChecker:
 
                 if avg_response_time < 1000:  # Under 1 second
                     check_result["status"] = "healthy"
-                    check_result["details"]["message"] = (
-                        f"Good response time: {avg_response_time:.0f}ms"
-                    )
+                    check_result["details"]["message"] = f"Good response time: {avg_response_time:.0f}ms"
                 elif avg_response_time < 3000:  # Under 3 seconds
                     check_result["status"] = "warning"
-                    check_result["issues"].append(
-                        f"Slow response time: {avg_response_time:.0f}ms"
-                    )
+                    check_result["issues"].append(f"Slow response time: {avg_response_time:.0f}ms")
                 else:
                     check_result["status"] = "unhealthy"
-                    check_result["issues"].append(
-                        f"Very slow response time: {avg_response_time:.0f}ms"
-                    )
+                    check_result["issues"].append(f"Very slow response time: {avg_response_time:.0f}ms")
             else:
                 check_result["status"] = "unhealthy"
                 check_result["issues"].append("Could not measure response time")
@@ -591,20 +553,13 @@ class HealthChecker:
 
             if header_score >= 0.8:  # 80% or more headers present
                 check_result["status"] = "healthy"
-                check_result["details"]["message"] = (
-                    f"Good security headers: {len(present_headers)}/"
-                    f"{len(security_headers)}"
-                )
+                check_result["details"]["message"] = f"Good security headers: {len(present_headers)}/{len(security_headers)}"
             elif header_score >= 0.5:  # 50% or more headers present
                 check_result["status"] = "warning"
-                check_result["issues"].append(
-                    f"Some security headers missing: {len(missing_headers)}"
-                )
+                check_result["issues"].append(f"Some security headers missing: {len(missing_headers)}")
             else:
                 check_result["status"] = "unhealthy"
-                check_result["issues"].append(
-                    f"Many security headers missing: {len(missing_headers)}"
-                )
+                check_result["issues"].append(f"Many security headers missing: {len(missing_headers)}")
 
             check_result["metrics"]["security_score"] = header_score
 
@@ -620,9 +575,7 @@ class HealthChecker:
 
         # Count status types
         warning_count = sum(1 for check in all_checks if check["status"] == "warning")
-        unhealthy_count = sum(
-            1 for check in all_checks if check["status"] == "unhealthy"
-        )
+        unhealthy_count = sum(1 for check in all_checks if check["status"] == "unhealthy")
         error_count = sum(1 for check in all_checks if check["status"] == "error")
 
         # Determine overall status
@@ -643,6 +596,4 @@ class HealthChecker:
                 response_times.append(check["metrics"]["response_time_ms"])
 
         if response_times:
-            health_result["response_time_ms"] = sum(response_times) / len(
-                response_times
-            )
+            health_result["response_time_ms"] = sum(response_times) / len(response_times)

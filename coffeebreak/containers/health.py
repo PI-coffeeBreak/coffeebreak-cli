@@ -97,9 +97,7 @@ class HealthChecker:
             return {
                 "status": status_mapping.get(status, "unknown"),
                 "method": "builtin",
-                "details": health_status.get("Log", [])[-1]
-                if health_status.get("Log")
-                else None,
+                "details": health_status.get("Log", [])[-1] if health_status.get("Log") else None,
             }
 
         except Exception as e:
@@ -131,9 +129,7 @@ class HealthChecker:
         """Check MongoDB container health."""
         try:
             # Use mongosh to ping
-            exec_result = container.exec_run(
-                ["mongosh", "--eval", 'db.runCommand("ping").ok', "--quiet"]
-            )
+            exec_result = container.exec_run(["mongosh", "--eval", 'db.runCommand("ping").ok', "--quiet"])
 
             if exec_result.exit_code == 0 and b"1" in exec_result.output:
                 return {
@@ -349,9 +345,7 @@ class HealthMonitor:
             if self.verbose:
                 print(f"Removed container '{container.name}' from monitoring")
 
-    def add_alert_callback(
-        self, callback: Callable[[str, Dict[str, Any]], None]
-    ) -> None:
+    def add_alert_callback(self, callback: Callable[[str, Dict[str, Any]], None]) -> None:
         """Add callback function to be called on health alerts."""
         self._alert_callbacks.append(callback)
 
@@ -396,9 +390,7 @@ class HealthMonitor:
         while self._monitoring:
             try:
                 if self._containers:
-                    health_summary = self.health_checker.get_health_summary(
-                        self._containers
-                    )
+                    health_summary = self.health_checker.get_health_summary(self._containers)
 
                     # Store in history
                     self._health_history.append(health_summary)
@@ -412,9 +404,7 @@ class HealthMonitor:
                         overall_status = health_summary["overall_status"]
                         healthy_count = health_summary["healthy"]
                         total_count = health_summary["total_containers"]
-                        print(
-                            f"Health check: {overall_status} ({healthy_count}/{total_count} healthy)"
-                        )
+                        print(f"Health check: {overall_status} ({healthy_count}/{total_count} healthy)")
 
                 time.sleep(self.check_interval)
 
@@ -429,9 +419,7 @@ class HealthMonitor:
             status = health_info["status"]
 
             if status in ["unhealthy", "error"]:
-                self._failure_counts[container_name] = (
-                    self._failure_counts.get(container_name, 0) + 1
-                )
+                self._failure_counts[container_name] = self._failure_counts.get(container_name, 0) + 1
 
                 # Trigger alert if threshold reached
                 if self._failure_counts[container_name] >= self.alert_threshold:
@@ -513,9 +501,7 @@ class HealthReporter:
 
         return "\n".join(report)
 
-    def generate_failure_alert(
-        self, container_name: str, alert_data: Dict[str, Any]
-    ) -> str:
+    def generate_failure_alert(self, container_name: str, alert_data: Dict[str, Any]) -> str:
         """Generate a formatted failure alert message."""
         health_info = alert_data["health_info"]
         failure_count = alert_data["failure_count"]

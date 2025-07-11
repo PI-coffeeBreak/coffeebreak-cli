@@ -16,9 +16,7 @@ class MetricsCollector:
         """Initialize metrics collector."""
         self.verbose = verbose
 
-    def setup_metrics_collection(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def setup_metrics_collection(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup Prometheus metrics collection."""
         setup_result = {"success": True, "errors": [], "prometheus_endpoint": None}
 
@@ -124,12 +122,8 @@ class MetricsCollector:
             )
 
             # Download and extract
-            subprocess.run(
-                ["wget", download_url, "-O", "/tmp/node_exporter.tar.gz"], check=True
-            )
-            subprocess.run(
-                ["tar", "-xzf", "/tmp/node_exporter.tar.gz", "-C", "/tmp"], check=True
-            )
+            subprocess.run(["wget", download_url, "-O", "/tmp/node_exporter.tar.gz"], check=True)
+            subprocess.run(["tar", "-xzf", "/tmp/node_exporter.tar.gz", "-C", "/tmp"], check=True)
             subprocess.run(
                 [
                     "cp",

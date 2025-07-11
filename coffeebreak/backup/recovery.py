@@ -19,9 +19,7 @@ class RecoveryManager:
         self.deployment_type = deployment_type
         self.verbose = verbose
 
-    def setup_recovery_procedures(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def setup_recovery_procedures(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Setup recovery procedures and disaster recovery plans.
 
@@ -58,18 +56,14 @@ class RecoveryManager:
                 setup_result["errors"].extend(scripts_result["errors"])
 
             # Create disaster recovery plan
-            dr_plan_result = self._create_disaster_recovery_plan(
-                domain, config, recovery_dir
-            )
+            dr_plan_result = self._create_disaster_recovery_plan(domain, config, recovery_dir)
             if dr_plan_result["success"]:
                 setup_result["disaster_recovery_plan"] = dr_plan_result["plan_file"]
             else:
                 setup_result["errors"].extend(dr_plan_result["errors"])
 
             # Create recovery documentation
-            docs_result = self._create_recovery_documentation(
-                domain, config, recovery_dir
-            )
+            docs_result = self._create_recovery_documentation(domain, config, recovery_dir)
             if not docs_result["success"]:
                 setup_result["errors"].extend(docs_result["errors"])
 
@@ -84,9 +78,7 @@ class RecoveryManager:
 
         return setup_result
 
-    def _create_recovery_scripts(
-        self, domain: str, config: Dict[str, Any], scripts_dir: str
-    ) -> Dict[str, Any]:
+    def _create_recovery_scripts(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
         """Create recovery scripts for different scenarios."""
         setup_result = {"success": True, "errors": [], "scripts": []}
 
@@ -615,9 +607,7 @@ echo "Emergency recovery completed. Please verify system functionality."
 
         return setup_result
 
-    def _create_disaster_recovery_plan(
-        self, domain: str, config: Dict[str, Any], recovery_dir: str
-    ) -> Dict[str, Any]:
+    def _create_disaster_recovery_plan(self, domain: str, config: Dict[str, Any], recovery_dir: str) -> Dict[str, Any]:
         """Create disaster recovery plan documentation."""
         setup_result = {"success": True, "errors": [], "plan_file": None}
 
@@ -797,15 +787,11 @@ This plan should be reviewed and updated:
 
         except Exception as e:
             setup_result["success"] = False
-            setup_result["errors"].append(
-                f"Disaster recovery plan creation failed: {e}"
-            )
+            setup_result["errors"].append(f"Disaster recovery plan creation failed: {e}")
 
         return setup_result
 
-    def _create_recovery_documentation(
-        self, domain: str, config: Dict[str, Any], recovery_dir: str
-    ) -> Dict[str, Any]:
+    def _create_recovery_documentation(self, domain: str, config: Dict[str, Any], recovery_dir: str) -> Dict[str, Any]:
         """Create additional recovery documentation."""
         setup_result = {"success": True, "errors": []}
 
@@ -993,8 +979,6 @@ systemctl restart coffeebreak-*
 
         except Exception as e:
             setup_result["success"] = False
-            setup_result["errors"].append(
-                f"Recovery documentation creation failed: {e}"
-            )
+            setup_result["errors"].append(f"Recovery documentation creation failed: {e}")
 
         return setup_result

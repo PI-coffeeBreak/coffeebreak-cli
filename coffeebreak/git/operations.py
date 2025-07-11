@@ -59,13 +59,9 @@ class GitOperations:
         # Check if target directory already exists
         if os.path.exists(local_path):
             if os.path.isdir(local_path) and os.listdir(local_path):
-                raise GitOperationError(
-                    f"Directory {local_path} already exists and is not empty"
-                )
+                raise GitOperationError(f"Directory {local_path} already exists and is not empty")
             elif os.path.isfile(local_path):
-                raise GitOperationError(
-                    f"File exists at {local_path}, cannot create directory"
-                )
+                raise GitOperationError(f"File exists at {local_path}, cannot create directory")
 
         try:
             # Prepare clone options
@@ -119,9 +115,7 @@ class GitOperations:
 
             raise GitOperationError(f"Unexpected error cloning repository: {e}")
 
-    def clone_multiple_repositories(
-        self, repositories: List[Dict[str, Any]]
-    ) -> Dict[str, git.Repo]:
+    def clone_multiple_repositories(self, repositories: List[Dict[str, Any]]) -> Dict[str, git.Repo]:
         """
         Clone multiple repositories.
 
@@ -206,12 +200,8 @@ class GitOperations:
 
                 # Check ahead/behind status
                 try:
-                    commits_ahead = list(
-                        repo.iter_commits(f"origin/{repo.active_branch.name}..HEAD")
-                    )
-                    commits_behind = list(
-                        repo.iter_commits(f"HEAD..origin/{repo.active_branch.name}")
-                    )
+                    commits_ahead = list(repo.iter_commits(f"origin/{repo.active_branch.name}..HEAD"))
+                    commits_behind = list(repo.iter_commits(f"HEAD..origin/{repo.active_branch.name}"))
                     status["ahead_behind"] = {
                         "ahead": len(commits_ahead),
                         "behind": len(commits_behind),
@@ -254,14 +244,10 @@ class GitOperations:
             repo = git.Repo(repo_path)
 
             if repo.is_dirty():
-                raise GitOperationError(
-                    f"Repository {repo_path} has uncommitted changes"
-                )
+                raise GitOperationError(f"Repository {repo_path} has uncommitted changes")
 
             if not repo.remotes:
-                raise GitOperationError(
-                    f"Repository {repo_path} has no remote configured"
-                )
+                raise GitOperationError(f"Repository {repo_path} has no remote configured")
 
             origin = repo.remotes.origin
             origin.pull()
@@ -293,8 +279,6 @@ class GitOperations:
         """
         errors = self.validator.validate_access(url)
         if errors:
-            raise GitOperationError(
-                f"Repository access validation failed: {'; '.join(errors)}"
-            )
+            raise GitOperationError(f"Repository access validation failed: {'; '.join(errors)}")
 
         return True

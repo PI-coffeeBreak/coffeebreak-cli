@@ -80,18 +80,14 @@ class SecretManager:
                             print(f"Docker secret already exists: {name}")
                         return True
                     else:
-                        raise SecurityError(
-                            f"Failed to create Docker secret {name}: {result.stderr}"
-                        )
+                        raise SecurityError(f"Failed to create Docker secret {name}: {result.stderr}")
 
             finally:
                 # Clean up temporary file
                 os.unlink(tmp_file_path)
 
         except FileNotFoundError:
-            raise SecurityError(
-                "Docker is not available for secret management"
-            ) from None
+            raise SecurityError("Docker is not available for secret management") from None
         except Exception as e:
             raise SecurityError(f"Failed to create Docker secret {name}: {e}") from e
 
@@ -111,9 +107,7 @@ class SecretManager:
                 print(f"Updating Docker secret: {name}")
 
             # Remove existing secret
-            subprocess.run(
-                ["docker", "secret", "rm", name], capture_output=True, text=True
-            )
+            subprocess.run(["docker", "secret", "rm", name], capture_output=True, text=True)
 
             # Create new secret
             return self.create_docker_secret(name, value)
@@ -135,9 +129,7 @@ class SecretManager:
             if self.verbose:
                 print(f"Removing Docker secret: {name}")
 
-            result = subprocess.run(
-                ["docker", "secret", "rm", name], capture_output=True, text=True
-            )
+            result = subprocess.run(["docker", "secret", "rm", name], capture_output=True, text=True)
 
             if result.returncode == 0:
                 if self.verbose:
@@ -149,9 +141,7 @@ class SecretManager:
                         print(f"Docker secret not found: {name}")
                     return True
                 else:
-                    raise SecurityError(
-                        f"Failed to remove Docker secret {name}: {result.stderr}"
-                    )
+                    raise SecurityError(f"Failed to remove Docker secret {name}: {result.stderr}")
 
         except Exception as e:
             raise SecurityError(f"Failed to remove Docker secret {name}: {e}") from e
@@ -171,17 +161,13 @@ class SecretManager:
             )
 
             if result.returncode == 0:
-                secrets = [
-                    line.strip() for line in result.stdout.split("\n") if line.strip()
-                ]
+                secrets = [line.strip() for line in result.stdout.split("\n") if line.strip()]
                 return secrets
             else:
                 raise SecurityError(f"Failed to list Docker secrets: {result.stderr}")
 
         except FileNotFoundError:
-            raise SecurityError(
-                "Docker is not available for secret management"
-            ) from None
+            raise SecurityError("Docker is not available for secret management") from None
         except Exception as e:
             raise SecurityError(f"Failed to list Docker secrets: {e}") from e
 
@@ -293,9 +279,7 @@ class SecretManager:
         except Exception as e:
             raise SecurityError(f"Failed to save plain secret {name}: {e}") from e
 
-    def deploy_all_secrets(
-        self, secrets: Dict[str, str], secrets_dir: str = "/etc/coffeebreak/secrets"
-    ) -> Dict[str, Any]:
+    def deploy_all_secrets(self, secrets: Dict[str, str], secrets_dir: str = "/etc/coffeebreak/secrets") -> Dict[str, Any]:
         """
         Deploy all secrets using the appropriate method for the deployment type.
 
@@ -308,10 +292,7 @@ class SecretManager:
         """
         try:
             if self.verbose:
-                print(
-                    f"Deploying {len(secrets)} secrets for "
-                    f"{self.deployment_type} deployment"
-                )
+                print(f"Deploying {len(secrets)} secrets for {self.deployment_type} deployment")
 
             results = {
                 "deployment_type": self.deployment_type,
@@ -329,9 +310,7 @@ class SecretManager:
                             results["successful"] += 1
                         else:
                             results["failed"] += 1
-                            results["errors"].append(
-                                f"Failed to create Docker secret: {name}"
-                            )
+                            results["errors"].append(f"Failed to create Docker secret: {name}")
 
                     elif self.deployment_type == "standalone":
                         # Use file-based secrets
@@ -345,19 +324,14 @@ class SecretManager:
                         results["successful"] += 1
 
                     else:
-                        raise SecurityError(
-                            f"Unknown deployment type: {self.deployment_type}"
-                        )
+                        raise SecurityError(f"Unknown deployment type: {self.deployment_type}")
 
                 except Exception as e:
                     results["failed"] += 1
                     results["errors"].append(f"Failed to deploy secret {name}: {e}")
 
             if self.verbose:
-                print(
-                    f"Successfully deployed {results['successful']}/"
-                    f"{results['total_secrets']} secrets"
-                )
+                print(f"Successfully deployed {results['successful']}/{results['total_secrets']} secrets")
                 if results["failed"] > 0:
                     print(f"Failed to deploy {results['failed']} secrets")
 
@@ -366,9 +340,7 @@ class SecretManager:
         except Exception as e:
             raise SecurityError(f"Failed to deploy secrets: {e}") from e
 
-    def rotate_secret(
-        self, name: str, secrets_dir: str = "/etc/coffeebreak/secrets"
-    ) -> str:
+    def rotate_secret(self, name: str, secrets_dir: str = "/etc/coffeebreak/secrets") -> str:
         """
         Rotate a single secret by generating a new value.
 
@@ -411,9 +383,7 @@ class SecretManager:
         except Exception as e:
             raise SecurityError(f"Failed to rotate secret {name}: {e}") from e
 
-    def rotate_all_secrets(
-        self, secret_names: List[str], secrets_dir: str = "/etc/coffeebreak/secrets"
-    ) -> Dict[str, str]:
+    def rotate_all_secrets(self, secret_names: List[str], secrets_dir: str = "/etc/coffeebreak/secrets") -> Dict[str, str]:
         """
         Rotate multiple secrets.
 
@@ -440,10 +410,7 @@ class SecretManager:
                     continue
 
             if self.verbose:
-                print(
-                    f"Successfully rotated {len(new_secrets)}/"
-                    f"{len(secret_names)} secrets"
-                )
+                print(f"Successfully rotated {len(new_secrets)}/{len(secret_names)} secrets")
 
             return new_secrets
 
@@ -478,9 +445,7 @@ class SecretManager:
                 backup_data = {
                     "type": "docker_secrets",
                     "secret_names": secret_names,
-                    "timestamp": subprocess.run(
-                        ["date", "-Iseconds"], capture_output=True, text=True
-                    ).stdout.strip(),
+                    "timestamp": subprocess.run(["date", "-Iseconds"], capture_output=True, text=True).stdout.strip(),
                 }
 
                 backup_file = f"{backup_path}_names.json"
@@ -507,9 +472,7 @@ class SecretManager:
         except Exception as e:
             raise SecurityError(f"Failed to backup secrets: {e}") from e
 
-    def validate_secrets_deployment(
-        self, secrets_dir: str = "/etc/coffeebreak/secrets"
-    ) -> Dict[str, Any]:
+    def validate_secrets_deployment(self, secrets_dir: str = "/etc/coffeebreak/secrets") -> Dict[str, Any]:
         """
         Validate that all required secrets are properly deployed.
 
@@ -556,9 +519,7 @@ class SecretManager:
                     elif self.deployment_type == "standalone":
                         # Check if secret file exists
                         if self.cipher:
-                            secret_file = os.path.join(
-                                secrets_dir, f"{secret_name}.enc"
-                            )
+                            secret_file = os.path.join(secrets_dir, f"{secret_name}.enc")
                         else:
                             secret_file = os.path.join(secrets_dir, secret_name)
 
@@ -569,16 +530,11 @@ class SecretManager:
                             validation["valid"] = False
 
                 except Exception as e:
-                    validation["errors"].append(
-                        f"Error checking secret {secret_name}: {e}"
-                    )
+                    validation["errors"].append(f"Error checking secret {secret_name}: {e}")
                     validation["valid"] = False
 
             if self.verbose:
-                print(
-                    f"Found {validation['found']}/"
-                    f"{validation['total_required']} required secrets"
-                )
+                print(f"Found {validation['found']}/{validation['total_required']} required secrets")
                 if validation["missing"]:
                     print(f"Missing secrets: {validation['missing']}")
 

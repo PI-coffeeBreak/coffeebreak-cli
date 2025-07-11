@@ -56,9 +56,7 @@ class PluginEnvironment:
             str: Path to created plugin directory
         """
         try:
-            plugin_dir = self.creator.create_plugin(
-                name=name, template=template, target_dir=target_dir, **kwargs
-            )
+            plugin_dir = self.creator.create_plugin(name=name, template=template, target_dir=target_dir, **kwargs)
 
             if self.verbose:
                 print(f"Plugin '{name}' created successfully at {plugin_dir}")
@@ -108,9 +106,7 @@ class PluginEnvironment:
             return True
 
         except Exception as e:
-            raise OSError(
-                f"Failed to initialize plugin development environment: {e}"
-            )
+            raise OSError(f"Failed to initialize plugin development environment: {e}")
 
     def build_plugin(
         self,
@@ -290,9 +286,7 @@ class PluginEnvironment:
             dependency_result = self.install_plugin_dependencies(plugin_dir)
 
             # Start the complete development workflow
-            workflow_result = self.development_workflow.start_plugin_development(
-                plugin_dir
-            )
+            workflow_result = self.development_workflow.start_plugin_development(plugin_dir)
 
             # Add dependency information to the result
             workflow_result["dependencies"] = dependency_result
@@ -389,9 +383,7 @@ class PluginEnvironment:
         except Exception as e:
             raise OSError(f"Failed to install dependencies: {e}")
 
-    def check_dependency_compatibility(
-        self, plugin_dir: str = ".", target_environment: str = "development"
-    ) -> Dict[str, Any]:
+    def check_dependency_compatibility(self, plugin_dir: str = ".", target_environment: str = "development") -> Dict[str, Any]:
         """
         Check plugin dependency compatibility.
 
@@ -403,9 +395,7 @@ class PluginEnvironment:
             Dict[str, Any]: Compatibility report
         """
         try:
-            return self.dependency_manager.check_dependency_compatibility(
-                plugin_dir, target_environment
-            )
+            return self.dependency_manager.check_dependency_compatibility(plugin_dir, target_environment)
         except Exception as e:
             raise OSError(f"Failed to check compatibility: {e}")
 
@@ -440,9 +430,7 @@ class PluginEnvironment:
         except Exception as e:
             raise OSError(f"Failed to run plugin tests: {e}")
 
-    def generate_test_report(
-        self, test_results: Dict[str, Any], format: str = "text"
-    ) -> str:
+    def generate_test_report(self, test_results: Dict[str, Any], format: str = "text") -> str:
         """
         Generate a formatted test report.
 
@@ -522,9 +510,7 @@ class PluginEnvironment:
 
     # Container Integration
 
-    def mount_plugin_in_development(
-        self, plugin_dir: str = ".", core_container_name: str = "coffeebreak-core"
-    ) -> bool:
+    def mount_plugin_in_development(self, plugin_dir: str = ".", core_container_name: str = "coffeebreak-core") -> bool:
         """
         Mount plugin in running CoffeeBreak core container.
 
@@ -536,15 +522,11 @@ class PluginEnvironment:
             bool: True if mounting successful
         """
         try:
-            return self.integration.mount_plugin_in_development(
-                plugin_dir, core_container_name
-            )
+            return self.integration.mount_plugin_in_development(plugin_dir, core_container_name)
         except Exception as e:
             raise OSError(f"Failed to mount plugin: {e}")
 
-    def unmount_plugin_from_development(
-        self, plugin_name: str, core_container_name: str = "coffeebreak-core"
-    ) -> bool:
+    def unmount_plugin_from_development(self, plugin_name: str, core_container_name: str = "coffeebreak-core") -> bool:
         """
         Unmount plugin from running CoffeeBreak core container.
 
@@ -556,15 +538,11 @@ class PluginEnvironment:
             bool: True if unmounting successful
         """
         try:
-            return self.integration.unmount_plugin_from_development(
-                plugin_name, core_container_name
-            )
+            return self.integration.unmount_plugin_from_development(plugin_name, core_container_name)
         except Exception as e:
             raise OSError(f"Failed to unmount plugin: {e}")
 
-    def list_mounted_plugins(
-        self, core_container_name: str = "coffeebreak-core"
-    ) -> List[Dict[str, Any]]:
+    def list_mounted_plugins(self, core_container_name: str = "coffeebreak-core") -> List[Dict[str, Any]]:
         """
         List plugins currently mounted in core container.
 
@@ -583,9 +561,7 @@ class PluginEnvironment:
 
     # Hot Reload Management
 
-    def start_hot_reload(
-        self, plugin_dir: str = ".", core_container: str = "coffeebreak-core"
-    ) -> bool:
+    def start_hot_reload(self, plugin_dir: str = ".", core_container: str = "coffeebreak-core") -> bool:
         """
         Start hot reload for plugin development.
 
@@ -704,9 +680,7 @@ class PluginEnvironment:
             # Step 4: Generate documentation if requested
             if include_docs:
                 try:
-                    results["documentation"] = self.generate_plugin_documentation(
-                        plugin_dir
-                    )
+                    results["documentation"] = self.generate_plugin_documentation(plugin_dir)
                     if results["documentation"]["errors"]:
                         results["warnings"].extend(results["documentation"]["errors"])
                 except Exception as e:
@@ -715,9 +689,7 @@ class PluginEnvironment:
             # Step 5: Run quality assurance if requested
             if include_qa:
                 try:
-                    results["quality_assurance"] = self.run_quality_assurance(
-                        plugin_dir
-                    )
+                    results["quality_assurance"] = self.run_quality_assurance(plugin_dir)
                     if results["quality_assurance"]["overall_score"] < 70:
                         results["warnings"].append("Quality score is below 70")
                 except Exception as e:
@@ -726,17 +698,11 @@ class PluginEnvironment:
             # Step 6: Start development environment if requested
             if start_dev_environment:
                 try:
-                    results["development_environment"] = (
-                        self.start_development_workflow(plugin_dir)
-                    )
-                    if not results["development_environment"].get(
-                        "hot_reload_active", False
-                    ):
+                    results["development_environment"] = self.start_development_workflow(plugin_dir)
+                    if not results["development_environment"].get("hot_reload_active", False):
                         results["warnings"].append("Hot reload could not be activated")
                 except Exception as e:
-                    results["errors"].append(
-                        f"Development environment setup failed: {e}"
-                    )
+                    results["errors"].append(f"Development environment setup failed: {e}")
 
             # Final assessment
             if results["errors"]:
@@ -768,9 +734,7 @@ class PluginEnvironment:
             python_installed = dependencies.get("python", {}).get("installed", False)
             node_installed = dependencies.get("node", {}).get("installed", False)
             services_started = dependencies.get("services", {}).get("started", False)
-            print(
-                f"Dependencies: Python={'✓' if python_installed else '✗'}, Node={'✓' if node_installed else '✗'}, Services={'✓' if services_started else '✗'}"
-            )
+            print(f"Dependencies: Python={'✓' if python_installed else '✗'}, Node={'✓' if node_installed else '✗'}, Services={'✓' if services_started else '✗'}")
 
         # Tests
         tests = results.get("tests", {})

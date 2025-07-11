@@ -27,17 +27,11 @@ class BackupManager:
         self.verbose = verbose
 
         # Initialize components
-        self.scheduler = BackupScheduler(
-            deployment_type=deployment_type, verbose=verbose
-        )
-        self.recovery = RecoveryManager(
-            deployment_type=deployment_type, verbose=verbose
-        )
+        self.scheduler = BackupScheduler(deployment_type=deployment_type, verbose=verbose)
+        self.recovery = RecoveryManager(deployment_type=deployment_type, verbose=verbose)
         self.storage = BackupStorage(deployment_type=deployment_type, verbose=verbose)
 
-    def setup_backup_system(
-        self, domain: str, backup_config: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def setup_backup_system(self, domain: str, backup_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Set up comprehensive backup system.
 
@@ -131,18 +125,14 @@ class BackupManager:
                     print(f"Backup system setup completed successfully for {domain}")
                     print(f"Components: {', '.join(setup_result['components_setup'])}")
                 else:
-                    print(
-                        f"Backup system setup completed with {len(setup_result['errors'])} errors"
-                    )
+                    print(f"Backup system setup completed with {len(setup_result['errors'])} errors")
 
             return setup_result
 
         except Exception as e:
             raise CoffeeBreakError(f"Failed to setup backup system: {e}") from e
 
-    def _create_backup_scripts(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _create_backup_scripts(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Create backup scripts."""
         setup_result = {"success": True, "errors": [], "scripts": []}
 
@@ -471,9 +461,7 @@ esac
 
         return setup_result
 
-    def _setup_backup_verification(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_backup_verification(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup backup verification system."""
         setup_result = {"success": True, "errors": []}
 
@@ -638,9 +626,7 @@ main "$@"
 
         return setup_result
 
-    def _setup_backup_monitoring(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_backup_monitoring(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup backup monitoring and alerting."""
         setup_result = {"success": True, "errors": []}
 
@@ -820,20 +806,14 @@ main "$@"
             cron_entry = f"0 */6 * * * {monitor_script_path}"
 
             try:
-                current_crontab = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
-                crontab_content = (
-                    current_crontab.stdout if current_crontab.returncode == 0 else ""
-                )
+                current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
             except:
                 crontab_content = ""
 
             if "monitor-backup.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\n" + cron_entry + "\n"
-                process = subprocess.Popen(
-                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
-                )
+                process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
                 process.communicate(input=new_crontab)
 
             if self.verbose:

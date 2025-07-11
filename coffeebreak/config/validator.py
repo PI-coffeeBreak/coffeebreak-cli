@@ -101,9 +101,7 @@ class ConfigValidator:
 
         return errors
 
-    def validate_config_file(
-        self, file_path: str, config_type: str = "auto"
-    ) -> List[str]:
+    def validate_config_file(self, file_path: str, config_type: str = "auto") -> List[str]:
         """
         Validate configuration file.
 
@@ -196,9 +194,7 @@ class ConfigValidator:
             return errors
 
         if not name.replace("-", "").replace("_", "").isalnum():
-            errors.append(
-                f"Plugin name can only contain letters, numbers, hyphens, and underscores: {name}"
-            )
+            errors.append(f"Plugin name can only contain letters, numbers, hyphens, and underscores: {name}")
 
         if name.startswith("-") or name.startswith("_"):
             errors.append(f"Plugin name cannot start with hyphen or underscore: {name}")

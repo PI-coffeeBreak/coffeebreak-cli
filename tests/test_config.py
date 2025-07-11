@@ -29,9 +29,7 @@ class TestConfigManager:
     def test_detect_environment_plugin_config(self):
         """Test detection of plugin development environment."""
         with patch("os.path.exists") as mock_exists:
-            mock_exists.side_effect = lambda path: path.endswith(
-                "coffeebreak-plugin.yml"
-            )
+            mock_exists.side_effect = lambda path: path.endswith("coffeebreak-plugin.yml")
 
             env_type = self.config_manager.detect_environment()
             assert env_type == EnvironmentType.PLUGIN_DEV
@@ -57,19 +55,13 @@ class TestConfigManager:
                     }
                 ],
             },
-            "dependencies": {
-                "services": {
-                    "database": {"image": "postgres:15", "container_name": "test-db"}
-                }
-            },
+            "dependencies": {"services": {"database": {"image": "postgres:15", "container_name": "test-db"}}},
         }
 
         yaml_content = yaml.dump(valid_config)
 
         with patch("builtins.open", mock_open(read_data=yaml_content)):
-            with patch.object(
-                self.config_manager, "get_config_path", return_value="test-config.yml"
-            ):
+            with patch.object(self.config_manager, "get_config_path", return_value="test-config.yml"):
                 with patch.object(
                     self.config_manager,
                     "detect_environment",
@@ -83,9 +75,7 @@ class TestConfigManager:
         invalid_yaml = "invalid: yaml: content: ["
 
         with patch("builtins.open", mock_open(read_data=invalid_yaml)):
-            with patch.object(
-                self.config_manager, "get_config_path", return_value="test-config.yml"
-            ):
+            with patch.object(self.config_manager, "get_config_path", return_value="test-config.yml"):
                 with pytest.raises(yaml.YAMLError):
                     self.config_manager.load_config()
 
@@ -175,9 +165,7 @@ class TestConfigManager:
         """Test initialization of main configuration."""
         with patch("builtins.open", mock_open()) as mock_file:
             with patch("os.path.exists", return_value=False):
-                config_path = self.config_manager.initialize_main_config(
-                    organization="test-org", version="2.0.0"
-                )
+                config_path = self.config_manager.initialize_main_config(organization="test-org", version="2.0.0")
 
                 assert config_path.endswith("coffeebreak.yml")
                 # The method reads template then writes config, so 2 calls expected
@@ -187,9 +175,7 @@ class TestConfigManager:
         """Test initialization of plugin configuration."""
         with patch("builtins.open", mock_open()) as mock_file:
             with patch("os.path.exists", return_value=False):
-                config_path = self.config_manager.initialize_plugin_config(
-                    plugin_name="test-plugin", version="1.0.0"
-                )
+                config_path = self.config_manager.initialize_plugin_config(plugin_name="test-plugin", version="1.0.0")
 
                 assert config_path.endswith("coffeebreak-plugin.yml")
                 # The method reads template then writes config, so 2 calls expected
@@ -203,9 +189,7 @@ class TestConfigManager:
             "organization": "test-org",
         }
 
-        config_dict = self.config_manager.create_default_config(
-            config_type="main", template_vars=template_vars
-        )
+        config_dict = self.config_manager.create_default_config(config_type="main", template_vars=template_vars)
 
         assert isinstance(config_dict, dict)
         assert "coffeebreak" in config_dict

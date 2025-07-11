@@ -80,21 +80,15 @@ class FileManager:
         # Derived connection strings
         if include_secrets and "POSTGRES_PASSWORD" in secrets:
             postgres_pass = secrets["POSTGRES_PASSWORD"]
-            env_content.append(
-                f"DATABASE_URI=postgresql://coffeebreak:{postgres_pass}@database:5432/coffeebreak"
-            )
+            env_content.append(f"DATABASE_URI=postgresql://coffeebreak:{postgres_pass}@database:5432/coffeebreak")
 
         if include_secrets and "MONGO_INITDB_ROOT_PASSWORD" in secrets:
             mongo_pass = secrets["MONGO_INITDB_ROOT_PASSWORD"]
-            env_content.append(
-                f"MONGODB_URI=mongodb://admin:{mongo_pass}@mongodb/coffeebreak?authSource=admin"
-            )
+            env_content.append(f"MONGODB_URI=mongodb://admin:{mongo_pass}@mongodb/coffeebreak?authSource=admin")
 
         if include_secrets and "RABBITMQ_DEFAULT_PASS" in secrets:
             rabbitmq_pass = secrets["RABBITMQ_DEFAULT_PASS"]
-            env_content.append(
-                f"RABBITMQ_URL=amqp://coffeebreak:{rabbitmq_pass}@mq:5672"
-            )
+            env_content.append(f"RABBITMQ_URL=amqp://coffeebreak:{rabbitmq_pass}@mq:5672")
 
         # Service URLs for local development
         env_content.append("KEYCLOAK_URL=http://localhost:8080")
@@ -176,9 +170,7 @@ class FileManager:
 
         return path
 
-    def create_directory_structure(
-        self, base_path: str, structure: Dict[str, any]
-    ) -> List[str]:
+    def create_directory_structure(self, base_path: str, structure: Dict[str, any]) -> List[str]:
         """
         Create directory structure from specification.
 

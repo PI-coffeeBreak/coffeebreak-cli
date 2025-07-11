@@ -39,9 +39,7 @@ class EnvironmentActivator:
                 self.config = yaml.safe_load(f)
             return self.config
         except FileNotFoundError:
-            raise PythonEnvironmentError(
-                f"Configuration file not found: {self.config_path}"
-            )
+            raise PythonEnvironmentError(f"Configuration file not found: {self.config_path}")
         except Exception as e:
             raise PythonEnvironmentError(f"Error loading configuration: {e}")
 
@@ -54,9 +52,7 @@ class EnvironmentActivator:
             env_config = self.config["coffeebreak"]["environment"]
             return env_config
         except KeyError:
-            raise PythonEnvironmentError(
-                "No environment configuration found in coffeebreak.yml"
-            )
+            raise PythonEnvironmentError("No environment configuration found in coffeebreak.yml")
 
     def get_activation_command(self, shell: Optional[str] = None) -> str:
         """
@@ -128,9 +124,7 @@ class PythonEnvironmentManager:
         """
         self.verbose = verbose
 
-    def setup_environment(
-        self, env_type: str, env_path_or_name: Optional[str], python_path: Optional[str]
-    ) -> Dict[str, Any]:
+    def setup_environment(self, env_type: str, env_path_or_name: Optional[str], python_path: Optional[str]) -> Dict[str, Any]:
         """
         Setup Python environment (venv or conda).
 
@@ -171,9 +165,7 @@ class PythonEnvironmentManager:
                 click.echo(f"Creating new virtual environment: {venv_path}")
             return self.create_new_venv(venv_path, python_path)
 
-    def setup_conda(
-        self, env_name: Optional[str], python_path: Optional[str]
-    ) -> Dict[str, Any]:
+    def setup_conda(self, env_name: Optional[str], python_path: Optional[str]) -> Dict[str, Any]:
         """
         Create new conda env OR reuse existing one.
 
@@ -203,16 +195,12 @@ class PythonEnvironmentManager:
     def conda_env_exists(self, name: str) -> bool:
         """Check if conda environment already exists."""
         try:
-            result = subprocess.run(
-                ["conda", "env", "list"], capture_output=True, text=True, timeout=30
-            )
+            result = subprocess.run(["conda", "env", "list"], capture_output=True, text=True, timeout=30)
             return result.returncode == 0 and name in result.stdout
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
-    def create_new_venv(
-        self, venv_path: Path, python_path: Optional[str]
-    ) -> Dict[str, Any]:
+    def create_new_venv(self, venv_path: Path, python_path: Optional[str]) -> Dict[str, Any]:
         """Create a new virtual environment."""
         try:
             # Determine Python executable to use
@@ -220,17 +208,13 @@ class PythonEnvironmentManager:
 
             # Validate Python executable
             if not self._validate_python_executable(python_executable):
-                raise PythonEnvironmentError(
-                    f"Invalid Python executable: {python_executable}"
-                )
+                raise PythonEnvironmentError(f"Invalid Python executable: {python_executable}")
 
             # Create parent directories if they don't exist
             venv_path.parent.mkdir(parents=True, exist_ok=True)
 
             if self.verbose:
-                click.echo(
-                    f"Creating virtual environment with Python: {python_executable}"
-                )
+                click.echo(f"Creating virtual environment with Python: {python_executable}")
 
             # Create virtual environment
             result = subprocess.run(
@@ -241,9 +225,7 @@ class PythonEnvironmentManager:
             )
 
             if result.returncode != 0:
-                raise PythonEnvironmentError(
-                    f"Failed to create virtual environment: {result.stderr}"
-                )
+                raise PythonEnvironmentError(f"Failed to create virtual environment: {result.stderr}")
 
             if self.verbose:
                 click.echo(f"✓ Virtual environment created: {venv_path}")
@@ -260,9 +242,7 @@ class PythonEnvironmentManager:
         except Exception as e:
             raise PythonEnvironmentError(f"Error creating virtual environment: {e}")
 
-    def create_new_conda(
-        self, env_name: str, python_path: Optional[str]
-    ) -> Dict[str, Any]:
+    def create_new_conda(self, env_name: str, python_path: Optional[str]) -> Dict[str, Any]:
         """Create a new conda environment."""
         try:
             # Check if conda is available
@@ -291,9 +271,7 @@ class PythonEnvironmentManager:
             )
 
             if result.returncode != 0:
-                raise PythonEnvironmentError(
-                    f"Failed to create conda environment: {result.stderr}"
-                )
+                raise PythonEnvironmentError(f"Failed to create conda environment: {result.stderr}")
 
             if self.verbose:
                 click.echo(f"✓ Conda environment created: {env_name}")
@@ -310,9 +288,7 @@ class PythonEnvironmentManager:
         except Exception as e:
             raise PythonEnvironmentError(f"Error creating conda environment: {e}")
 
-    def validate_existing_venv(
-        self, venv_path: Path, python_path: Optional[str]
-    ) -> Dict[str, Any]:
+    def validate_existing_venv(self, venv_path: Path, python_path: Optional[str]) -> Dict[str, Any]:
         """Validate existing virtual environment is compatible."""
         try:
             # Get Python executable from venv
@@ -322,25 +298,16 @@ class PythonEnvironmentManager:
                 venv_python = venv_path / "bin" / "python"
 
             if not venv_python.exists():
-                raise PythonEnvironmentError(
-                    f"Virtual environment appears corrupted: {venv_path}"
-                )
+                raise PythonEnvironmentError(f"Virtual environment appears corrupted: {venv_path}")
 
             # Check Python version compatibility if requested
             if python_path:
                 existing_version = self._get_python_version(str(venv_python))
                 requested_version = self._get_python_version(python_path)
 
-                if (
-                    existing_version
-                    and requested_version
-                    and existing_version != requested_version
-                ):
+                if existing_version and requested_version and existing_version != requested_version:
                     if self.verbose:
-                        click.echo(
-                            f"Warning: Existing venv uses Python {existing_version}, "
-                            f"but you specified Python {requested_version}"
-                        )
+                        click.echo(f"Warning: Existing venv uses Python {existing_version}, but you specified Python {requested_version}")
                     if not click.confirm("Continue with existing environment?"):
                         raise PythonEnvironmentError("Environment validation failed")
 
@@ -358,9 +325,7 @@ class PythonEnvironmentManager:
         except Exception as e:
             raise PythonEnvironmentError(f"Error validating virtual environment: {e}")
 
-    def validate_existing_conda(
-        self, env_name: str, python_path: Optional[str]
-    ) -> Dict[str, Any]:
+    def validate_existing_conda(self, env_name: str, python_path: Optional[str]) -> Dict[str, Any]:
         """Validate existing conda environment is compatible."""
         try:
             # Get conda environment info
@@ -402,9 +367,7 @@ class PythonEnvironmentManager:
         except Exception as e:
             raise PythonEnvironmentError(f"Error validating conda environment: {e}")
 
-    def install_requirements(
-        self, env_info: Dict[str, Any], requirements_file: str
-    ) -> bool:
+    def install_requirements(self, env_info: Dict[str, Any], requirements_file: str) -> bool:
         """
         Install Python requirements into the environment.
 
@@ -426,16 +389,12 @@ class PythonEnvironmentManager:
             elif env_info["type"] == "conda":
                 return self._install_requirements_conda(env_info, requirements_file)
             else:
-                raise PythonEnvironmentError(
-                    f"Unknown environment type: {env_info['type']}"
-                )
+                raise PythonEnvironmentError(f"Unknown environment type: {env_info['type']}")
 
         except Exception as e:
             raise PythonEnvironmentError(f"Error installing requirements: {e}")
 
-    def _install_requirements_venv(
-        self, env_info: Dict[str, Any], requirements_file: str
-    ) -> bool:
+    def _install_requirements_venv(self, env_info: Dict[str, Any], requirements_file: str) -> bool:
         """Install requirements into virtual environment."""
         venv_path = Path(env_info["path"])
 
@@ -445,9 +404,7 @@ class PythonEnvironmentManager:
             pip_executable = venv_path / "bin" / "pip"
 
         if not pip_executable.exists():
-            raise PythonEnvironmentError(
-                f"pip not found in virtual environment: {venv_path}"
-            )
+            raise PythonEnvironmentError(f"pip not found in virtual environment: {venv_path}")
 
         if self.verbose:
             click.echo(f"Installing requirements from {requirements_file}...")
@@ -464,20 +421,14 @@ class PythonEnvironmentManager:
                 click.echo("✓ Python requirements installed successfully")
             return True
         else:
-            raise PythonEnvironmentError(
-                f"Failed to install requirements: {result.stderr}"
-            )
+            raise PythonEnvironmentError(f"Failed to install requirements: {result.stderr}")
 
-    def _install_requirements_conda(
-        self, env_info: Dict[str, Any], requirements_file: str
-    ) -> bool:
+    def _install_requirements_conda(self, env_info: Dict[str, Any], requirements_file: str) -> bool:
         """Install requirements into conda environment."""
         env_name = env_info["name"]
 
         if self.verbose:
-            click.echo(
-                f"Installing requirements from {requirements_file} into conda env {env_name}..."
-            )
+            click.echo(f"Installing requirements from {requirements_file} into conda env {env_name}...")
 
         # Try conda install first, then fall back to pip
         result = subprocess.run(
@@ -492,9 +443,7 @@ class PythonEnvironmentManager:
                 click.echo("✓ Python requirements installed successfully")
             return True
         else:
-            raise PythonEnvironmentError(
-                f"Failed to install requirements: {result.stderr}"
-            )
+            raise PythonEnvironmentError(f"Failed to install requirements: {result.stderr}")
 
     def generate_conda_name(self) -> str:
         """Generate a unique conda environment name."""
@@ -507,9 +456,7 @@ class PythonEnvironmentManager:
     def _validate_python_executable(self, python_path: str) -> bool:
         """Validate that Python executable exists and works."""
         try:
-            result = subprocess.run(
-                [python_path, "--version"], capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run([python_path, "--version"], capture_output=True, text=True, timeout=10)
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
@@ -517,9 +464,7 @@ class PythonEnvironmentManager:
     def _get_python_version(self, python_path: str) -> Optional[str]:
         """Get Python version from executable."""
         try:
-            result = subprocess.run(
-                [python_path, "--version"], capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run([python_path, "--version"], capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 # Parse "Python 3.12.1" -> "3.12.1"
                 version_line = result.stdout.strip()
@@ -532,9 +477,7 @@ class PythonEnvironmentManager:
     def _check_conda_available(self) -> bool:
         """Check if conda is available."""
         try:
-            result = subprocess.run(
-                ["conda", "--version"], capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run(["conda", "--version"], capture_output=True, text=True, timeout=10)
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
@@ -551,6 +494,4 @@ class PythonEnvironmentManager:
             # For conda, we'll use 'conda run' to execute python
             return f"conda run -n {env_info['name']} python"
         else:
-            raise PythonEnvironmentError(
-                f"Unknown environment type: {env_info['type']}"
-            )
+            raise PythonEnvironmentError(f"Unknown environment type: {env_info['type']}")

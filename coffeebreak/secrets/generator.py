@@ -19,9 +19,7 @@ class SecretGenerator:
         """Initialize secret generator."""
         self.verbose = verbose
         self.alphabet_alphanumeric = string.ascii_letters + string.digits
-        self.alphabet_safe = (
-            string.ascii_letters + string.digits + "!@#$%^&*()-_=+[]{}|;:,.<>?"
-        )
+        self.alphabet_safe = string.ascii_letters + string.digits + "!@#$%^&*()-_=+[]{}|;:,.<>?"
         self.alphabet_hex = string.hexdigits.lower()[:16]  # 0-9a-f
 
     def generate_password(
@@ -110,10 +108,7 @@ class SecretGenerator:
             elif len(api_key) < length:
                 # Pad with additional random characters
                 additional = length - len(api_key)
-                api_key += "".join(
-                    secrets.choice(self.alphabet_alphanumeric)
-                    for _ in range(additional)
-                )
+                api_key += "".join(secrets.choice(self.alphabet_alphanumeric) for _ in range(additional))
 
             return api_key
 
@@ -198,9 +193,7 @@ class SecretGenerator:
             secrets_dict = {
                 "postgres_password": self.generate_password(32, include_symbols=False),
                 "mongodb_password": self.generate_password(32, include_symbols=False),
-                "postgres_replication_password": self.generate_password(
-                    32, include_symbols=False
-                ),
+                "postgres_replication_password": self.generate_password(32, include_symbols=False),
                 "mongodb_replica_key": self.generate_secret_key(64),
             }
 
@@ -247,16 +240,10 @@ class SecretGenerator:
         try:
             secrets_dict = {
                 "rabbitmq_password": self.generate_password(32, include_symbols=False),
-                "keycloak_admin_password": self.generate_password(
-                    24, include_symbols=False
-                ),
-                "keycloak_db_password": self.generate_password(
-                    32, include_symbols=False
-                ),
+                "keycloak_admin_password": self.generate_password(24, include_symbols=False),
+                "keycloak_db_password": self.generate_password(32, include_symbols=False),
                 "redis_password": self.generate_password(32, include_symbols=False),
-                "monitoring_password": self.generate_password(
-                    24, include_symbols=False
-                ),
+                "monitoring_password": self.generate_password(24, include_symbols=False),
             }
 
             if self.verbose:
@@ -339,9 +326,7 @@ class SecretGenerator:
         except Exception as e:
             raise SecurityError(f"Failed to generate all secrets: {e}") from e
 
-    def validate_secret_strength(
-        self, secret: str, min_length: int = 16
-    ) -> Dict[str, Any]:
+    def validate_secret_strength(self, secret: str, min_length: int = 16) -> Dict[str, Any]:
         """
         Validate the strength of a secret.
 
@@ -363,9 +348,7 @@ class SecretGenerator:
             # Length check
             if len(secret) < min_length:
                 validation["valid"] = False
-                validation["issues"].append(
-                    f"Secret is too short (minimum: {min_length})"
-                )
+                validation["issues"].append(f"Secret is too short (minimum: {min_length})")
             else:
                 validation["score"] += min(len(secret) * 2, 50)
 
@@ -379,12 +362,8 @@ class SecretGenerator:
             validation["score"] += char_types * 10
 
             if char_types < 3:
-                validation["issues"].append(
-                    "Secret should contain at least 3 character types"
-                )
-                validation["recommendations"].append(
-                    "Include uppercase, lowercase, digits, and symbols"
-                )
+                validation["issues"].append("Secret should contain at least 3 character types")
+                validation["recommendations"].append("Include uppercase, lowercase, digits, and symbols")
 
             # Entropy check (simplified)
             unique_chars = len(set(secret))
@@ -399,9 +378,7 @@ class SecretGenerator:
             for pattern in common_patterns:
                 if pattern.lower() in secret.lower():
                     validation["valid"] = False
-                    validation["issues"].append(
-                        f"Secret contains common pattern: {pattern}"
-                    )
+                    validation["issues"].append(f"Secret contains common pattern: {pattern}")
 
             # Final score adjustment
             if validation["valid"] and len(validation["issues"]) == 0:
@@ -414,9 +391,7 @@ class SecretGenerator:
         except Exception as e:
             raise SecurityError(f"Failed to validate secret strength: {e}") from e
 
-    def derive_key_from_password(
-        self, password: str, salt: bytes, iterations: int = 100000
-    ) -> bytes:
+    def derive_key_from_password(self, password: str, salt: bytes, iterations: int = 100000) -> bytes:
         """
         Derive a key from a password using PBKDF2.
 

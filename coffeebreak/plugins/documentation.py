@@ -69,21 +69,15 @@ class PluginDocumentationGenerator:
             os.makedirs(output_dir, exist_ok=True)
 
             # Extract documentation from source files
-            documentation_data = self._extract_documentation_data(
-                plugin_dir, plugin_config
-            )
+            documentation_data = self._extract_documentation_data(plugin_dir, plugin_config)
 
             # Generate API documentation if requested
             if include_api:
-                documentation_data["api"] = self._generate_api_documentation(
-                    plugin_dir, plugin_config
-                )
+                documentation_data["api"] = self._generate_api_documentation(plugin_dir, plugin_config)
 
             # Generate usage examples if requested
             if include_examples:
-                documentation_data["examples"] = self._generate_usage_examples(
-                    plugin_dir, plugin_config
-                )
+                documentation_data["examples"] = self._generate_usage_examples(plugin_dir, plugin_config)
 
             # Generate documentation in requested formats
             results = {
@@ -99,54 +93,38 @@ class PluginDocumentationGenerator:
             for format_type in formats:
                 try:
                     if format_type == "markdown":
-                        file_path = self._generate_markdown_docs(
-                            documentation_data, output_dir
-                        )
+                        file_path = self._generate_markdown_docs(documentation_data, output_dir)
                         results["generated_files"].append(file_path)
 
                     elif format_type == "html":
-                        file_path = self._generate_html_docs(
-                            documentation_data, output_dir
-                        )
+                        file_path = self._generate_html_docs(documentation_data, output_dir)
                         results["generated_files"].append(file_path)
 
                     elif format_type == "json":
-                        file_path = self._generate_json_docs(
-                            documentation_data, output_dir
-                        )
+                        file_path = self._generate_json_docs(documentation_data, output_dir)
                         results["generated_files"].append(file_path)
 
                     else:
-                        results["warnings"].append(
-                            f"Unknown documentation format: {format_type}"
-                        )
+                        results["warnings"].append(f"Unknown documentation format: {format_type}")
 
                 except Exception as e:
-                    results["errors"].append(
-                        f"Failed to generate {format_type} documentation: {e}"
-                    )
+                    results["errors"].append(f"Failed to generate {format_type} documentation: {e}")
 
             if self.verbose:
-                print(
-                    f"Documentation generation completed. Files: {len(results['generated_files'])}"
-                )
+                print(f"Documentation generation completed. Files: {len(results['generated_files'])}")
 
             return results
 
         except Exception as e:
             raise PluginError(f"Failed to generate plugin documentation: {e}") from e
 
-    def _extract_documentation_data(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_documentation_data(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Extract all documentation data from plugin sources."""
         documentation_data = {
             "plugin": plugin_config["plugin"],
             "overview": self._extract_overview(plugin_dir, plugin_config),
             "installation": self._extract_installation_info(plugin_dir, plugin_config),
-            "configuration": self._extract_configuration_info(
-                plugin_dir, plugin_config
-            ),
+            "configuration": self._extract_configuration_info(plugin_dir, plugin_config),
             "source_docs": {},
             "files": {},
             "dependencies": self._extract_dependency_info(plugin_dir, plugin_config),
@@ -189,9 +167,7 @@ class PluginDocumentationGenerator:
 
         return documentation_data
 
-    def _extract_overview(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_overview(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Extract plugin overview information."""
         plugin_info = plugin_config["plugin"]
 
@@ -216,19 +192,13 @@ class PluginDocumentationGenerator:
                     lines = content.split("\n")
                     for line in lines:
                         line = line.strip()
-                        if (
-                            line
-                            and not line.startswith("#")
-                            and not line.startswith("!")
-                        ):
+                        if line and not line.startswith("#") and not line.startswith("!"):
                             overview["description"] = line
                             break
 
         return overview
 
-    def _extract_installation_info(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_installation_info(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Extract installation and setup information."""
         installation = {
             "requirements": [],
@@ -240,11 +210,7 @@ class PluginDocumentationGenerator:
         requirements_path = os.path.join(plugin_dir, "requirements.txt")
         if os.path.exists(requirements_path):
             with open(requirements_path) as f:
-                installation["requirements"] = [
-                    line.strip()
-                    for line in f
-                    if line.strip() and not line.startswith("#")
-                ]
+                installation["requirements"] = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
         # Check for package.json
         package_json_path = os.path.join(plugin_dir, "package.json")
@@ -265,9 +231,7 @@ class PluginDocumentationGenerator:
 
         return installation
 
-    def _extract_configuration_info(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_configuration_info(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Extract configuration information."""
         configuration = {
             "config_schema": plugin_config.get("config", {}),
@@ -304,9 +268,7 @@ class PluginDocumentationGenerator:
 
         return configuration
 
-    def _extract_dependency_info(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_dependency_info(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Extract dependency information."""
         dependencies = plugin_config.get("dependencies", {})
 
@@ -338,9 +300,7 @@ class PluginDocumentationGenerator:
             tree = ast.parse(content)
 
             # Extract module docstring
-            if isinstance(tree.body[0], ast.Expr) and isinstance(
-                tree.body[0].value, ast.Str
-            ):
+            if isinstance(tree.body[0], ast.Expr) and isinstance(tree.body[0].value, ast.Str):
                 docs["module_doc"] = tree.body[0].value.s
 
             # Extract classes and functions
@@ -379,11 +339,7 @@ class PluginDocumentationGenerator:
                 elif isinstance(node, ast.Assign):
                     # Extract constants (uppercase variables)
                     for target in node.targets:
-                        if (
-                            isinstance(target, ast.Name)
-                            and target.id.isupper()
-                            and node.col_offset == 0
-                        ):
+                        if isinstance(target, ast.Name) and target.id.isupper() and node.col_offset == 0:
                             constant_doc = {
                                 "name": target.id,
                                 "line_number": node.lineno,
@@ -517,9 +473,7 @@ class PluginDocumentationGenerator:
             # Extract code blocks
             code_pattern = r"```(\w+)?\n(.*?)\n```"
             for match in re.finditer(code_pattern, content, re.DOTALL):
-                docs["code_blocks"].append(
-                    {"language": match.group(1) or "text", "code": match.group(2)}
-                )
+                docs["code_blocks"].append({"language": match.group(1) or "text", "code": match.group(2)})
 
         except Exception as e:
             if self.verbose:
@@ -527,9 +481,7 @@ class PluginDocumentationGenerator:
 
         return docs
 
-    def _generate_api_documentation(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _generate_api_documentation(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Generate API documentation."""
         api_docs = {"endpoints": [], "events": [], "hooks": [], "configuration": {}}
 
@@ -574,9 +526,7 @@ class PluginDocumentationGenerator:
 
         return api_docs
 
-    def _generate_usage_examples(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _generate_usage_examples(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Generate usage examples."""
         examples = {
             "basic_usage": [],
@@ -620,9 +570,7 @@ class PluginDocumentationGenerator:
 
         return examples
 
-    def _generate_markdown_docs(
-        self, documentation_data: Dict[str, Any], output_dir: str
-    ) -> str:
+    def _generate_markdown_docs(self, documentation_data: Dict[str, Any], output_dir: str) -> str:
         """Generate Markdown documentation."""
         plugin_info = documentation_data["plugin"]
         overview = documentation_data["overview"]
@@ -676,9 +624,7 @@ class PluginDocumentationGenerator:
             md_lines.append("```yaml")
             import yaml
 
-            md_lines.append(
-                yaml.dump(configuration["config_schema"], default_flow_style=False)
-            )
+            md_lines.append(yaml.dump(configuration["config_schema"], default_flow_style=False))
             md_lines.extend(["```", ""])
         else:
             md_lines.extend(["No configuration schema available.", ""])
@@ -774,9 +720,7 @@ class PluginDocumentationGenerator:
 
         return output_file
 
-    def _generate_html_docs(
-        self, documentation_data: Dict[str, Any], output_dir: str
-    ) -> str:
+    def _generate_html_docs(self, documentation_data: Dict[str, Any], output_dir: str) -> str:
         """Generate HTML documentation."""
         plugin_info = documentation_data["plugin"]
         overview = documentation_data["overview"]
@@ -845,12 +789,8 @@ class PluginDocumentationGenerator:
         if configuration["config_schema"]:
             import yaml
 
-            config_yaml = yaml.dump(
-                configuration["config_schema"], default_flow_style=False
-            )
-            html_content += (
-                f'        <div class="code"><pre>{config_yaml}</pre></div>\n'
-            )
+            config_yaml = yaml.dump(configuration["config_schema"], default_flow_style=False)
+            html_content += f'        <div class="code"><pre>{config_yaml}</pre></div>\n'
         else:
             html_content += "        <p>No configuration schema available.</p>\n"
 
@@ -916,9 +856,7 @@ class PluginDocumentationGenerator:
 
         return output_file
 
-    def _generate_json_docs(
-        self, documentation_data: Dict[str, Any], output_dir: str
-    ) -> str:
+    def _generate_json_docs(self, documentation_data: Dict[str, Any], output_dir: str) -> str:
         """Generate JSON documentation."""
         output_file = os.path.join(output_dir, "documentation.json")
 

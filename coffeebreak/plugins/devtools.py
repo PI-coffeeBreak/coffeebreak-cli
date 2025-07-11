@@ -84,9 +84,7 @@ class PluginDeveloperTools:
                         print(f"Running {tool}...")
 
                     try:
-                        tool_result = self.tools[tool](
-                            plugin_dir, plugin_config, fix_issues
-                        )
+                        tool_result = self.tools[tool](plugin_dir, plugin_config, fix_issues)
                         results["results"][tool] = tool_result
 
                         # Update summary
@@ -160,9 +158,7 @@ class PluginDeveloperTools:
             available_tools.append("type_check")
 
         # Check for package files
-        if os.path.exists(
-            os.path.join(plugin_dir, "requirements.txt")
-        ) or os.path.exists(os.path.join(plugin_dir, "package.json")):
+        if os.path.exists(os.path.join(plugin_dir, "requirements.txt")) or os.path.exists(os.path.join(plugin_dir, "package.json")):
             available_tools.append("dependency_check")
 
         # Performance analysis is available for any plugin
@@ -170,9 +166,7 @@ class PluginDeveloperTools:
 
         return list(set(available_tools))  # Remove duplicates
 
-    def _run_linting(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool
-    ) -> Dict[str, Any]:
+    def _run_linting(self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool) -> Dict[str, Any]:
         """Run linting analysis."""
         result = {
             "success": True,
@@ -198,17 +192,13 @@ class PluginDeveloperTools:
         # Python linting with flake8
         python_files = []
         for _root, _dirs, files in os.walk(src_path):
-            python_files.extend(
-                [os.path.join(_root, f) for f in files if f.endswith(".py")]
-            )
+            python_files.extend([os.path.join(_root, f) for f in files if f.endswith(".py")])
 
         if python_files:
             try:
                 # Run flake8
                 cmd = ["flake8", "--max-line-length=100", "--format=json", src_path]
-                process_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 result["tools_used"].append("flake8")
 
@@ -218,9 +208,7 @@ class PluginDeveloperTools:
                         for issue in flake8_issues:
                             result["issues"].append(
                                 {
-                                    "severity": self._map_flake8_severity(
-                                        issue.get("code", "")
-                                    ),
+                                    "severity": self._map_flake8_severity(issue.get("code", "")),
                                     "type": "lint",
                                     "message": issue.get("text", ""),
                                     "file": issue.get("filename", ""),
@@ -242,9 +230,7 @@ class PluginDeveloperTools:
                                             "type": "lint",
                                             "message": parts[3].strip(),
                                             "file": parts[0],
-                                            "line": int(parts[1])
-                                            if parts[1].isdigit()
-                                            else 0,
+                                            "line": int(parts[1]) if parts[1].isdigit() else 0,
                                         }
                                     )
 
@@ -262,18 +248,12 @@ class PluginDeveloperTools:
                             if fix_result.returncode == 0:
                                 result["fixes_applied"] += 1
 
-                        result["recommendations"].append(
-                            "Applied autopep8 formatting fixes"
-                        )
+                        result["recommendations"].append("Applied autopep8 formatting fixes")
                     except FileNotFoundError:
-                        result["recommendations"].append(
-                            "Install autopep8 for automatic formatting fixes"
-                        )
+                        result["recommendations"].append("Install autopep8 for automatic formatting fixes")
 
             except FileNotFoundError:
-                result["recommendations"].append(
-                    "Install flake8 for Python linting: pip install flake8"
-                )
+                result["recommendations"].append("Install flake8 for Python linting: pip install flake8")
 
         # JavaScript/TypeScript linting with ESLint
         js_files = []
@@ -285,9 +265,7 @@ class PluginDeveloperTools:
         if js_files or ts_files:
             try:
                 cmd = ["npx", "eslint", "--format=json", src_path]
-                process_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 result["tools_used"].append("eslint")
 
@@ -298,9 +276,7 @@ class PluginDeveloperTools:
                             for message in file_result.get("messages", []):
                                 result["issues"].append(
                                     {
-                                        "severity": self._map_eslint_severity(
-                                            message.get("severity", 1)
-                                        ),
+                                        "severity": self._map_eslint_severity(message.get("severity", 1)),
                                         "type": "lint",
                                         "message": message.get("message", ""),
                                         "file": file_result.get("filePath", ""),
@@ -315,23 +291,17 @@ class PluginDeveloperTools:
                 # Auto-fix with ESLint if requested
                 if fix_issues:
                     cmd = ["npx", "eslint", "--fix", src_path]
-                    fix_result = subprocess.run(
-                        cmd, cwd=plugin_dir, capture_output=True
-                    )
+                    fix_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True)
                     if fix_result.returncode == 0:
                         result["fixes_applied"] += len(js_files) + len(ts_files)
                         result["recommendations"].append("Applied ESLint auto-fixes")
 
             except FileNotFoundError:
-                result["recommendations"].append(
-                    "Install ESLint for JavaScript/TypeScript linting"
-                )
+                result["recommendations"].append("Install ESLint for JavaScript/TypeScript linting")
 
         return result
 
-    def _run_formatting(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool
-    ) -> Dict[str, Any]:
+    def _run_formatting(self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool) -> Dict[str, Any]:
         """Run code formatting checks."""
         result = {
             "success": True,
@@ -348,17 +318,13 @@ class PluginDeveloperTools:
         # Python formatting with black
         python_files = []
         for _root, _dirs, files in os.walk(src_path):
-            python_files.extend(
-                [os.path.join(_root, f) for f in files if f.endswith(".py")]
-            )
+            python_files.extend([os.path.join(_root, f) for f in files if f.endswith(".py")])
 
         if python_files:
             try:
                 # Check formatting
                 cmd = ["black", "--check", "--line-length=100", src_path]
-                process_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 result["tools_used"].append("black")
 
@@ -367,9 +333,7 @@ class PluginDeveloperTools:
                     lines = process_result.stderr.split("\n")
                     for line in lines:
                         if "would reformat" in line:
-                            filename = (
-                                line.split()[2] if len(line.split()) > 2 else "unknown"
-                            )
+                            filename = line.split()[2] if len(line.split()) > 2 else "unknown"
                             result["issues"].append(
                                 {
                                     "severity": "low",
@@ -383,31 +347,23 @@ class PluginDeveloperTools:
                 # Auto-format if requested
                 if fix_issues:
                     cmd = ["black", "--line-length=100", src_path]
-                    fix_result = subprocess.run(
-                        cmd, cwd=plugin_dir, capture_output=True
-                    )
+                    fix_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True)
                     if fix_result.returncode == 0:
                         result["fixes_applied"] = len(python_files)
                         result["recommendations"].append("Applied black formatting")
 
             except FileNotFoundError:
-                result["recommendations"].append(
-                    "Install black for Python formatting: pip install black"
-                )
+                result["recommendations"].append("Install black for Python formatting: pip install black")
 
         # JavaScript/TypeScript formatting with Prettier
         js_ts_files = []
         for _root, _dirs, files in os.walk(src_path):
-            js_ts_files.extend(
-                [f for f in files if f.endswith((".js", ".jsx", ".ts", ".tsx"))]
-            )
+            js_ts_files.extend([f for f in files if f.endswith((".js", ".jsx", ".ts", ".tsx"))])
 
         if js_ts_files:
             try:
                 cmd = ["npx", "prettier", "--check", src_path]
-                process_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 result["tools_used"].append("prettier")
 
@@ -428,23 +384,17 @@ class PluginDeveloperTools:
                 # Auto-format if requested
                 if fix_issues:
                     cmd = ["npx", "prettier", "--write", src_path]
-                    fix_result = subprocess.run(
-                        cmd, cwd=plugin_dir, capture_output=True
-                    )
+                    fix_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True)
                     if fix_result.returncode == 0:
                         result["fixes_applied"] = len(js_ts_files)
                         result["recommendations"].append("Applied Prettier formatting")
 
             except FileNotFoundError:
-                result["recommendations"].append(
-                    "Install Prettier for JavaScript/TypeScript formatting"
-                )
+                result["recommendations"].append("Install Prettier for JavaScript/TypeScript formatting")
 
         return result
 
-    def _run_type_checking(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool
-    ) -> Dict[str, Any]:
+    def _run_type_checking(self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool) -> Dict[str, Any]:
         """Run type checking analysis."""
         result = {
             "success": True,
@@ -464,9 +414,7 @@ class PluginDeveloperTools:
             if python_files:
                 try:
                     cmd = ["mypy", "--json-report", "/tmp/mypy-report", src_path]
-                    process_result = subprocess.run(
-                        cmd, cwd=plugin_dir, capture_output=True, text=True
-                    )
+                    process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                     result["tools_used"].append("mypy")
 
@@ -483,25 +431,19 @@ class PluginDeveloperTools:
                                         "type": "type",
                                         "message": parts[3].strip(),
                                         "file": parts[0],
-                                        "line": int(parts[1])
-                                        if parts[1].isdigit()
-                                        else 0,
+                                        "line": int(parts[1]) if parts[1].isdigit() else 0,
                                     }
                                 )
 
                 except FileNotFoundError:
-                    result["recommendations"].append(
-                        "Install mypy for Python type checking: pip install mypy"
-                    )
+                    result["recommendations"].append("Install mypy for Python type checking: pip install mypy")
 
         # TypeScript type checking
         tsconfig_path = os.path.join(plugin_dir, "tsconfig.json")
         if os.path.exists(tsconfig_path):
             try:
                 cmd = ["npx", "tsc", "--noEmit"]
-                process_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 result["tools_used"].append("tsc")
 
@@ -515,13 +457,9 @@ class PluginDeveloperTools:
                                     {
                                         "severity": "high",
                                         "type": "type",
-                                        "message": parts[2].strip()
-                                        if len(parts) > 2
-                                        else line,
+                                        "message": parts[2].strip() if len(parts) > 2 else line,
                                         "file": parts[0] if len(parts) > 0 else "",
-                                        "line": int(parts[1])
-                                        if len(parts) > 1 and parts[1].isdigit()
-                                        else 0,
+                                        "line": int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0,
                                     }
                                 )
 
@@ -530,9 +468,7 @@ class PluginDeveloperTools:
 
         return result
 
-    def _run_security_analysis(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool
-    ) -> Dict[str, Any]:
+    def _run_security_analysis(self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool) -> Dict[str, Any]:
         """Run security analysis."""
         result = {
             "success": True,
@@ -552,9 +488,7 @@ class PluginDeveloperTools:
             if python_files:
                 try:
                     cmd = ["bandit", "-r", "-f", "json", src_path]
-                    process_result = subprocess.run(
-                        cmd, cwd=plugin_dir, capture_output=True, text=True
-                    )
+                    process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                     result["tools_used"].append("bandit")
 
@@ -564,9 +498,7 @@ class PluginDeveloperTools:
                             for issue in bandit_results.get("results", []):
                                 result["issues"].append(
                                     {
-                                        "severity": self._map_bandit_severity(
-                                            issue.get("issue_severity", "LOW")
-                                        ),
+                                        "severity": self._map_bandit_severity(issue.get("issue_severity", "LOW")),
                                         "type": "security",
                                         "message": issue.get("issue_text", ""),
                                         "file": issue.get("filename", ""),
@@ -579,18 +511,14 @@ class PluginDeveloperTools:
                             pass
 
                 except FileNotFoundError:
-                    result["recommendations"].append(
-                        "Install bandit for Python security analysis: pip install bandit"
-                    )
+                    result["recommendations"].append("Install bandit for Python security analysis: pip install bandit")
 
         # Node.js security analysis
         package_json_path = os.path.join(plugin_dir, "package.json")
         if os.path.exists(package_json_path):
             try:
                 cmd = ["npm", "audit", "--json"]
-                process_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 result["tools_used"].append("npm audit")
 
@@ -602,9 +530,7 @@ class PluginDeveloperTools:
                         for pkg_name, vuln_info in vulnerabilities.items():
                             result["issues"].append(
                                 {
-                                    "severity": self._map_npm_severity(
-                                        vuln_info.get("severity", "low")
-                                    ),
+                                    "severity": self._map_npm_severity(vuln_info.get("severity", "low")),
                                     "type": "security",
                                     "message": f"Vulnerability in {pkg_name}: {vuln_info.get('title', 'Unknown')}",
                                     "file": "package.json",
@@ -619,9 +545,7 @@ class PluginDeveloperTools:
                 # Auto-fix npm vulnerabilities if requested
                 if fix_issues:
                     cmd = ["npm", "audit", "fix"]
-                    fix_result = subprocess.run(
-                        cmd, cwd=plugin_dir, capture_output=True
-                    )
+                    fix_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True)
                     if fix_result.returncode == 0:
                         result["fixes_applied"] = 1
                         result["recommendations"].append("Applied npm audit fixes")
@@ -631,9 +555,7 @@ class PluginDeveloperTools:
 
         return result
 
-    def _run_dependency_analysis(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool
-    ) -> Dict[str, Any]:
+    def _run_dependency_analysis(self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool) -> Dict[str, Any]:
         """Run dependency analysis."""
         result = {
             "success": True,
@@ -673,18 +595,14 @@ class PluginDeveloperTools:
                         pass
 
             except FileNotFoundError:
-                result["recommendations"].append(
-                    "pip not available for dependency analysis"
-                )
+                result["recommendations"].append("pip not available for dependency analysis")
 
         # Node.js dependency analysis
         package_json_path = os.path.join(plugin_dir, "package.json")
         if os.path.exists(package_json_path):
             try:
                 cmd = ["npm", "outdated", "--json"]
-                process_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                process_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 result["tools_used"].append("npm outdated")
 
@@ -708,15 +626,11 @@ class PluginDeveloperTools:
                         pass
 
             except FileNotFoundError:
-                result["recommendations"].append(
-                    "npm not available for dependency analysis"
-                )
+                result["recommendations"].append("npm not available for dependency analysis")
 
         return result
 
-    def _run_performance_analysis(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool
-    ) -> Dict[str, Any]:
+    def _run_performance_analysis(self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool) -> Dict[str, Any]:
         """Run performance analysis."""
         result = {
             "success": True,
@@ -797,15 +711,11 @@ class PluginDeveloperTools:
                 ]
                 for package in heavy_packages:
                     if package in requirements:
-                        result["recommendations"].append(
-                            f"Heavy dependency detected: {package}. Consider optimization or lazy loading."
-                        )
+                        result["recommendations"].append(f"Heavy dependency detected: {package}. Consider optimization or lazy loading.")
 
         return result
 
-    def _run_complexity_analysis(
-        self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool
-    ) -> Dict[str, Any]:
+    def _run_complexity_analysis(self, plugin_dir: str, plugin_config: Dict[str, Any], fix_issues: bool) -> Dict[str, Any]:
         """Run code complexity analysis."""
         result = {
             "success": True,
@@ -820,9 +730,7 @@ class PluginDeveloperTools:
         if os.path.exists(src_path):
             python_files = []
             for _root, _dirs, files in os.walk(src_path):
-                python_files.extend(
-                    [os.path.join(_root, f) for f in files if f.endswith(".py")]
-                )
+                python_files.extend([os.path.join(_root, f) for f in files if f.endswith(".py")])
 
             if python_files:
                 try:
@@ -839,9 +747,7 @@ class PluginDeveloperTools:
                                 for func in functions:
                                     complexity = func.get("complexity", 0)
                                     if complexity > 10:  # High complexity threshold
-                                        severity = (
-                                            "high" if complexity > 20 else "medium"
-                                        )
+                                        severity = "high" if complexity > 20 else "medium"
                                         result["issues"].append(
                                             {
                                                 "severity": severity,
@@ -857,9 +763,7 @@ class PluginDeveloperTools:
                             pass
 
                 except FileNotFoundError:
-                    result["recommendations"].append(
-                        "Install radon for complexity analysis: pip install radon"
-                    )
+                    result["recommendations"].append("Install radon for complexity analysis: pip install radon")
 
         return result
 
@@ -928,13 +832,9 @@ class PluginDeveloperTools:
                         "info": "ℹ️",
                     }.get(issue["severity"], "❓")
 
-                    lines.append(
-                        f"{severity_icon} **{issue['severity'].upper()}** - {issue['message']}"
-                    )
+                    lines.append(f"{severity_icon} **{issue['severity'].upper()}** - {issue['message']}")
                     if issue.get("file"):
-                        lines.append(
-                            f"   - File: {issue['file']}:{issue.get('line', 0)}"
-                        )
+                        lines.append(f"   - File: {issue['file']}:{issue.get('line', 0)}")
                     lines.append("")
 
                 if len(issues) > 10:

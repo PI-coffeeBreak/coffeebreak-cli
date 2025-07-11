@@ -137,9 +137,7 @@ class PluginHotReloadManager:
         self.reload_callbacks = {}  # plugin_name -> callback
         self._lock = threading.Lock()
 
-    def start_hot_reload(
-        self, plugin_dir: str, core_container: str = "coffeebreak-core"
-    ) -> bool:
+    def start_hot_reload(self, plugin_dir: str, core_container: str = "coffeebreak-core") -> bool:
         """
         Start hot reload for a plugin.
 
@@ -176,9 +174,7 @@ class PluginHotReloadManager:
 
             # Create reload callback
             def reload_callback(file_path: str, change_type: str):
-                self._handle_file_change(
-                    plugin_dir, plugin_name, core_container, file_path, change_type
-                )
+                self._handle_file_change(plugin_dir, plugin_name, core_container, file_path, change_type)
 
             # Create file watcher
             watcher = PluginFileWatcher(plugin_dir, reload_callback, self.verbose)
@@ -261,14 +257,10 @@ class PluginHotReloadManager:
         try:
             if self.verbose:
                 rel_path = os.path.relpath(file_path, plugin_dir)
-                print(
-                    f"Reloading plugin '{plugin_name}' due to {change_type}: {rel_path}"
-                )
+                print(f"Reloading plugin '{plugin_name}' due to {change_type}: {rel_path}")
 
             # Sync changed file to container
-            self._sync_file_to_container(
-                plugin_dir, plugin_name, core_container, file_path, change_type
-            )
+            self._sync_file_to_container(plugin_dir, plugin_name, core_container, file_path, change_type)
 
             # Trigger plugin reload in core
             self._trigger_plugin_reload(plugin_name, core_container)
@@ -312,9 +304,7 @@ class PluginHotReloadManager:
             if self.verbose:
                 print(f"Error syncing file to container: {e}")
 
-    def _copy_file_to_container(
-        self, container, host_file: str, container_path: str
-    ) -> None:
+    def _copy_file_to_container(self, container, host_file: str, container_path: str) -> None:
         """Copy a single file to container."""
         try:
             # Create directory in container
@@ -394,17 +384,13 @@ class PluginDevelopmentWorkflow:
                 print(f"Starting plugin development workflow for {plugin_dir}")
 
             # Setup container integration
-            setup_result = self.integration.setup_plugin_development_environment(
-                plugin_dir
-            )
+            setup_result = self.integration.setup_plugin_development_environment(plugin_dir)
 
             if not setup_result["mounted"]:
                 raise PluginError("Failed to mount plugin in development environment")
 
             # Start hot reload
-            hot_reload_started = self.hot_reload.start_hot_reload(
-                plugin_dir, setup_result["core_container"]
-            )
+            hot_reload_started = self.hot_reload.start_hot_reload(plugin_dir, setup_result["core_container"])
 
             result = {
                 **setup_result,
@@ -413,9 +399,7 @@ class PluginDevelopmentWorkflow:
             }
 
             if self.verbose:
-                print(
-                    f"Plugin development workflow active for '{setup_result['plugin_name']}'"
-                )
+                print(f"Plugin development workflow active for '{setup_result['plugin_name']}'")
 
             return result
 
@@ -440,9 +424,7 @@ class PluginDevelopmentWorkflow:
             hot_reload_stopped = self.hot_reload.stop_hot_reload(plugin_name)
 
             # Unmount plugin
-            unmount_success = self.integration.unmount_plugin_from_development(
-                plugin_name
-            )
+            unmount_success = self.integration.unmount_plugin_from_development(plugin_name)
 
             if self.verbose:
                 print(f"Plugin development workflow stopped for '{plugin_name}'")

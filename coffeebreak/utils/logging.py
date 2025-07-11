@@ -17,9 +17,7 @@ def setup_logging(verbose: bool = False, log_file: Optional[str] = None) -> None
     level = logging.DEBUG if verbose else logging.INFO
 
     # Create formatter
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     # Setup console handler
     console_handler = logging.StreamHandler(sys.stdout)

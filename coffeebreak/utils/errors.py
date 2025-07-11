@@ -117,9 +117,7 @@ class ErrorHandler:
         else:
             self._handle_generic_error(error, context)
 
-    def _handle_coffeebreak_error(
-        self, error: CoffeeBreakError, context: Optional[str]
-    ) -> None:
+    def _handle_coffeebreak_error(self, error: CoffeeBreakError, context: Optional[str]) -> None:
         """Handle CoffeeBreak-specific errors."""
         # Main error message
         click.echo(f"✗ {error.message}", err=True)
@@ -186,9 +184,7 @@ class ErrorHandler:
             click.echo("\nFull traceback:", err=True)
             traceback.print_exc()
 
-    def exit_with_error(
-        self, error: Exception, context: Optional[str] = None, exit_code: int = 1
-    ) -> None:
+    def exit_with_error(self, error: Exception, context: Optional[str] = None, exit_code: int = 1) -> None:
         """Handle error and exit with specified code."""
         self.handle_error(error, context)
         sys.exit(exit_code)

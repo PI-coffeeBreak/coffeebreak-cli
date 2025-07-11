@@ -48,9 +48,7 @@ class PluginDependencyManager:
                 "plugin_name": plugin_config["plugin"]["name"],
                 "python": self._analyze_python_dependencies(plugin_dir, plugin_config),
                 "node": self._analyze_node_dependencies(plugin_dir, plugin_config),
-                "services": self._analyze_service_dependencies(
-                    plugin_dir, plugin_config
-                ),
+                "services": self._analyze_service_dependencies(plugin_dir, plugin_config),
                 "system": self._analyze_system_dependencies(plugin_dir, plugin_config),
                 "conflicts": [],
                 "recommendations": [],
@@ -60,9 +58,7 @@ class PluginDependencyManager:
             analysis["conflicts"] = self._check_dependency_conflicts(analysis)
 
             # Generate recommendations
-            analysis["recommendations"] = self._generate_dependency_recommendations(
-                analysis
-            )
+            analysis["recommendations"] = self._generate_dependency_recommendations(analysis)
 
             return analysis
 
@@ -109,26 +105,18 @@ class PluginDependencyManager:
             # Install Python dependencies
             if install_python and analysis["python"]["has_requirements"]:
                 try:
-                    python_result = self._install_python_dependencies(
-                        plugin_dir, analysis["python"]
-                    )
+                    python_result = self._install_python_dependencies(plugin_dir, analysis["python"])
                     results["python"] = python_result
                 except Exception as e:
-                    results["errors"].append(
-                        f"Python dependency installation failed: {e}"
-                    )
+                    results["errors"].append(f"Python dependency installation failed: {e}")
 
             # Install Node.js dependencies
             if install_node and analysis["node"]["has_package_json"]:
                 try:
-                    node_result = self._install_node_dependencies(
-                        plugin_dir, analysis["node"]
-                    )
+                    node_result = self._install_node_dependencies(plugin_dir, analysis["node"])
                     results["node"] = node_result
                 except Exception as e:
-                    results["errors"].append(
-                        f"Node.js dependency installation failed: {e}"
-                    )
+                    results["errors"].append(f"Node.js dependency installation failed: {e}")
 
             # Start required services
             if start_services and analysis["services"]["required"]:
@@ -148,9 +136,7 @@ class PluginDependencyManager:
         except Exception as e:
             raise PluginError(f"Failed to install plugin dependencies: {e}") from e
 
-    def _analyze_python_dependencies(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _analyze_python_dependencies(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze Python dependencies."""
         requirements_path = os.path.join(plugin_dir, "requirements.txt")
         setup_py_path = os.path.join(plugin_dir, "setup.py")
@@ -188,15 +174,11 @@ class PluginDependencyManager:
         python_info = dependencies.get("python", {})
         if python_info:
             python_deps["python_version"] = python_info.get("version")
-            python_deps["virtual_env_recommended"] = python_info.get(
-                "virtual_env", True
-            )
+            python_deps["virtual_env_recommended"] = python_info.get("virtual_env", True)
 
         return python_deps
 
-    def _analyze_node_dependencies(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _analyze_node_dependencies(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze Node.js dependencies."""
         package_json_path = os.path.join(plugin_dir, "package.json")
 
@@ -238,9 +220,7 @@ class PluginDependencyManager:
 
         return node_deps
 
-    def _analyze_service_dependencies(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _analyze_service_dependencies(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze service dependencies."""
         dependencies = plugin_config.get("dependencies", {})
         services_config = dependencies.get("services", [])
@@ -267,9 +247,7 @@ class PluginDependencyManager:
 
         return service_deps
 
-    def _analyze_system_dependencies(
-        self, plugin_dir: str, plugin_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _analyze_system_dependencies(self, plugin_dir: str, plugin_config: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze system-level dependencies."""
         dependencies = plugin_config.get("dependencies", {})
         system_config = dependencies.get("system", {})
@@ -296,9 +274,7 @@ class PluginDependencyManager:
                         # Simple parsing - could be enhanced
                         if "==" in line:
                             name, version = line.split("==", 1)
-                            packages.append(
-                                {"name": name.strip(), "version": version.strip()}
-                            )
+                            packages.append({"name": name.strip(), "version": version.strip()})
                         elif ">=" in line:
                             name, version = line.split(">=", 1)
                             packages.append(
@@ -321,9 +297,7 @@ class PluginDependencyManager:
         conflicts = []
 
         # Check for known problematic package combinations
-        python_packages = {
-            pkg["name"].lower() for pkg in analysis["python"]["packages"]
-        }
+        python_packages = {pkg["name"].lower() for pkg in analysis["python"]["packages"]}
 
         # Example conflict checks
         if "tensorflow" in python_packages and "torch" in python_packages:
@@ -339,45 +313,31 @@ class PluginDependencyManager:
 
         return conflicts
 
-    def _generate_dependency_recommendations(
-        self, analysis: Dict[str, Any]
-    ) -> List[str]:
+    def _generate_dependency_recommendations(self, analysis: Dict[str, Any]) -> List[str]:
         """Generate dependency recommendations."""
         recommendations = []
 
         # Python recommendations
-        python_packages = {
-            pkg["name"].lower() for pkg in analysis["python"]["packages"]
-        }
+        python_packages = {pkg["name"].lower() for pkg in analysis["python"]["packages"]}
         if "numpy" in python_packages or "pandas" in python_packages:
-            recommendations.append(
-                "Consider using virtual environment for data science packages"
-            )
+            recommendations.append("Consider using virtual environment for data science packages")
 
         if "tensorflow" in python_packages or "torch" in python_packages:
-            recommendations.append(
-                "ML packages detected - ensure sufficient memory for development"
-            )
+            recommendations.append("ML packages detected - ensure sufficient memory for development")
 
         # Node.js recommendations
         node_deps = analysis["node"]["dependencies"]
         if len(node_deps) > 50:
-            recommendations.append(
-                "Large number of Node.js dependencies - consider using yarn for faster installs"
-            )
+            recommendations.append("Large number of Node.js dependencies - consider using yarn for faster installs")
 
         # Service recommendations
         required_services = analysis["services"]["required"]
         if "postgres" in required_services and "mongodb" in required_services:
-            recommendations.append(
-                "Multiple databases detected - consider using profiles for selective startup"
-            )
+            recommendations.append("Multiple databases detected - consider using profiles for selective startup")
 
         return recommendations
 
-    def _install_python_dependencies(
-        self, plugin_dir: str, python_analysis: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _install_python_dependencies(self, plugin_dir: str, python_analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Install Python dependencies."""
         result = {
             "installed": False,
@@ -397,33 +357,23 @@ class PluginDependencyManager:
 
                 # Use pip to install requirements
                 cmd = ["pip", "install", "-r", requirements_file]
-                subprocess_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                subprocess_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 if subprocess_result.returncode == 0:
                     result["installed"] = True
-                    result["details"].append(
-                        "Successfully installed Python requirements"
-                    )
+                    result["details"].append("Successfully installed Python requirements")
                     result["packages_installed"] = python_analysis["packages"]
                 else:
-                    result["details"].append(
-                        f"pip install failed: {subprocess_result.stderr}"
-                    )
+                    result["details"].append(f"pip install failed: {subprocess_result.stderr}")
             else:
-                result["details"].append(
-                    "No requirements.txt found or unsupported requirements format"
-                )
+                result["details"].append("No requirements.txt found or unsupported requirements format")
 
         except Exception as e:
             result["details"].append(f"Error installing Python dependencies: {e}")
 
         return result
 
-    def _install_node_dependencies(
-        self, plugin_dir: str, node_analysis: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _install_node_dependencies(self, plugin_dir: str, node_analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Install Node.js dependencies."""
         result = {
             "installed": False,
@@ -448,22 +398,14 @@ class PluginDependencyManager:
                 if self.verbose:
                     print(f"Installing Node.js dependencies using {package_manager}")
 
-                subprocess_result = subprocess.run(
-                    cmd, cwd=plugin_dir, capture_output=True, text=True
-                )
+                subprocess_result = subprocess.run(cmd, cwd=plugin_dir, capture_output=True, text=True)
 
                 if subprocess_result.returncode == 0:
                     result["installed"] = True
-                    result["details"].append(
-                        f"Successfully installed Node.js dependencies using {package_manager}"
-                    )
-                    result["packages_installed"] = list(
-                        node_analysis["dependencies"].keys()
-                    )
+                    result["details"].append(f"Successfully installed Node.js dependencies using {package_manager}")
+                    result["packages_installed"] = list(node_analysis["dependencies"].keys())
                 else:
-                    result["details"].append(
-                        f"{package_manager} install failed: {subprocess_result.stderr}"
-                    )
+                    result["details"].append(f"{package_manager} install failed: {subprocess_result.stderr}")
             else:
                 result["details"].append("No package.json found")
 
@@ -472,9 +414,7 @@ class PluginDependencyManager:
 
         return result
 
-    def _start_required_services(
-        self, service_analysis: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _start_required_services(self, service_analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Start required services."""
         result = {
             "started": False,
@@ -504,9 +444,7 @@ class PluginDependencyManager:
 
                 if started_services:
                     result["started"] = True
-                    result["details"].append(
-                        f"Started services using profile: {profile}"
-                    )
+                    result["details"].append(f"Started services using profile: {profile}")
                     result["services_started"] = started_services
                 else:
                     result["details"].append("No services were started")
@@ -519,9 +457,7 @@ class PluginDependencyManager:
 
         return result
 
-    def check_dependency_compatibility(
-        self, plugin_dir: str, target_environment: str = "development"
-    ) -> Dict[str, Any]:
+    def check_dependency_compatibility(self, plugin_dir: str, target_environment: str = "development") -> Dict[str, Any]:
         """
         Check if plugin dependencies are compatible with target environment.
 
@@ -551,16 +487,12 @@ class PluginDependencyManager:
                     dev_packages = ["pytest", "mock", "unittest", "nose", "tox"]
                     for pkg in python_deps["packages"]:
                         if pkg["name"].lower() in dev_packages:
-                            compatibility["warnings"].append(
-                                f"Development package '{pkg['name']}' found in requirements"
-                            )
+                            compatibility["warnings"].append(f"Development package '{pkg['name']}' found in requirements")
 
             # Check service dependencies
             service_deps = analysis["services"]
             if service_deps["required"] and target_environment == "production":
-                compatibility["issues"].append(
-                    "Plugin requires additional services - ensure they are available in production"
-                )
+                compatibility["issues"].append("Plugin requires additional services - ensure they are available in production")
 
             # Set overall compatibility
             if compatibility["issues"]:
@@ -650,9 +582,7 @@ class PluginDependencyManager:
                 )
 
                 if service_deps["custom_compose"]:
-                    report_lines.append(
-                        f"- Custom compose file: {service_deps['custom_compose']}"
-                    )
+                    report_lines.append(f"- Custom compose file: {service_deps['custom_compose']}")
             else:
                 report_lines.append("- No service dependencies")
 

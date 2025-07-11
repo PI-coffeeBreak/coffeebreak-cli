@@ -13,9 +13,7 @@ class LogManager:
         self.deployment_type = deployment_type
         self.verbose = verbose
 
-    def setup_log_aggregation(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def setup_log_aggregation(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup log aggregation system."""
         setup_result = {"success": True, "errors": []}
 
@@ -95,9 +93,7 @@ class LogManager:
 
         return setup_result
 
-    def _setup_centralized_logging(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_centralized_logging(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup centralized logging with rsyslog."""
         setup_result = {"success": True, "errors": []}
 
@@ -213,20 +209,14 @@ done
             cron_entry = f"*/5 * * * * {script_path}"
 
             try:
-                current_crontab = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
-                crontab_content = (
-                    current_crontab.stdout if current_crontab.returncode == 0 else ""
-                )
+                current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
             except Exception:
                 crontab_content = ""
 
             if "log-monitor.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\n" + cron_entry + "\n"
-                process = subprocess.Popen(
-                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
-                )
+                process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
                 process.communicate(input=new_crontab)
 
             if self.verbose:

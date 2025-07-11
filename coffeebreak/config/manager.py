@@ -27,9 +27,7 @@ class ConfigManager:
 
         # Setup Jinja2 for template rendering
         templates_dir = os.path.join(os.path.dirname(__file__), "..", "templates")
-        self.jinja_env = Environment(
-            loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
-        )
+        self.jinja_env = Environment(loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True)
 
     def detect_environment(self) -> EnvironmentType:
         """Get the detected environment type."""
@@ -56,9 +54,7 @@ class ConfigManager:
         """
         config_path = self.get_config_path()
         if not config_path:
-            raise FileNotFoundError(
-                "No configuration file found for current environment"
-            )
+            raise FileNotFoundError("No configuration file found for current environment")
 
         # Check cache first
         if config_path in self._config_cache:
@@ -86,9 +82,7 @@ class ConfigManager:
         self._config_cache[config_path] = config
         return config
 
-    def load_config_file(
-        self, config_path: str, validate: bool = True
-    ) -> Dict[str, Any]:
+    def load_config_file(self, config_path: str, validate: bool = True) -> Dict[str, Any]:
         """
         Load configuration from a specific file.
 
@@ -124,9 +118,7 @@ class ConfigManager:
         except Exception as e:
             raise ConfigValidationError(f"Error loading config file {config_path}: {e}")
 
-    def save_config(
-        self, config: Dict[str, Any], config_path: Optional[str] = None
-    ) -> None:
+    def save_config(self, config: Dict[str, Any], config_path: Optional[str] = None) -> None:
         """
         Save configuration to file.
 
@@ -173,9 +165,7 @@ class ConfigManager:
         else:
             return ["Cannot validate configuration for uninitialized environment"]
 
-    def create_default_config(
-        self, config_type: str, template_vars: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def create_default_config(self, config_type: str, template_vars: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Create default configuration from template.
 
@@ -237,9 +227,7 @@ class ConfigManager:
                 config["coffeebreak"]["environment"]["name"] = environment["name"]
 
             if "python_path" in environment:
-                config["coffeebreak"]["environment"]["python_path"] = environment[
-                    "python_path"
-                ]
+                config["coffeebreak"]["environment"]["python_path"] = environment["python_path"]
 
         config_path = os.path.join(self.path, "coffeebreak.yml")
 

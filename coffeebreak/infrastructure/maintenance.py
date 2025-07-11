@@ -20,9 +20,7 @@ class MaintenanceManager:
         self.deployment_type = deployment_type
         self.verbose = verbose
 
-    def setup_automated_maintenance(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def setup_automated_maintenance(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Setup automated maintenance system.
 
@@ -42,23 +40,17 @@ class MaintenanceManager:
                 scripts_dir = "./scripts"
 
             # Create maintenance scripts
-            scripts_result = self._create_maintenance_scripts(
-                domain, config, scripts_dir
-            )
+            scripts_result = self._create_maintenance_scripts(domain, config, scripts_dir)
             if not scripts_result["success"]:
                 setup_result["errors"].extend(scripts_result["errors"])
 
             # Setup maintenance scheduling
-            scheduling_result = self._setup_maintenance_scheduling(
-                domain, config, scripts_dir
-            )
+            scheduling_result = self._setup_maintenance_scheduling(domain, config, scripts_dir)
             if not scheduling_result["success"]:
                 setup_result["errors"].extend(scheduling_result["errors"])
 
             # Setup maintenance windows
-            windows_result = self._setup_maintenance_windows(
-                domain, config, scripts_dir
-            )
+            windows_result = self._setup_maintenance_windows(domain, config, scripts_dir)
             if not windows_result["success"]:
                 setup_result["errors"].extend(windows_result["errors"])
 
@@ -73,9 +65,7 @@ class MaintenanceManager:
 
         return setup_result
 
-    def _create_maintenance_scripts(
-        self, domain: str, config: Dict[str, Any], scripts_dir: str
-    ) -> Dict[str, Any]:
+    def _create_maintenance_scripts(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
         """Create automated maintenance scripts."""
         setup_result = {"success": True, "errors": []}
 
@@ -512,9 +502,7 @@ main "$@"
 
         return setup_result
 
-    def _setup_maintenance_scheduling(
-        self, domain: str, config: Dict[str, Any], scripts_dir: str
-    ) -> Dict[str, Any]:
+    def _setup_maintenance_scheduling(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
         """Setup maintenance task scheduling."""
         setup_result = {"success": True, "errors": []}
 
@@ -530,12 +518,8 @@ main "$@"
 
             # Get current crontab
             try:
-                current_crontab = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
-                crontab_content = (
-                    current_crontab.stdout if current_crontab.returncode == 0 else ""
-                )
+                current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
             except Exception:
                 crontab_content = ""
 
@@ -551,9 +535,7 @@ main "$@"
                     new_crontab += "\\n"
                 new_crontab += "\\n".join(new_entries) + "\\n"
 
-                process = subprocess.Popen(
-                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
-                )
+                process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
                 process.communicate(input=new_crontab)
 
             if self.verbose:
@@ -565,9 +547,7 @@ main "$@"
 
         return setup_result
 
-    def _setup_maintenance_windows(
-        self, domain: str, config: Dict[str, Any], scripts_dir: str
-    ) -> Dict[str, Any]:
+    def _setup_maintenance_windows(self, domain: str, config: Dict[str, Any], scripts_dir: str) -> Dict[str, Any]:
         """Setup maintenance windows and policies."""
         setup_result = {"success": True, "errors": []}
 
@@ -599,9 +579,7 @@ main "$@"
                     "health_check_retries": 3,
                 },
                 "maintenance_policies": {
-                    "require_approval": config.get(
-                        "require_maintenance_approval", False
-                    ),
+                    "require_approval": config.get("require_maintenance_approval", False),
                     "auto_rollback_on_failure": True,
                     "max_concurrent_operations": 1,
                     "pre_maintenance_backup": True,

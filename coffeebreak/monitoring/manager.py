@@ -37,9 +37,7 @@ class MonitoringManager:
         templates_dir = os.path.join(os.path.dirname(__file__), "..", "templates")
         self.jinja_env = Environment(loader=FileSystemLoader(templates_dir))
 
-    def setup_production_monitoring(
-        self, domain: str, monitoring_config: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def setup_production_monitoring(self, domain: str, monitoring_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Set up comprehensive production monitoring.
 
@@ -87,9 +85,7 @@ class MonitoringManager:
                 setup_result["errors"].extend(log_setup["errors"])
 
             # 2. Setup metrics collection
-            metrics_setup = self.metrics_collector.setup_metrics_collection(
-                domain, config
-            )
+            metrics_setup = self.metrics_collector.setup_metrics_collection(domain, config)
             if metrics_setup["success"]:
                 setup_result["components_setup"].append("metrics_collection")
                 if "prometheus_endpoint" in metrics_setup:
@@ -151,18 +147,14 @@ class MonitoringManager:
                     print(f"Monitoring setup completed successfully for {domain}")
                     print(f"Components: {', '.join(setup_result['components_setup'])}")
                 else:
-                    print(
-                        f"Monitoring setup completed with {len(setup_result['errors'])} errors"
-                    )
+                    print(f"Monitoring setup completed with {len(setup_result['errors'])} errors")
 
             return setup_result
 
         except Exception as e:
             raise ConfigurationError(f"Failed to setup monitoring: {e}") from e
 
-    def _setup_grafana_dashboards(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_grafana_dashboards(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup Grafana dashboards."""
         setup_result = {"success": True, "errors": []}
 
@@ -210,9 +202,7 @@ class MonitoringManager:
 
         return setup_result
 
-    def _setup_health_monitoring(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_health_monitoring(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup health monitoring."""
         setup_result = {"success": True, "errors": []}
 
@@ -348,20 +338,14 @@ main "$@"
             cron_entry = f"*/5 * * * * {health_script_path}"
 
             try:
-                current_crontab = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
-                crontab_content = (
-                    current_crontab.stdout if current_crontab.returncode == 0 else ""
-                )
+                current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
             except Exception:
                 crontab_content = ""
 
             if "health-monitor.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\n" + cron_entry + "\n"
-                process = subprocess.Popen(
-                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
-                )
+                process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
                 process.communicate(input=new_crontab)
 
         except Exception as e:
@@ -370,9 +354,7 @@ main "$@"
 
         return setup_result
 
-    def _create_monitoring_scripts(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _create_monitoring_scripts(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Create monitoring and maintenance scripts."""
         setup_result = {"success": True, "errors": []}
 
@@ -501,9 +483,7 @@ journalctl -u coffeebreak-* --since "1 hour ago" --no-pager | grep -i error | ta
 
         return setup_result
 
-    def _generate_grafana_docker_config(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _generate_grafana_docker_config(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Generate Grafana Docker configuration."""
         return {
             "image": "grafana/grafana:latest",
@@ -600,10 +580,7 @@ journalctl -u coffeebreak-* --since "1 hour ago" --no-pager | grep -i error | ta
         """Install Grafana for standalone deployment."""
         try:
             # Add Grafana repository and install
-            if (
-                subprocess.run(["which", "apt-get"], capture_output=True).returncode
-                == 0
-            ):
+            if subprocess.run(["which", "apt-get"], capture_output=True).returncode == 0:
                 # Ubuntu/Debian
                 commands = [
                     [
@@ -648,9 +625,7 @@ journalctl -u coffeebreak-* --since "1 hour ago" --no-pager | grep -i error | ta
         except Exception as e:
             raise ConfigurationError(f"Failed to install Grafana: {e}") from e
 
-    def _configure_grafana_standalone(
-        self, domain: str, config: Dict[str, Any]
-    ) -> None:
+    def _configure_grafana_standalone(self, domain: str, config: Dict[str, Any]) -> None:
         """Configure Grafana for standalone deployment."""
         try:
             # Update Grafana configuration

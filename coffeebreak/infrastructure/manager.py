@@ -25,17 +25,11 @@ class InfrastructureManager:
         self.verbose = verbose
 
         # Initialize components
-        self.deployment = DeploymentOrchestrator(
-            deployment_type=deployment_type, verbose=verbose
-        )
+        self.deployment = DeploymentOrchestrator(deployment_type=deployment_type, verbose=verbose)
         self.scaling = AutoScaler(deployment_type=deployment_type, verbose=verbose)
-        self.maintenance = MaintenanceManager(
-            deployment_type=deployment_type, verbose=verbose
-        )
+        self.maintenance = MaintenanceManager(deployment_type=deployment_type, verbose=verbose)
 
-    def setup_infrastructure_automation(
-        self, domain: str, infrastructure_config: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def setup_infrastructure_automation(self, domain: str, infrastructure_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Set up comprehensive infrastructure automation.
 
@@ -83,14 +77,10 @@ class InfrastructureManager:
                 config.update(infrastructure_config)
 
             # 1. Setup deployment orchestration
-            deployment_setup = self.deployment.setup_deployment_orchestration(
-                domain, config
-            )
+            deployment_setup = self.deployment.setup_deployment_orchestration(domain, config)
             if deployment_setup["success"]:
                 setup_result["components_setup"].append("deployment_orchestration")
-                setup_result["automation_scripts"].extend(
-                    deployment_setup.get("scripts", [])
-                )
+                setup_result["automation_scripts"].extend(deployment_setup.get("scripts", []))
             else:
                 setup_result["errors"].extend(deployment_setup["errors"])
 
@@ -104,9 +94,7 @@ class InfrastructureManager:
 
             # 3. Setup automated maintenance
             if config["enable_automated_maintenance"]:
-                maintenance_setup = self.maintenance.setup_automated_maintenance(
-                    domain, config
-                )
+                maintenance_setup = self.maintenance.setup_automated_maintenance(domain, config)
                 if maintenance_setup["success"]:
                     setup_result["components_setup"].append("automated_maintenance")
                 else:
@@ -131,9 +119,7 @@ class InfrastructureManager:
             scripts_setup = self._create_infrastructure_scripts(domain, config)
             if scripts_setup["success"]:
                 setup_result["components_setup"].append("infrastructure_scripts")
-                setup_result["automation_scripts"].extend(
-                    scripts_setup.get("scripts", [])
-                )
+                setup_result["automation_scripts"].extend(scripts_setup.get("scripts", []))
             else:
                 setup_result["errors"].extend(scripts_setup["errors"])
 
@@ -141,23 +127,17 @@ class InfrastructureManager:
 
             if self.verbose:
                 if setup_result["success"]:
-                    print(
-                        f"Infrastructure automation setup completed successfully for {domain}"
-                    )
+                    print(f"Infrastructure automation setup completed successfully for {domain}")
                     print(f"Components: {', '.join(setup_result['components_setup'])}")
                 else:
-                    print(
-                        f"Infrastructure automation setup completed with {len(setup_result['errors'])} errors"
-                    )
+                    print(f"Infrastructure automation setup completed with {len(setup_result['errors'])} errors")
 
             return setup_result
 
         except Exception as e:
             raise ConfigurationError(f"Failed to setup infrastructure automation: {e}")
 
-    def _setup_infrastructure_monitoring(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_infrastructure_monitoring(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup infrastructure monitoring and alerting."""
         setup_result = {"success": True, "errors": []}
 
@@ -423,20 +403,14 @@ esac
             cron_entry = f"*/{config.get('health_check_interval', 30)} * * * * {monitoring_script_path}"
 
             try:
-                current_crontab = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
-                crontab_content = (
-                    current_crontab.stdout if current_crontab.returncode == 0 else ""
-                )
+                current_crontab = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+                crontab_content = current_crontab.stdout if current_crontab.returncode == 0 else ""
             except Exception:
                 crontab_content = ""
 
             if "infrastructure-monitor.sh" not in crontab_content:
                 new_crontab = crontab_content.rstrip() + "\\n" + cron_entry + "\\n"
-                process = subprocess.Popen(
-                    ["crontab", "-"], stdin=subprocess.PIPE, text=True
-                )
+                process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
                 process.communicate(input=new_crontab)
 
             if self.verbose:
@@ -444,15 +418,11 @@ esac
 
         except Exception as e:
             setup_result["success"] = False
-            setup_result["errors"].append(
-                f"Infrastructure monitoring setup failed: {e}"
-            )
+            setup_result["errors"].append(f"Infrastructure monitoring setup failed: {e}")
 
         return setup_result
 
-    def _setup_orchestration_api(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _setup_orchestration_api(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Setup orchestration API for infrastructure management."""
         setup_result = {"success": True, "errors": [], "endpoints": []}
 
@@ -680,18 +650,12 @@ StandardError=journal
 WantedBy=multi-user.target
 """
 
-                with open(
-                    "/etc/systemd/system/coffeebreak-orchestration.service", "w"
-                ) as f:
+                with open("/etc/systemd/system/coffeebreak-orchestration.service", "w") as f:
                     f.write(service_content)
 
                 subprocess.run(["systemctl", "daemon-reload"], check=True)
-                subprocess.run(
-                    ["systemctl", "enable", "coffeebreak-orchestration"], check=True
-                )
-                subprocess.run(
-                    ["systemctl", "start", "coffeebreak-orchestration"], check=True
-                )
+                subprocess.run(["systemctl", "enable", "coffeebreak-orchestration"], check=True)
+                subprocess.run(["systemctl", "start", "coffeebreak-orchestration"], check=True)
 
             setup_result["endpoints"] = [
                 f"http://localhost:{config.get('orchestration_api_port', 8080)}/health",
@@ -709,9 +673,7 @@ WantedBy=multi-user.target
 
         return setup_result
 
-    def _create_infrastructure_scripts(
-        self, domain: str, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _create_infrastructure_scripts(self, domain: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Create infrastructure management scripts."""
         setup_result = {"success": True, "errors": [], "scripts": []}
 
@@ -925,8 +887,6 @@ main "$@"
 
         except Exception as e:
             setup_result["success"] = False
-            setup_result["errors"].append(
-                f"Infrastructure scripts creation failed: {e}"
-            )
+            setup_result["errors"].append(f"Infrastructure scripts creation failed: {e}")
 
         return setup_result

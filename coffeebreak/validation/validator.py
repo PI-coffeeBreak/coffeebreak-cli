@@ -33,13 +33,9 @@ class ProductionValidator:
         self.health_checker = HealthChecker(verbose=verbose)
         self.security_validator = SecurityValidator(verbose=verbose)
         self.ssl_manager = SSLManager(verbose=verbose)
-        self.secret_manager = SecretManager(
-            deployment_type=deployment_type, verbose=verbose
-        )
+        self.secret_manager = SecretManager(deployment_type=deployment_type, verbose=verbose)
 
-    def validate_production_readiness(
-        self, domain: str, config_path: Optional[str] = None
-    ) -> Dict[str, Any]:
+    def validate_production_readiness(self, domain: str, config_path: Optional[str] = None) -> Dict[str, Any]:
         """
         Comprehensive production readiness validation.
 
@@ -71,11 +67,7 @@ class ProductionValidator:
             validation_result["validation_details"]["configuration"] = config_validation
 
             # 2. Security validation
-            security_validation = (
-                self.security_validator.validate_security_configuration(
-                    domain, self.deployment_type
-                )
-            )
+            security_validation = self.security_validator.validate_security_configuration(domain, self.deployment_type)
             validation_result["validation_details"]["security"] = security_validation
 
             # 3. SSL certificate validation
@@ -88,9 +80,7 @@ class ProductionValidator:
 
             # 5. Infrastructure validation
             infrastructure_validation = self._validate_infrastructure()
-            validation_result["validation_details"]["infrastructure"] = (
-                infrastructure_validation
-            )
+            validation_result["validation_details"]["infrastructure"] = infrastructure_validation
 
             # 6. Service validation
             service_validation = self._validate_services()
@@ -102,9 +92,7 @@ class ProductionValidator:
 
             # 8. Performance validation
             performance_validation = self._validate_performance()
-            validation_result["validation_details"]["performance"] = (
-                performance_validation
-            )
+            validation_result["validation_details"]["performance"] = performance_validation
 
             # 9. Backup validation
             backup_validation = self._validate_backup_system()
@@ -112,9 +100,7 @@ class ProductionValidator:
 
             # 10. Monitoring validation
             monitoring_validation = self._validate_monitoring()
-            validation_result["validation_details"]["monitoring"] = (
-                monitoring_validation
-            )
+            validation_result["validation_details"]["monitoring"] = monitoring_validation
 
             # Aggregate results
             self._aggregate_validation_results(validation_result)
@@ -123,10 +109,7 @@ class ProductionValidator:
                 status = validation_result["overall_status"]
                 issues = len(validation_result["critical_issues"])
                 warnings = len(validation_result["warnings"])
-                print(
-                    f"Validation completed: {status} "
-                    f"({issues} critical, {warnings} warnings)"
-                )
+                print(f"Validation completed: {status} ({issues} critical, {warnings} warnings)")
 
             return validation_result
 
@@ -150,17 +133,11 @@ class ProductionValidator:
                         try:
                             with open(config_file) as f:
                                 yaml.safe_load(f)
-                            validation["checks"].append(
-                                f"Valid YAML syntax: {config_file}"
-                            )
+                            validation["checks"].append(f"Valid YAML syntax: {config_file}")
                         except yaml.YAMLError as e:
-                            validation["issues"].append(
-                                f"Invalid YAML in {config_file}: {e}"
-                            )
+                            validation["issues"].append(f"Invalid YAML in {config_file}: {e}")
                 else:
-                    validation["issues"].append(
-                        f"Missing required config file: {config_file}"
-                    )
+                    validation["issues"].append(f"Missing required config file: {config_file}")
 
             # Check environment files
             env_files = self._get_required_env_files()
@@ -179,17 +156,11 @@ class ProductionValidator:
                                 missing_vars.append(var)
 
                     if missing_vars:
-                        validation["warnings"].append(
-                            f"Missing env vars in {env_file}: {missing_vars}"
-                        )
+                        validation["warnings"].append(f"Missing env vars in {env_file}: {missing_vars}")
                     else:
-                        validation["checks"].append(
-                            f"All required env vars present in {env_file}"
-                        )
+                        validation["checks"].append(f"All required env vars present in {env_file}")
                 else:
-                    validation["warnings"].append(
-                        f"Environment file not found: {env_file}"
-                    )
+                    validation["warnings"].append(f"Environment file not found: {env_file}")
 
             validation["status"] = "passed" if not validation["issues"] else "failed"
 
@@ -217,9 +188,7 @@ class ProductionValidator:
                 key_path = cert_info["key_path"]
 
                 # Validate certificate
-                ssl_validation = self.ssl_manager.validate_certificate(
-                    cert_path=cert_path, key_path=key_path, domain=domain
-                )
+                ssl_validation = self.ssl_manager.validate_certificate(cert_path=cert_path, key_path=key_path, domain=domain)
 
                 if ssl_validation["valid"]:
                     validation["checks"].append(f"Valid SSL certificate: {cert_path}")
@@ -228,13 +197,9 @@ class ProductionValidator:
                     if ssl_validation["expires_in_days"] is not None:
                         days = ssl_validation["expires_in_days"]
                         if days < 30:
-                            validation["warnings"].append(
-                                f"Certificate expires in {days} days"
-                            )
+                            validation["warnings"].append(f"Certificate expires in {days} days")
                         else:
-                            validation["checks"].append(
-                                f"Certificate valid for {days} days"
-                            )
+                            validation["checks"].append(f"Certificate valid for {days} days")
                 else:
                     for error in ssl_validation["errors"]:
                         validation["issues"].append(f"SSL validation error: {error}")
@@ -274,13 +239,9 @@ class ProductionValidator:
         """Validate Docker infrastructure."""
         # Check Docker availability
         try:
-            result = subprocess.run(
-                ["docker", "--version"], capture_output=True, text=True
-            )
+            result = subprocess.run(["docker", "--version"], capture_output=True, text=True)
             if result.returncode == 0:
-                validation["checks"].append(
-                    f"Docker available: {result.stdout.strip()}"
-                )
+                validation["checks"].append(f"Docker available: {result.stdout.strip()}")
             else:
                 validation["issues"].append("Docker is not available")
         except FileNotFoundError:
@@ -288,13 +249,9 @@ class ProductionValidator:
 
         # Check Docker Compose
         try:
-            result = subprocess.run(
-                ["docker-compose", "--version"], capture_output=True, text=True
-            )
+            result = subprocess.run(["docker-compose", "--version"], capture_output=True, text=True)
             if result.returncode == 0:
-                validation["checks"].append(
-                    f"Docker Compose available: {result.stdout.strip()}"
-                )
+                validation["checks"].append(f"Docker Compose available: {result.stdout.strip()}")
             else:
                 validation["issues"].append("Docker Compose is not available")
         except FileNotFoundError:
@@ -316,19 +273,13 @@ class ProductionValidator:
 
             # Validate compose file
             try:
-                result = subprocess.run(
-                    ["docker-compose", "config"], capture_output=True, text=True
-                )
+                result = subprocess.run(["docker-compose", "config"], capture_output=True, text=True)
                 if result.returncode == 0:
                     validation["checks"].append("Valid docker-compose.yml syntax")
                 else:
-                    validation["issues"].append(
-                        f"Invalid docker-compose.yml: {result.stderr}"
-                    )
+                    validation["issues"].append(f"Invalid docker-compose.yml: {result.stderr}")
             except Exception as e:
-                validation["warnings"].append(
-                    f"Could not validate docker-compose.yml: {e}"
-                )
+                validation["warnings"].append(f"Could not validate docker-compose.yml: {e}")
         else:
             validation["issues"].append("Missing docker-compose.yml")
 
@@ -345,9 +296,7 @@ class ProductionValidator:
 
         for service in required_services:
             try:
-                result = subprocess.run(
-                    ["systemctl", "is-enabled", service], capture_output=True, text=True
-                )
+                result = subprocess.run(["systemctl", "is-enabled", service], capture_output=True, text=True)
                 if result.returncode == 0:
                     validation["checks"].append(f"Service enabled: {service}")
                 else:
@@ -390,13 +339,9 @@ class ProductionValidator:
                 # Check Docker services
                 if os.path.exists("docker-compose.yml"):
                     try:
-                        result = subprocess.run(
-                            ["docker-compose", "ps"], capture_output=True, text=True
-                        )
+                        result = subprocess.run(["docker-compose", "ps"], capture_output=True, text=True)
                         if result.returncode == 0:
-                            lines = result.stdout.strip().split("\n")[
-                                2:
-                            ]  # Skip headers
+                            lines = result.stdout.strip().split("\n")[2:]  # Skip headers
                             running_services = 0
                             total_services = 0
 
@@ -407,29 +352,16 @@ class ProductionValidator:
                                         running_services += 1
                                     else:
                                         service_name = line.split()[0]
-                                        validation["issues"].append(
-                                            f"Service not running: {service_name}"
-                                        )
+                                        validation["issues"].append(f"Service not running: {service_name}")
 
-                            if (
-                                running_services == total_services
-                                and total_services > 0
-                            ):
-                                validation["checks"].append(
-                                    f"All {total_services} Docker services running"
-                                )
+                            if running_services == total_services and total_services > 0:
+                                validation["checks"].append(f"All {total_services} Docker services running")
                             elif total_services == 0:
-                                validation["warnings"].append(
-                                    "No Docker services found"
-                                )
+                                validation["warnings"].append("No Docker services found")
                         else:
-                            validation["warnings"].append(
-                                "Could not check Docker services status"
-                            )
+                            validation["warnings"].append("Could not check Docker services status")
                     except Exception as e:
-                        validation["warnings"].append(
-                            f"Error checking Docker services: {e}"
-                        )
+                        validation["warnings"].append(f"Error checking Docker services: {e}")
             else:
                 # Check systemd services
                 services_to_check = [
@@ -453,13 +385,9 @@ class ProductionValidator:
                         if result.stdout.strip() == "active":
                             validation["checks"].append(f"Service active: {service}")
                         else:
-                            validation["issues"].append(
-                                f"Service not active: {service}"
-                            )
+                            validation["issues"].append(f"Service not active: {service}")
                     except Exception:
-                        validation["warnings"].append(
-                            f"Could not check service: {service}"
-                        )
+                        validation["warnings"].append(f"Could not check service: {service}")
 
             validation["status"] = "passed" if not validation["issues"] else "failed"
 
@@ -480,39 +408,29 @@ class ProductionValidator:
             # Memory check
             memory = psutil.virtual_memory()
             if memory.total < 2 * 1024 * 1024 * 1024:  # 2GB
-                validation["warnings"].append(
-                    f"Low memory: {memory.total // (1024**3)}GB (recommended: 2GB+)"
-                )
+                validation["warnings"].append(f"Low memory: {memory.total // (1024**3)}GB (recommended: 2GB+)")
             else:
-                validation["checks"].append(
-                    f"Adequate memory: {memory.total // (1024**3)}GB"
-                )
+                validation["checks"].append(f"Adequate memory: {memory.total // (1024**3)}GB")
 
             # Disk space check
             disk = psutil.disk_usage("/")
             free_space_gb = disk.free // (1024**3)
             if free_space_gb < 10:
-                validation["warnings"].append(
-                    f"Low disk space: {free_space_gb}GB (recommended: 10GB+)"
-                )
+                validation["warnings"].append(f"Low disk space: {free_space_gb}GB (recommended: 10GB+)")
             else:
                 validation["checks"].append(f"Adequate disk space: {free_space_gb}GB")
 
             # CPU check
             cpu_count = psutil.cpu_count()
             if cpu_count < 2:
-                validation["warnings"].append(
-                    f"Low CPU count: {cpu_count} (recommended: 2+)"
-                )
+                validation["warnings"].append(f"Low CPU count: {cpu_count} (recommended: 2+)")
             else:
                 validation["checks"].append(f"Adequate CPU count: {cpu_count}")
 
             validation["status"] = "passed"
 
         except ImportError:
-            validation["warnings"].append(
-                "psutil not available - skipping resource checks"
-            )
+            validation["warnings"].append("psutil not available - skipping resource checks")
             validation["status"] = "warning"
         except Exception as e:
             validation["status"] = "error"
@@ -531,9 +449,7 @@ class ProductionValidator:
 
             for backup_dir in backup_dirs:
                 if os.path.exists(backup_dir):
-                    validation["checks"].append(
-                        f"Backup directory exists: {backup_dir}"
-                    )
+                    validation["checks"].append(f"Backup directory exists: {backup_dir}")
                     backup_dir_found = True
                     break
 
@@ -555,9 +471,7 @@ class ProductionValidator:
 
             # Check cron jobs
             try:
-                result = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
+                result = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
                 if result.returncode == 0 and "backup" in result.stdout.lower():
                     validation["checks"].append("Backup cron job configured")
                 else:
@@ -603,9 +517,7 @@ class ProductionValidator:
                 try:
                     result = subprocess.run(["which", tool], capture_output=True)
                     if result.returncode == 0:
-                        validation["checks"].append(
-                            f"Monitoring tool available: {tool}"
-                        )
+                        validation["checks"].append(f"Monitoring tool available: {tool}")
                 except Exception:
                     pass
 
@@ -625,16 +537,10 @@ class ProductionValidator:
 
         for category, details in validation_result["validation_details"].items():
             if details["status"] == "failed" or details["status"] == "error":
-                critical_issues.extend(
-                    [f"{category}: {issue}" for issue in details["issues"]]
-                )
+                critical_issues.extend([f"{category}: {issue}" for issue in details["issues"]])
 
-            warnings.extend(
-                [f"{category}: {warning}" for warning in details["warnings"]]
-            )
-            passed_checks.extend(
-                [f"{category}: {check}" for check in details["checks"]]
-            )
+            warnings.extend([f"{category}: {warning}" for warning in details["warnings"]])
+            passed_checks.extend([f"{category}: {check}" for check in details["checks"]])
 
         validation_result["critical_issues"] = critical_issues
         validation_result["warnings"] = warnings
@@ -702,8 +608,6 @@ class ProductionValidator:
             key_path = os.path.join(location, "privkey.pem")
 
             if os.path.exists(cert_path) and os.path.exists(key_path):
-                cert_paths.append(
-                    {"cert_path": cert_path, "key_path": key_path, "location": location}
-                )
+                cert_paths.append({"cert_path": cert_path, "key_path": key_path, "location": location})
 
         return cert_paths

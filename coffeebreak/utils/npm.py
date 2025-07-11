@@ -33,9 +33,7 @@ class NPMManager:
             Tuple[bool, str]: (is_available, version_or_error)
         """
         try:
-            result = subprocess.run(
-                ["npm", "--version"], capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run(["npm", "--version"], capture_output=True, text=True, timeout=10)
 
             if result.returncode == 0:
                 version = result.stdout.strip()
@@ -78,9 +76,7 @@ class NPMManager:
                 return True, "No Node.js version requirement specified"
 
             # Get current Node.js version
-            result = subprocess.run(
-                ["node", "--version"], capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run(["node", "--version"], capture_output=True, text=True, timeout=10)
 
             if result.returncode != 0:
                 return False, "Could not determine Node.js version"
@@ -287,9 +283,7 @@ class NPMManager:
                 print(f"Error reading package.json: {e}")
             return None
 
-    def run_npm_script(
-        self, repo_path: str, script_name: str, timeout: int = 60
-    ) -> Tuple[bool, str]:
+    def run_npm_script(self, repo_path: str, script_name: str, timeout: int = 60) -> Tuple[bool, str]:
         """
         Run npm script (e.g., 'npm run dev').
 
@@ -403,8 +397,6 @@ class NPMManager:
         # Check if dependencies are installed
         deps_installed, missing = self.check_installed_packages(repo_path)
         if not deps_installed:
-            errors.append(
-                f"Missing npm packages: {', '.join(missing[:5])}"
-            )  # Show first 5
+            errors.append(f"Missing npm packages: {', '.join(missing[:5])}")  # Show first 5
 
         return len(errors) == 0, errors

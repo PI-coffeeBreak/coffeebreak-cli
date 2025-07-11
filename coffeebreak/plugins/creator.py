@@ -97,9 +97,7 @@ class PluginCreator:
             raise PluginError("Plugin name cannot be empty")
 
         if not name.replace("-", "_").replace("_", "").isalnum():
-            raise PluginError(
-                "Plugin name must contain only letters, numbers, hyphens, and underscores"
-            )
+            raise PluginError("Plugin name must contain only letters, numbers, hyphens, and underscores")
 
         if name.startswith("-") or name.endswith("-"):
             raise PluginError("Plugin name cannot start or end with hyphens")
@@ -107,9 +105,7 @@ class PluginCreator:
         if len(name) > 50:
             raise PluginError("Plugin name must be 50 characters or less")
 
-    def _create_plugin_structure(
-        self, name: str, template: str, plugin_dir: str, **kwargs
-    ) -> None:
+    def _create_plugin_structure(self, name: str, template: str, plugin_dir: str, **kwargs) -> None:
         """Create the basic plugin directory structure."""
         try:
             # Create main plugin directory
@@ -133,9 +129,7 @@ class PluginCreator:
         except Exception as e:
             raise PluginError(f"Failed to create plugin structure: {e}") from e
 
-    def _copy_template_files(
-        self, template_dir: Path, plugin_dir: str, name: str, **kwargs
-    ) -> None:
+    def _copy_template_files(self, template_dir: Path, plugin_dir: str, name: str, **kwargs) -> None:
         """Copy and process template files."""
         template_vars = {
             "plugin_name": name,
@@ -173,9 +167,7 @@ class PluginCreator:
                 if self.verbose:
                     print(f"Created file: {os.path.relpath(dst_file, plugin_dir)}")
 
-    def _process_template_file(
-        self, src_file: str, dst_file: str, variables: Dict[str, Any]
-    ) -> None:
+    def _process_template_file(self, src_file: str, dst_file: str, variables: Dict[str, Any]) -> None:
         """Process a Jinja2 template file."""
         try:
             with open(src_file, encoding="utf-8") as f:
@@ -193,16 +185,12 @@ class PluginCreator:
     def _generate_plugin_manifest(self, name: str, plugin_dir: str, **kwargs) -> None:
         """Generate coffeebreak-plugin.yml manifest file."""
         try:
-            manifest_template = self.jinja_env.get_template(
-                "../coffeebreak-plugin.yml.j2"
-            )
+            manifest_template = self.jinja_env.get_template("../coffeebreak-plugin.yml.j2")
 
             template_vars = {
                 "plugin_name": name,
                 "plugin_package_name": name.replace("-", "_"),
-                "plugin_description": kwargs.get(
-                    "description", f"CoffeeBreak plugin: {name}"
-                ),
+                "plugin_description": kwargs.get("description", f"CoffeeBreak plugin: {name}"),
                 "plugin_version": kwargs.get("version", "1.0.0"),
                 "plugin_author": kwargs.get("author", "Unknown"),
                 "plugin_email": kwargs.get("email", ""),
@@ -419,9 +407,7 @@ This plugin can be configured through the `coffeebreak-plugin.yml` file.
             f.write(readme_content)
 
         if self.verbose:
-            print(
-                f"Created plugin source files: __init__.py, {package_name}.py, requirements.txt, README.md"
-            )
+            print(f"Created plugin source files: __init__.py, {package_name}.py, requirements.txt, README.md")
 
     def list_available_templates(self) -> List[str]:
         """Get list of available plugin templates."""

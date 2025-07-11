@@ -35,9 +35,7 @@ class LetsEncryptManager:
     def check_certbot_available(self) -> bool:
         """Check if certbot is available."""
         try:
-            result = subprocess.run(
-                ["certbot", "--version"], capture_output=True, text=True
-            )
+            result = subprocess.run(["certbot", "--version"], capture_output=True, text=True)
             return result.returncode == 0
         except FileNotFoundError:
             return False
@@ -49,10 +47,7 @@ class LetsEncryptManager:
                 print("Installing certbot...")
 
             # Detect package manager and install
-            if (
-                subprocess.run(["which", "apt-get"], capture_output=True).returncode
-                == 0
-            ):
+            if subprocess.run(["which", "apt-get"], capture_output=True).returncode == 0:
                 # Debian/Ubuntu
                 commands = [
                     ["apt-get", "update"],
@@ -68,9 +63,7 @@ class LetsEncryptManager:
                 # Fedora
                 commands = [["dnf", "install", "-y", "certbot"]]
             else:
-                raise SSLError(
-                    "Unsupported package manager. Please install certbot manually."
-                )
+                raise SSLError("Unsupported package manager. Please install certbot manually.")
 
             for command in commands:
                 result = subprocess.run(command, capture_output=True, text=True)
@@ -182,9 +175,7 @@ class LetsEncryptManager:
             else:
                 raise SSLError(f"Failed to obtain certificate: {e}") from e
 
-    def renew_certificate(
-        self, domain: Optional[str] = None, dry_run: bool = False
-    ) -> Dict[str, Any]:
+    def renew_certificate(self, domain: Optional[str] = None, dry_run: bool = False) -> Dict[str, Any]:
         """
         Renew Let's Encrypt certificate(s).
 
@@ -256,9 +247,7 @@ class LetsEncryptManager:
                         certificates.append(current_cert)
                     current_cert = {"name": line.split(":", 1)[1].strip()}
                 elif line.startswith("Domains:"):
-                    current_cert["domains"] = [
-                        d.strip() for d in line.split(":", 1)[1].split()
-                    ]
+                    current_cert["domains"] = [d.strip() for d in line.split(":", 1)[1].split()]
                 elif line.startswith("Expiry Date:"):
                     expiry_str = line.split(":", 1)[1].strip()
                     current_cert["expiry_date"] = expiry_str
@@ -274,9 +263,7 @@ class LetsEncryptManager:
             for cert in certificates:
                 if "cert_path" in cert and os.path.exists(cert["cert_path"]):
                     try:
-                        expiry_info = self.ssl_manager.check_certificate_expiration(
-                            cert["cert_path"]
-                        )
+                        expiry_info = self.ssl_manager.check_certificate_expiration(cert["cert_path"])
                         cert.update(expiry_info)
                     except Exception:
                         pass
@@ -354,9 +341,7 @@ class LetsEncryptManager:
 
             # Get current crontab
             try:
-                result = subprocess.run(
-                    ["crontab", "-l"], capture_output=True, text=True
-                )
+                result = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
                 current_crontab = result.stdout if result.returncode == 0 else ""
             except subprocess.CalledProcessError:
                 current_crontab = ""
@@ -370,9 +355,7 @@ class LetsEncryptManager:
             # Add renewal to crontab
             new_crontab = current_crontab.rstrip() + "\\n" + renewal_cmd + "\\n"
 
-            process = subprocess.Popen(
-                ["crontab", "-"], stdin=subprocess.PIPE, text=True
-            )
+            process = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, text=True)
             process.communicate(input=new_crontab)
 
             if process.returncode == 0:
@@ -407,9 +390,7 @@ class LetsEncryptManager:
                 return True
             else:
                 if self.verbose:
-                    print(
-                        f"Renewal test failed: {result.get('error', 'Unknown error')}"
-                    )
+                    print(f"Renewal test failed: {result.get('error', 'Unknown error')}")
                 return False
 
         except Exception as e:
@@ -436,9 +417,7 @@ class LetsEncryptManager:
                 for line in lines:
                     if ":" in line:
                         key, value = line.split(":", 1)
-                        account_info[key.strip().lower().replace(" ", "_")] = (
-                            value.strip()
-                        )
+                        account_info[key.strip().lower().replace(" ", "_")] = value.strip()
 
                 return account_info
             else:

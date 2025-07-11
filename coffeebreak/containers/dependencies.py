@@ -62,22 +62,16 @@ class DependencyManager:
                 return self._start_profile_with_docker_api(deps_config, profile_name)
 
         except Exception as e:
-            raise DependencyManagerError(
-                f"Failed to start profile '{profile_name}': {e}"
-            )
+            raise DependencyManagerError(f"Failed to start profile '{profile_name}': {e}")
 
-    def _start_profile_with_compose(
-        self, deps_config: Dict[str, Any], profile_name: str
-    ) -> bool:
+    def _start_profile_with_compose(self, deps_config: Dict[str, Any], profile_name: str) -> bool:
         """Start profile using Docker Compose orchestration."""
         try:
             if self.verbose:
                 print(f"Starting profile '{profile_name}' using Docker Compose")
 
             # Generate compose file for profile
-            compose_file = self.compose_orchestrator.generate_compose_file(
-                deps_config, profile=profile_name
-            )
+            compose_file = self.compose_orchestrator.generate_compose_file(deps_config, profile=profile_name)
 
             # Start services
             return self.compose_orchestrator.start_services(detach=True)
@@ -88,9 +82,7 @@ class DependencyManager:
             # Fallback to Docker API
             return self._start_profile_with_docker_api(deps_config, profile_name)
 
-    def _start_profile_with_docker_api(
-        self, deps_config: Dict[str, Any], profile_name: str
-    ) -> bool:
+    def _start_profile_with_docker_api(self, deps_config: Dict[str, Any], profile_name: str) -> bool:
         """Start profile using Docker API (fallback method)."""
         try:
             if self.verbose:
@@ -105,9 +97,7 @@ class DependencyManager:
             services_config = deps_config.get("services", {})
 
             if self.verbose:
-                print(
-                    f"Starting dependency profile '{profile_name}' with {len(services_list)} services"
-                )
+                print(f"Starting dependency profile '{profile_name}' with {len(services_list)} services")
 
             # Create network
             self.container_manager.create_network(self.network_name)
@@ -122,18 +112,14 @@ class DependencyManager:
             started_services = []
             for service_name in services_list:
                 if service_name not in services_config:
-                    raise DependencyManagerError(
-                        f"Service '{service_name}' not configured"
-                    )
+                    raise DependencyManagerError(f"Service '{service_name}' not configured")
 
                 container_name = services_config[service_name].get("container_name")
 
                 # Check if service is already running (skip if so)
                 if any(c["name"] == container_name for c in existing_containers):
                     if self.verbose:
-                        print(
-                            f"Service '{service_name}' is already running, skipping..."
-                        )
+                        print(f"Service '{service_name}' is already running, skipping...")
                     continue
 
                 service_config = services_config[service_name].copy()
@@ -153,9 +139,7 @@ class DependencyManager:
                 self._wait_for_service_health(service_config["container_name"])
 
             if self.verbose:
-                print(
-                    f"✓ Successfully started {len(started_services)} dependency services"
-                )
+                print(f"✓ Successfully started {len(started_services)} dependency services")
 
             return True
 
@@ -187,9 +171,7 @@ class DependencyManager:
             # Start services
             for service_name in service_names:
                 if service_name not in services_config:
-                    raise DependencyManagerError(
-                        f"Service '{service_name}' not configured"
-                    )
+                    raise DependencyManagerError(f"Service '{service_name}' not configured")
 
                 service_config = services_config[service_name].copy()
                 service_config["network"] = self.network_name
@@ -252,9 +234,7 @@ class DependencyManager:
 
             for service_name in service_names:
                 if service_name not in services_config:
-                    raise DependencyManagerError(
-                        f"Service '{service_name}' not configured"
-                    )
+                    raise DependencyManagerError(f"Service '{service_name}' not configured")
 
                 container_name = services_config[service_name].get("container_name")
 
@@ -380,9 +360,7 @@ class DependencyManager:
             for service_name, service_config in services_config.items():
                 container_name = service_config.get("container_name")
                 if container_name:
-                    status[service_name] = self.container_manager.get_container_status(
-                        container_name
-                    )
+                    status[service_name] = self.container_manager.get_container_status(container_name)
                 else:
                     status[service_name] = {
                         "status": "not_configured",
@@ -442,9 +420,7 @@ class DependencyManager:
                 return self.start_services([service_name])
 
         except Exception as e:
-            raise DependencyManagerError(
-                f"Error starting service '{service_name}': {e}"
-            )
+            raise DependencyManagerError(f"Error starting service '{service_name}': {e}")
 
     def restart_service(self, service_name: str) -> bool:
         """
@@ -460,18 +436,14 @@ class DependencyManager:
             # Try Docker Compose first
             if self.use_compose and self.compose_orchestrator.is_compose_available():
                 if self.verbose:
-                    print(
-                        f"Restarting service '{service_name}' using Docker Compose..."
-                    )
+                    print(f"Restarting service '{service_name}' using Docker Compose...")
                 return self.compose_orchestrator.restart_service(service_name)
             else:
                 # Fallback to Docker API restart
                 return self._restart_service_with_docker_api(service_name)
 
         except Exception as e:
-            raise DependencyManagerError(
-                f"Error restarting service '{service_name}': {e}"
-            )
+            raise DependencyManagerError(f"Error restarting service '{service_name}': {e}")
 
     def _restart_service_with_docker_api(self, service_name: str) -> bool:
         """Restart service using Docker API (fallback method)."""
@@ -486,9 +458,7 @@ class DependencyManager:
             container_name = service_config.get("container_name")
 
             if not container_name:
-                raise DependencyManagerError(
-                    f"No container name configured for service '{service_name}'"
-                )
+                raise DependencyManagerError(f"No container name configured for service '{service_name}'")
 
             if self.verbose:
                 print(f"Restarting container '{container_name}' using Docker API...")
@@ -592,9 +562,7 @@ class DependencyManager:
             # Get running containers and their network info
             containers = self.get_running_containers()
             for container in containers:
-                network_info["containers"].append(
-                    {"name": container["name"], "status": container["status"]}
-                )
+                network_info["containers"].append({"name": container["name"], "status": container["status"]})
 
             return network_info
 
@@ -641,23 +609,17 @@ class DependencyManager:
             # Add containers to monitor
             for container_info in running_containers:
                 try:
-                    container = self.container_manager.client.containers.get(
-                        container_info.get("container_name", container_info["name"])
-                    )
+                    container = self.container_manager.client.containers.get(container_info.get("container_name", container_info["name"]))
                     self.health_monitor.add_container(container)
                 except Exception as e:
                     if self.verbose:
-                        print(
-                            f"Could not add container {container_info['name']} to monitoring: {e}"
-                        )
+                        print(f"Could not add container {container_info['name']} to monitoring: {e}")
 
             # Start monitoring
             self.health_monitor.start_monitoring()
 
             if self.verbose:
-                print(
-                    f"Started health monitoring for {len(running_containers)} containers"
-                )
+                print(f"Started health monitoring for {len(running_containers)} containers")
 
             return True
 
@@ -721,20 +683,14 @@ class DependencyManager:
         """
         return self.health_monitor.get_health_history(limit)
 
-    def _handle_health_alert(
-        self, container_name: str, alert_data: Dict[str, Any]
-    ) -> None:
+    def _handle_health_alert(self, container_name: str, alert_data: Dict[str, Any]) -> None:
         """Handle health alert from monitoring system."""
         try:
             if self.verbose:
-                alert_message = self.health_reporter.generate_failure_alert(
-                    container_name, alert_data
-                )
+                alert_message = self.health_reporter.generate_failure_alert(container_name, alert_data)
                 print(f"\n{alert_message}\n")
             else:
-                print(
-                    f"Health Alert: Container '{container_name}' has failed health checks"
-                )
+                print(f"Health Alert: Container '{container_name}' has failed health checks")
 
         except Exception as e:
             print(f"Error handling health alert: {e}")
@@ -759,35 +715,25 @@ class DependencyManager:
                     if service_name == "database":
                         if "5432/tcp" in ports:
                             host_port = ports["5432/tcp"].replace("localhost:", "")
-                            connection_info["DATABASE_URL"] = (
-                                f"postgresql://coffeebreak:dev_password@localhost:{host_port}/coffeebreak_dev"
-                            )
+                            connection_info["DATABASE_URL"] = f"postgresql://coffeebreak:dev_password@localhost:{host_port}/coffeebreak_dev"
 
                     elif service_name == "mongodb":
                         if "27017/tcp" in ports:
                             host_port = ports["27017/tcp"].replace("localhost:", "")
-                            connection_info["MONGODB_URI"] = (
-                                f"mongodb://coffeebreak:dev_password@localhost:{host_port}/coffeebreak_dev"
-                            )
+                            connection_info["MONGODB_URI"] = f"mongodb://coffeebreak:dev_password@localhost:{host_port}/coffeebreak_dev"
 
                     elif service_name == "rabbitmq":
                         if "5672/tcp" in ports:
                             host_port = ports["5672/tcp"].replace("localhost:", "")
-                            connection_info["RABBITMQ_URL"] = (
-                                f"amqp://coffeebreak:dev_password@localhost:{host_port}/"
-                            )
+                            connection_info["RABBITMQ_URL"] = f"amqp://coffeebreak:dev_password@localhost:{host_port}/"
                         if "15672/tcp" in ports:
                             mgmt_port = ports["15672/tcp"].replace("localhost:", "")
-                            connection_info["RABBITMQ_MANAGEMENT_URL"] = (
-                                f"http://localhost:{mgmt_port}"
-                            )
+                            connection_info["RABBITMQ_MANAGEMENT_URL"] = f"http://localhost:{mgmt_port}"
 
                     elif service_name == "keycloak":
                         if "8080/tcp" in ports:
                             host_port = ports["8080/tcp"].replace("localhost:", "")
-                            connection_info["KEYCLOAK_URL"] = (
-                                f"http://localhost:{host_port}"
-                            )
+                            connection_info["KEYCLOAK_URL"] = f"http://localhost:{host_port}"
 
         except Exception as e:
             connection_info["error"] = str(e)

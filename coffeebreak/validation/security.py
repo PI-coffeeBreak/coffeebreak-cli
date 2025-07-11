@@ -19,9 +19,7 @@ class SecurityValidator:
         """Initialize security validator."""
         self.verbose = verbose
 
-    def validate_security_configuration(
-        self, domain: str, deployment_type: str = "docker"
-    ) -> Dict[str, Any]:
+    def validate_security_configuration(self, domain: str, deployment_type: str = "docker") -> Dict[str, Any]:
         """
         Comprehensive security validation.
 
@@ -126,15 +124,10 @@ class SecurityValidator:
                             actual_mode = stat_info.st_mode & 0o777
 
                             if actual_mode == expected_mode:
-                                validation["checks"].append(
-                                    f"Correct permissions: {path} ({oct(actual_mode)})"
-                                )
+                                validation["checks"].append(f"Correct permissions: {path} ({oct(actual_mode)})")
                                 validation["score"] += 10
                             else:
-                                validation["issues"].append(
-                                    f"Incorrect permissions: {path} has "
-                                    f"{oct(actual_mode)}, expected {oct(expected_mode)}"
-                                )
+                                validation["issues"].append(f"Incorrect permissions: {path} has {oct(actual_mode)}, expected {oct(expected_mode)}")
                         else:
                             validation["warnings"].append(f"Path not found: {path}")
 
@@ -152,16 +145,10 @@ class SecurityValidator:
                         actual_mode = stat_info.st_mode & 0o777
 
                         if actual_mode <= expected_mode:
-                            validation["checks"].append(
-                                f"Secure permissions: {path} ({oct(actual_mode)})"
-                            )
+                            validation["checks"].append(f"Secure permissions: {path} ({oct(actual_mode)})")
                             validation["score"] += 10
                         else:
-                            validation["warnings"].append(
-                                f"Overly permissive: {path} has "
-                                f"{oct(actual_mode)}, recommended max "
-                                f"{oct(expected_mode)}"
-                            )
+                            validation["warnings"].append(f"Overly permissive: {path} has {oct(actual_mode)}, recommended max {oct(expected_mode)}")
 
             # Check for world-readable sensitive files
             sensitive_patterns = ["*.key", "*.pem", "*secret*", "*password*", ".env*"]
@@ -175,13 +162,9 @@ class SecurityValidator:
                         mode = stat_info.st_mode & 0o777
 
                         if mode & 0o044:  # World or group readable
-                            validation["issues"].append(
-                                f"Sensitive file is readable by others: {file_path}"
-                            )
+                            validation["issues"].append(f"Sensitive file is readable by others: {file_path}")
                         else:
-                            validation["checks"].append(
-                                f"Secure sensitive file: {file_path}"
-                            )
+                            validation["checks"].append(f"Secure sensitive file: {file_path}")
                             validation["score"] += 5
 
             validation["status"] = "passed" if not validation["issues"] else "failed"
@@ -210,14 +193,10 @@ class SecurityValidator:
                         compose_content = f.read()
 
                     if "secrets:" in compose_content:
-                        validation["checks"].append(
-                            "Docker secrets configuration found"
-                        )
+                        validation["checks"].append("Docker secrets configuration found")
                         validation["score"] += 20
                     else:
-                        validation["warnings"].append(
-                            "No Docker secrets configuration found"
-                        )
+                        validation["warnings"].append("No Docker secrets configuration found")
 
                     # Check for plaintext secrets in compose file
                     sensitive_keywords = ["password", "secret", "key", "token"]
@@ -225,16 +204,9 @@ class SecurityValidator:
 
                     for i, line in enumerate(lines, 1):
                         for keyword in sensitive_keywords:
-                            if (
-                                keyword.lower() in line.lower()
-                                and "=" in line
-                                and not line.strip().startswith("#")
-                            ):
+                            if keyword.lower() in line.lower() and "=" in line and not line.strip().startswith("#"):
                                 if "${" not in line:  # Not using environment variables
-                                    validation["issues"].append(
-                                        f"Potential plaintext secret in docker-compose.yml "
-                                        f"line {i}"
-                                    )
+                                    validation["issues"].append(f"Potential plaintext secret in docker-compose.yml line {i}")
 
             else:  # Standalone deployment
                 secrets_dir = "/opt/coffeebreak/secrets"
@@ -246,23 +218,17 @@ class SecurityValidator:
                     encrypted_files = [f for f in secret_files if f.suffix == ".enc"]
 
                     if encrypted_files:
-                        validation["checks"].append(
-                            f"Found {len(encrypted_files)} encrypted secret files"
-                        )
+                        validation["checks"].append(f"Found {len(encrypted_files)} encrypted secret files")
                         validation["score"] += 20
 
                     plain_files = [f for f in secret_files if f.suffix != ".enc"]
                     if plain_files:
-                        validation["warnings"].append(
-                            f"Found {len(plain_files)} unencrypted secret files"
-                        )
+                        validation["warnings"].append(f"Found {len(plain_files)} unencrypted secret files")
                 else:
                     validation["warnings"].append("Secrets directory not found")
 
             # Check for secrets in environment files
-            env_files = [".env", ".env.local", ".env.production"] + [
-                f".env.{service}" for service in ["api", "frontend", "events"]
-            ]
+            env_files = [".env", ".env.local", ".env.production"] + [f".env.{service}" for service in ["api", "frontend", "events"]]
 
             for env_file in env_files:
                 if os.path.exists(env_file):
@@ -283,14 +249,8 @@ class SecurityValidator:
                                     "key",
                                     "token",
                                 ]
-                                if any(
-                                    keyword in key.lower()
-                                    for keyword in sensitive_keywords
-                                ):
-                                    validation["warnings"].append(
-                                        f"Potential hardcoded secret in {env_file} "
-                                        f"line {i}"
-                                    )
+                                if any(keyword in key.lower() for keyword in sensitive_keywords):
+                                    validation["warnings"].append(f"Potential hardcoded secret in {env_file} line {i}")
 
             validation["status"] = "passed" if not validation["issues"] else "failed"
 
@@ -314,9 +274,7 @@ class SecurityValidator:
             # Check HTTPS enforcement
             try:
                 # Test HTTP redirect to HTTPS
-                response = requests.get(
-                    f"http://{domain}", allow_redirects=False, timeout=10
-                )
+                response = requests.get(f"http://{domain}", allow_redirects=False, timeout=10)
 
                 if response.status_code in [301, 302, 307, 308]:
                     location = response.headers.get("Location", "")
@@ -359,17 +317,13 @@ class SecurityValidator:
                         insecure_cookies.append(cookie.name)
 
                 if insecure_cookies:
-                    validation["warnings"].append(
-                        f"Insecure cookies found: {insecure_cookies}"
-                    )
+                    validation["warnings"].append(f"Insecure cookies found: {insecure_cookies}")
                 else:
                     validation["checks"].append("All cookies are secure")
                     validation["score"] += 5
 
             except Exception as e:
-                validation["warnings"].append(
-                    f"Could not test HTTPS configuration: {e}"
-                )
+                validation["warnings"].append(f"Could not test HTTPS configuration: {e}")
 
             # Check for open ports
             common_ports = [22, 80, 443, 3000, 5432, 27017, 5672, 6379]
@@ -383,18 +337,11 @@ class SecurityValidator:
 
                     if result == 0:  # Port is open
                         if port in [80, 443]:
-                            validation["checks"].append(
-                                f"Web port {port} is accessible"
-                            )
+                            validation["checks"].append(f"Web port {port} is accessible")
                         elif port == 22:
-                            validation["warnings"].append(
-                                "SSH port 22 is accessible from internet"
-                            )
+                            validation["warnings"].append("SSH port 22 is accessible from internet")
                         else:
-                            validation["issues"].append(
-                                f"Database/service port {port} is accessible "
-                                f"from internet"
-                            )
+                            validation["issues"].append(f"Database/service port {port} is accessible from internet")
 
                 except Exception:
                     continue  # Port scan failed, assume closed
@@ -426,14 +373,10 @@ class SecurityValidator:
                     tls_version = ssock.version()
 
                     if tls_version in ["TLSv1.2", "TLSv1.3"]:
-                        validation["checks"].append(
-                            f"Secure TLS version: {tls_version}"
-                        )
+                        validation["checks"].append(f"Secure TLS version: {tls_version}")
                         validation["score"] += 15
                     else:
-                        validation["issues"].append(
-                            f"Insecure TLS version: {tls_version}"
-                        )
+                        validation["issues"].append(f"Insecure TLS version: {tls_version}")
 
                     # Check cipher suite
                     cipher = ssock.cipher()
@@ -442,19 +385,13 @@ class SecurityValidator:
 
                         # Check for secure ciphers
                         if "AES" in cipher_name and "GCM" in cipher_name:
-                            validation["checks"].append(
-                                f"Secure cipher suite: {cipher_name}"
-                            )
+                            validation["checks"].append(f"Secure cipher suite: {cipher_name}")
                             validation["score"] += 10
                         elif "AES" in cipher_name:
-                            validation["checks"].append(
-                                f"Acceptable cipher suite: {cipher_name}"
-                            )
+                            validation["checks"].append(f"Acceptable cipher suite: {cipher_name}")
                             validation["score"] += 5
                         else:
-                            validation["warnings"].append(
-                                f"Potentially weak cipher: {cipher_name}"
-                            )
+                            validation["warnings"].append(f"Potentially weak cipher: {cipher_name}")
 
                     # Check certificate
                     # cert = ssock.getpeercert()  # Unused variable removed
@@ -464,14 +401,10 @@ class SecurityValidator:
                     if hasattr(public_key, "bits"):
                         key_bits = public_key.bits()
                         if key_bits >= 2048:
-                            validation["checks"].append(
-                                f"Adequate key size: {key_bits} bits"
-                            )
+                            validation["checks"].append(f"Adequate key size: {key_bits} bits")
                             validation["score"] += 10
                         else:
-                            validation["issues"].append(
-                                f"Weak key size: {key_bits} bits"
-                            )
+                            validation["issues"].append(f"Weak key size: {key_bits} bits")
 
         except Exception as e:
             validation["warnings"].append(f"Could not validate SSL configuration: {e}")
@@ -516,16 +449,10 @@ class SecurityValidator:
                                 found_settings.append(setting)
 
                         if len(found_settings) >= 3:
-                            validation["checks"].append(
-                                f"Good systemd security in "
-                                f"{os.path.basename(service_file)}"
-                            )
+                            validation["checks"].append(f"Good systemd security in {os.path.basename(service_file)}")
                             validation["score"] += 5
                         else:
-                            validation["warnings"].append(
-                                f"Missing systemd security settings in "
-                                f"{os.path.basename(service_file)}"
-                            )
+                            validation["warnings"].append(f"Missing systemd security settings in {os.path.basename(service_file)}")
 
             else:  # Docker deployment
                 # Check Docker security
@@ -547,14 +474,10 @@ class SecurityValidator:
                             found_options.append(option)
 
                     if found_options:
-                        validation["checks"].append(
-                            f"Docker security options found: {found_options}"
-                        )
+                        validation["checks"].append(f"Docker security options found: {found_options}")
                         validation["score"] += 10
                     else:
-                        validation["warnings"].append(
-                            "No Docker security options found"
-                        )
+                        validation["warnings"].append("No Docker security options found")
 
                     # Check for privileged containers
                     if "privileged: true" in compose_content:
@@ -584,9 +507,7 @@ class SecurityValidator:
         try:
             # Check firewall status
             try:
-                ufw_result = subprocess.run(
-                    ["ufw", "status"], capture_output=True, text=True
-                )
+                ufw_result = subprocess.run(["ufw", "status"], capture_output=True, text=True)
                 if ufw_result.returncode == 0:
                     if "Status: active" in ufw_result.stdout:
                         validation["checks"].append("UFW firewall is active")
@@ -595,9 +516,7 @@ class SecurityValidator:
                         validation["warnings"].append("UFW firewall is inactive")
                 else:
                     # Try iptables
-                    iptables_result = subprocess.run(
-                        ["iptables", "-L"], capture_output=True, text=True
-                    )
+                    iptables_result = subprocess.run(["iptables", "-L"], capture_output=True, text=True)
                     if iptables_result.returncode == 0:
                         if len(iptables_result.stdout.split("\n")) > 10:
                             validation["checks"].append("iptables rules configured")
@@ -612,9 +531,7 @@ class SecurityValidator:
                 validation["checks"].append("Automatic security updates configured")
                 validation["score"] += 10
             else:
-                validation["warnings"].append(
-                    "Automatic security updates not configured"
-                )
+                validation["warnings"].append("Automatic security updates not configured")
 
             # Check fail2ban
             try:
@@ -648,9 +565,7 @@ class SecurityValidator:
                     validation["checks"].append("SSH password authentication disabled")
                     validation["score"] += 10
                 else:
-                    validation["warnings"].append(
-                        "SSH password authentication may be enabled"
-                    )
+                    validation["warnings"].append("SSH password authentication may be enabled")
 
             validation["status"] = "passed" if not validation["issues"] else "failed"
 
@@ -689,33 +604,21 @@ class SecurityValidator:
                         header_value = headers[header]
 
                         if expected_values is None:  # Just check presence
-                            validation["checks"].append(
-                                f"Security header present: {header}"
-                            )
+                            validation["checks"].append(f"Security header present: {header}")
                             validation["score"] += 5
                         elif isinstance(expected_values, list):
                             if any(val in header_value for val in expected_values):
-                                validation["checks"].append(
-                                    f"Secure header value: {header}"
-                                )
+                                validation["checks"].append(f"Secure header value: {header}")
                                 validation["score"] += 5
                             else:
-                                validation["warnings"].append(
-                                    f"Potentially insecure header value: {header}"
-                                )
+                                validation["warnings"].append(f"Potentially insecure header value: {header}")
                         elif expected_values in header_value:
-                            validation["checks"].append(
-                                f"Secure header value: {header}"
-                            )
+                            validation["checks"].append(f"Secure header value: {header}")
                             validation["score"] += 5
                         else:
-                            validation["warnings"].append(
-                                f"Potentially insecure header value: {header}"
-                            )
+                            validation["warnings"].append(f"Potentially insecure header value: {header}")
                     else:
-                        validation["warnings"].append(
-                            f"Missing security header: {header}"
-                        )
+                        validation["warnings"].append(f"Missing security header: {header}")
 
             except Exception as e:
                 validation["warnings"].append(f"Could not test security headers: {e}")
@@ -732,29 +635,18 @@ class SecurityValidator:
 
                 for test_path in test_paths:
                     try:
-                        response = requests.get(
-                            f"https://{domain}{test_path}", timeout=5
-                        )
+                        response = requests.get(f"https://{domain}{test_path}", timeout=5)
                         if response.status_code == 200:
-                            if any(
-                                keyword in response.text.lower()
-                                for keyword in ["password", "secret", "root:"]
-                            ):
-                                validation["issues"].append(
-                                    f"Potential information disclosure: {test_path}"
-                                )
+                            if any(keyword in response.text.lower() for keyword in ["password", "secret", "root:"]):
+                                validation["issues"].append(f"Potential information disclosure: {test_path}")
                     except Exception:
                         continue  # Expected to fail
 
-                validation["checks"].append(
-                    "No obvious information disclosure vulnerabilities"
-                )
+                validation["checks"].append("No obvious information disclosure vulnerabilities")
                 validation["score"] += 10
 
             except Exception as e:
-                validation["warnings"].append(
-                    f"Could not test for vulnerabilities: {e}"
-                )
+                validation["warnings"].append(f"Could not test for vulnerabilities: {e}")
 
             validation["status"] = "passed" if not validation["issues"] else "failed"
 
@@ -784,13 +676,9 @@ class SecurityValidator:
                     mode = stat_info.st_mode & 0o777
 
                     if mode & 0o044:  # World or group readable
-                        validation["warnings"].append(
-                            f"Backup directory {backup_dir} is readable by others"
-                        )
+                        validation["warnings"].append(f"Backup directory {backup_dir} is readable by others")
                     else:
-                        validation["checks"].append(
-                            f"Secure backup directory permissions: {backup_dir}"
-                        )
+                        validation["checks"].append(f"Secure backup directory permissions: {backup_dir}")
                         validation["score"] += 10
 
                     # Check backup file permissions
@@ -801,17 +689,12 @@ class SecurityValidator:
                         file_mode = file_stat.st_mode & 0o777
 
                         if file_mode & 0o044:
-                            validation["warnings"].append(
-                                f"Backup file {backup_file.name} is readable by others"
-                            )
+                            validation["warnings"].append(f"Backup file {backup_file.name} is readable by others")
                         else:
                             validation["score"] += 2
 
                     if backup_files:
-                        validation["checks"].append(
-                            f"Found {len(backup_files)} backup files with "
-                            f"appropriate permissions"
-                        )
+                        validation["checks"].append(f"Found {len(backup_files)} backup files with appropriate permissions")
 
             # Check for backup encryption
             backup_scripts = ["/opt/coffeebreak/bin/backup.sh", "./backup.sh"]
@@ -848,20 +731,12 @@ class SecurityValidator:
             total_score += validation.get("score", 0)
             max_score += 100  # Assuming each category has max 100 points
 
-            all_issues.extend(
-                [f"{category}: {issue}" for issue in validation.get("issues", [])]
-            )
-            all_warnings.extend(
-                [f"{category}: {warning}" for warning in validation.get("warnings", [])]
-            )
-            all_checks.extend(
-                [f"{category}: {check}" for check in validation.get("checks", [])]
-            )
+            all_issues.extend([f"{category}: {issue}" for issue in validation.get("issues", [])])
+            all_warnings.extend([f"{category}: {warning}" for warning in validation.get("warnings", [])])
+            all_checks.extend([f"{category}: {check}" for check in validation.get("checks", [])])
 
         # Calculate security score (0-100)
-        security_result["security_score"] = (
-            min(100, int((total_score / max_score) * 100)) if max_score > 0 else 0
-        )
+        security_result["security_score"] = min(100, int((total_score / max_score) * 100)) if max_score > 0 else 0
         security_result["issues"] = all_issues
         security_result["warnings"] = all_warnings
         security_result["checks"] = all_checks
