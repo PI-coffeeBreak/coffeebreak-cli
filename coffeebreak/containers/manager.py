@@ -32,28 +32,28 @@ def _get_docker_imports():
 
         class DummyNetworks:
             def get(self, name):
-                raise DummyNotFound()
+                raise DummyNotFoundError()
 
             def create(self, name, driver):
                 pass
 
         class DummyContainers:
             def get(self, name):
-                raise DummyNotFound()
+                raise DummyNotFoundError()
 
             def run(self, **kwargs):
                 pass
 
-        class DummyNotFound(Exception):
+        class DummyNotFoundError(Exception):
             pass
 
         class DummyAPIError(Exception):
             pass
 
-        class DummyDockerException(Exception):
+        class DummyDockerError(Exception):
             pass
 
-        return DummyDockerClient, DummyAPIError, DummyDockerException, DummyNotFound
+        return DummyDockerClient, DummyAPIError, DummyDockerError, DummyNotFoundError
 
 
 docker, APIError, DockerException, NotFound = _get_docker_imports()  # noqa: E402

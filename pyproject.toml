@@ -1,6 +1,6 @@
 [tool.ruff]
 target-version = "py38"
-line-length = 200
+line-length = 250
 exclude = [
     ".git",
     "__pycache__",
