@@ -1,15 +1,12 @@
 """Plugin dependency management for CoffeeBreak CLI."""
 
-import os
 import json
+import os
 import subprocess
-import tempfile
-import shutil
-from typing import Dict, Any, List, Optional, Set
-from pathlib import Path
+from typing import Any, Dict, List
 
-from ..utils.errors import PluginError
 from ..containers.manager import ContainerManager
+from ..utils.errors import PluginError
 
 
 class PluginDependencyManager:
@@ -217,7 +214,7 @@ class PluginDependencyManager:
             node_deps["package_json_path"] = package_json_path
 
             try:
-                with open(package_json_path, "r") as f:
+                with open(package_json_path) as f:
                     package_data = json.load(f)
 
                 node_deps["dependencies"] = package_data.get("dependencies", {})
@@ -228,7 +225,7 @@ class PluginDependencyManager:
                 if "engines" in package_data:
                     node_deps["node_version"] = package_data["engines"].get("node")
 
-            except (json.JSONDecodeError, IOError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 if self.verbose:
                     print(f"Warning: Could not parse package.json: {e}")
 
@@ -292,7 +289,7 @@ class PluginDependencyManager:
         packages = []
 
         try:
-            with open(requirements_path, "r") as f:
+            with open(requirements_path) as f:
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#"):
@@ -313,7 +310,7 @@ class PluginDependencyManager:
                         else:
                             packages.append({"name": line, "version": "*"})
 
-        except IOError as e:
+        except OSError as e:
             if self.verbose:
                 print(f"Warning: Could not read requirements file: {e}")
 
@@ -495,8 +492,8 @@ class PluginDependencyManager:
                     print(f"Starting required services: {required_services}")
 
                 # Use dependency manager to start services
-                from ..containers.dependencies import DependencyManager
                 from ..config.manager import ConfigManager
+                from ..containers.dependencies import DependencyManager
 
                 config_manager = ConfigManager()
                 dep_manager = DependencyManager(config_manager, verbose=self.verbose)

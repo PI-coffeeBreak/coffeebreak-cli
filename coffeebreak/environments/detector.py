@@ -1,8 +1,8 @@
 """Environment detection logic for CoffeeBreak CLI."""
 
 import os
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
 
 class EnvironmentType(Enum):

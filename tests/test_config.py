@@ -1,13 +1,12 @@
 """Tests for configuration management."""
 
-import os
 import tempfile
+from unittest.mock import mock_open, patch
+
 import pytest
-from unittest.mock import patch, mock_open
 import yaml
 
 from coffeebreak.config.manager import ConfigManager
-from coffeebreak.config.validator import ConfigValidationError
 from coffeebreak.environments.detector import EnvironmentType
 
 

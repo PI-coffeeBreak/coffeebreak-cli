@@ -1,14 +1,8 @@
 """Recovery and disaster recovery system for CoffeeBreak."""
 
 import os
-import subprocess
-import shutil
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, Any, List, Optional
-import yaml
-
-from ..utils.errors import ConfigurationError
+from typing import Any, Dict
 
 
 class RecoveryManager:

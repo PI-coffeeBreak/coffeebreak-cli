@@ -2,7 +2,8 @@
 
 import sys
 import traceback
-from typing import Optional, Dict, Any
+from typing import Optional
+
 import click
 
 

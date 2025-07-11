@@ -1,12 +1,10 @@
 """Alert management system for production monitoring."""
 
 import os
-import subprocess
 from pathlib import Path
-from typing import Dict, Any
-import yaml
+from typing import Any, Dict
 
-from ..utils.errors import ConfigurationError
+import yaml
 
 
 class AlertManager:

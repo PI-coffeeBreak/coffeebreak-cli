@@ -2,10 +2,7 @@
 
 import os
 import subprocess
-from pathlib import Path
-from typing import Dict, Any
-
-from ..utils.errors import ConfigurationError
+from typing import Any, Dict
 
 
 class LogManager:
@@ -106,7 +103,7 @@ class LogManager:
 
         try:
             # Configure rsyslog for CoffeeBreak
-            rsyslog_config = f"""
+            rsyslog_config = """
 # CoffeeBreak logging configuration
 $ModLoad imudp
 $UDPServerRun 514

@@ -2,11 +2,8 @@
 
 import os
 import subprocess
-import json
-import time
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, Any, Optional, List
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from ..utils.errors import SSLError
 from .manager import SSLManager

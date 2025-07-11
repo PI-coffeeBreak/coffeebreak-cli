@@ -2,10 +2,8 @@
 
 import os
 import subprocess
-from typing import Dict, Any
 from datetime import datetime
-
-from ..utils.errors import ConfigurationError
+from typing import Any, Dict
 
 
 class BackupScheduler:
@@ -245,13 +243,13 @@ esac
 
             # Cron entries
             cron_entries = [
-                f"# CoffeeBreak incremental backup",
+                "# CoffeeBreak incremental backup",
                 f"{incremental_schedule} {scripts_dir}/backup-scheduler.sh incremental",
-                f"# CoffeeBreak full backup",
+                "# CoffeeBreak full backup",
                 f"{full_schedule} {scripts_dir}/backup-scheduler.sh full",
-                f"# CoffeeBreak backup verification",
+                "# CoffeeBreak backup verification",
                 f"0 4 * * * {scripts_dir}/verify-backup.sh",
-                f"# CoffeeBreak backup monitoring",
+                "# CoffeeBreak backup monitoring",
                 f"0 */6 * * * {scripts_dir}/monitor-backup.sh",
             ]
 

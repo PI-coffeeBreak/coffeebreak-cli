@@ -1,11 +1,11 @@
 """Health checking system for production deployments."""
 
-import requests
-import time
 import subprocess
+import time
 from datetime import datetime
-from typing import Dict, Any, List, Optional
-import json
+from typing import Any, Dict
+
+import requests
 
 from ..utils.errors import ValidationError
 
@@ -162,8 +162,8 @@ class HealthChecker:
         }
 
         try:
-            import ssl
             import socket
+            import ssl
 
             # Create SSL context
             context = ssl.create_default_context()

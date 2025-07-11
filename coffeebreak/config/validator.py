@@ -1,8 +1,10 @@
 """Configuration validation for CoffeeBreak CLI."""
 
+from typing import Any, Dict, List
+
 import jsonschema
 import yaml
-from typing import List, Dict, Any, Optional
+
 from .schemas import MAIN_CONFIG_SCHEMA, PLUGIN_CONFIG_SCHEMA
 
 
@@ -115,7 +117,7 @@ class ConfigValidator:
         errors = []
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 config = yaml.safe_load(f)
         except FileNotFoundError:
             return [f"Configuration file not found: {file_path}"]

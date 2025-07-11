@@ -1,19 +1,17 @@
 """Plugin build system for CoffeeBreak CLI."""
 
+import glob
+import importlib.util
 import os
 import shutil
 import subprocess
-import zipapp
-import glob
-import importlib.util
 import sys
-import tempfile
-from typing import Dict, Any, List, Optional, Set
-from pathlib import Path
+import zipapp
+from typing import Any, Dict, List, Optional, Set
 
-from ..utils.files import FileManager
-from ..utils.errors import PluginError, CoffeeBreakError
 from ..config.manager import ConfigManager
+from ..utils.errors import CoffeeBreakError, PluginError
+from ..utils.files import FileManager
 
 
 class PluginBuilder:
@@ -318,7 +316,7 @@ class PluginBuilder:
             wheel_file = os.path.join(dist_info, "WHEEL")
             if os.path.exists(wheel_file):
                 try:
-                    with open(wheel_file, "r") as f:
+                    with open(wheel_file) as f:
                         content = f.read()
                         # Non-universal wheels likely have native code
                         if "Tag: py2.py3-none-any" not in content:
@@ -462,7 +460,7 @@ class PluginBuilder:
             requirements_file = os.path.join(plugin_dir, "requirements.txt")
             if os.path.exists(requirements_file):
                 # Rough estimate: 1MB per dependency line
-                with open(requirements_file, "r") as f:
+                with open(requirements_file) as f:
                     lines = [
                         line.strip()
                         for line in f
@@ -489,6 +487,6 @@ class PluginBuilder:
                 file_path = os.path.join(root, file)
                 try:
                     total_size += os.path.getsize(file_path)
-                except (OSError, IOError):
+                except OSError:
                     pass
         return total_size

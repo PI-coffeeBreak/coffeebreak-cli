@@ -1,13 +1,11 @@
 """Backup storage management system."""
 
-import os
-import subprocess
-import shutil
-from pathlib import Path
-from typing import Dict, Any, Optional
 import json
-
-from ..utils.errors import ConfigurationError
+import os
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Any, Dict
 
 
 class BackupStorage:

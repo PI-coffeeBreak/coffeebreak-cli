@@ -1,8 +1,9 @@
 """Setup configuration for CoffeeBreak CLI."""
 
-from setuptools import setup, find_packages
 import os
 import sys
+
+from setuptools import find_packages, setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -12,7 +13,7 @@ with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
 
 # Import version and author from package
 sys.path.insert(0, os.path.join(here, "coffeebreak"))
-from coffeebreak import __version__, __author__
+from coffeebreak import __author__, __version__
 
 setup(
     name="coffeebreak-cli",

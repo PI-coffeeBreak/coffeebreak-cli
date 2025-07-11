@@ -1,13 +1,9 @@
 """Auto-scaling system for CoffeeBreak infrastructure."""
 
+import json
 import os
 import subprocess
-import time
-from datetime import datetime
-from typing import Dict, Any, List, Optional
-import json
-
-from ..utils.errors import ConfigurationError
+from typing import Any, Dict
 
 
 class AutoScaler:

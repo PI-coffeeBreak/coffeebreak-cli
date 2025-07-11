@@ -1,12 +1,10 @@
 """Plugin documentation generation for CoffeeBreak CLI."""
 
-import os
-import re
 import ast
 import json
-import tempfile
-from typing import Dict, Any, List, Optional, Set
-from pathlib import Path
+import os
+import re
+from typing import Any, Dict, List, Optional
 
 from ..utils.errors import PluginError
 
@@ -186,7 +184,7 @@ class PluginDocumentationGenerator:
         for doc_file in doc_files:
             file_path = os.path.join(plugin_dir, doc_file)
             if os.path.exists(file_path):
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     documentation_data["files"][doc_file] = f.read()
 
         return documentation_data
@@ -212,7 +210,7 @@ class PluginDocumentationGenerator:
         if not overview["description"]:
             readme_path = os.path.join(plugin_dir, "README.md")
             if os.path.exists(readme_path):
-                with open(readme_path, "r", encoding="utf-8") as f:
+                with open(readme_path, encoding="utf-8") as f:
                     content = f.read()
                     # Extract first paragraph as description
                     lines = content.split("\n")
@@ -241,7 +239,7 @@ class PluginDocumentationGenerator:
         # Check for requirements.txt
         requirements_path = os.path.join(plugin_dir, "requirements.txt")
         if os.path.exists(requirements_path):
-            with open(requirements_path, "r") as f:
+            with open(requirements_path) as f:
                 installation["requirements"] = [
                     line.strip()
                     for line in f
@@ -252,13 +250,13 @@ class PluginDocumentationGenerator:
         package_json_path = os.path.join(plugin_dir, "package.json")
         if os.path.exists(package_json_path):
             try:
-                with open(package_json_path, "r") as f:
+                with open(package_json_path) as f:
                     package_data = json.load(f)
                 installation["dependencies"]["node"] = {
                     "dependencies": package_data.get("dependencies", {}),
                     "devDependencies": package_data.get("devDependencies", {}),
                 }
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 pass
 
         # Extract installation steps from config
@@ -285,7 +283,7 @@ class PluginDocumentationGenerator:
                 if file.endswith((".yml", ".yaml", ".json")):
                     file_path = os.path.join(config_examples_path, file)
                     try:
-                        with open(file_path, "r") as f:
+                        with open(file_path) as f:
                             if file.endswith(".json"):
                                 content = json.load(f)
                             else:
@@ -333,7 +331,7 @@ class PluginDocumentationGenerator:
         }
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Parse AST
@@ -409,7 +407,7 @@ class PluginDocumentationGenerator:
         }
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Simple regex-based extraction (could be enhanced with proper JS parser)
@@ -456,7 +454,7 @@ class PluginDocumentationGenerator:
         docs["file_type"] = "typescript"
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Extract interface definitions
@@ -494,7 +492,7 @@ class PluginDocumentationGenerator:
         }
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
                 docs["content"] = content
 
@@ -594,7 +592,7 @@ class PluginDocumentationGenerator:
                 file_path = os.path.join(examples_dir, file)
                 if os.path.isfile(file_path):
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
 
                         example = {
@@ -821,7 +819,7 @@ class PluginDocumentationGenerator:
 
         # Installation section
         installation = documentation_data["installation"]
-        html_content += f"""
+        html_content += """
     <div class="section" id="installation">
         <h2>Installation</h2>
         <h3>Requirements</h3>
@@ -838,7 +836,7 @@ class PluginDocumentationGenerator:
 
         # Configuration section
         configuration = documentation_data["configuration"]
-        html_content += f"""
+        html_content += """
     <div class="section" id="configuration">
         <h2>Configuration</h2>
         <h3>Configuration Schema</h3>

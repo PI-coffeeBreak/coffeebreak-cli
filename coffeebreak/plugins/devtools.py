@@ -1,11 +1,9 @@
 """Plugin developer tools for CoffeeBreak CLI."""
 
+import json
 import os
 import subprocess
-import json
-import tempfile
-from typing import Dict, Any, List, Optional, Tuple
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from ..utils.errors import PluginError
 
@@ -786,7 +784,7 @@ class PluginDeveloperTools:
         # Check for performance-critical dependencies
         requirements_path = os.path.join(plugin_dir, "requirements.txt")
         if os.path.exists(requirements_path):
-            with open(requirements_path, "r") as f:
+            with open(requirements_path) as f:
                 requirements = f.read().lower()
 
                 heavy_packages = [

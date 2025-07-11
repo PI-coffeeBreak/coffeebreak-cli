@@ -1,11 +1,12 @@
 """Tests for Git operations."""
 
 import tempfile
-import pytest
-from unittest.mock import patch, MagicMock
-import git
+from unittest.mock import MagicMock, patch
 
-from coffeebreak.git.operations import GitOperations, GitOperationError
+import git
+import pytest
+
+from coffeebreak.git.operations import GitOperationError, GitOperations
 
 
 class TestGitOperations:

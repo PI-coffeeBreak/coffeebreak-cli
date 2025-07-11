@@ -1,10 +1,10 @@
 """Production environment management."""
 
 import os
-import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
+
 from jinja2 import Environment, FileSystemLoader
 
 from ..secrets import SecretGenerator, SecretManager
@@ -610,7 +610,7 @@ esac
 
         # Create database and user
         commands = [
-            f"CREATE USER coffeebreak WITH PASSWORD '{self.secret_manager.load_encrypted_secret('postgres_password', f'/opt/coffeebreak/secrets')}';",
+            f"CREATE USER coffeebreak WITH PASSWORD '{self.secret_manager.load_encrypted_secret('postgres_password', '/opt/coffeebreak/secrets')}';",
             "CREATE DATABASE coffeebreak OWNER coffeebreak;",
             "GRANT ALL PRIVILEGES ON DATABASE coffeebreak TO coffeebreak;",
         ]
@@ -852,8 +852,9 @@ echo "Backup completed: $BACKUP_DIR/$BACKUP_NAME"
         """Validate the standalone installation."""
         try:
             import subprocess
-            import requests
             import time
+
+            import requests
 
             errors = []
 

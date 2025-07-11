@@ -1,11 +1,12 @@
 """Secure secret management for CoffeeBreak production deployments."""
 
-import os
 import json
-import tempfile
+import os
 import subprocess
-from typing import Dict, Any, Optional, List
+import tempfile
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from cryptography.fernet import Fernet
 
 from ..utils.errors import SecurityError

@@ -1,11 +1,9 @@
 """Plugin testing framework for CoffeeBreak CLI."""
 
+import json
 import os
 import subprocess
-import tempfile
-import json
-from typing import Dict, Any, List, Optional, Tuple
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from ..utils.errors import PluginError
 
@@ -178,7 +176,7 @@ class PluginTestFramework:
         package_json_path = os.path.join(plugin_dir, "package.json")
         if os.path.exists(package_json_path):
             try:
-                with open(package_json_path, "r") as f:
+                with open(package_json_path) as f:
                     package_data = json.load(f)
 
                 scripts = package_data.get("scripts", {})
@@ -186,7 +184,7 @@ class PluginTestFramework:
                     "test" in script for script in scripts.keys()
                 ):
                     available_tests.append("node")
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 pass
 
         # Check for integration tests
@@ -263,7 +261,7 @@ class PluginTestFramework:
             report_path = os.path.join(plugin_dir, "test-report.json")
             if os.path.exists(report_path):
                 try:
-                    with open(report_path, "r") as f:
+                    with open(report_path) as f:
                         test_report = json.load(f)
 
                     result["test_count"] = test_report.get("summary", {}).get(
@@ -281,7 +279,7 @@ class PluginTestFramework:
                     # Clean up report file
                     os.remove(report_path)
 
-                except (json.JSONDecodeError, IOError):
+                except (OSError, json.JSONDecodeError):
                     result["details"].append("Could not parse test report")
                     result["success"] = process_result.returncode == 0
             else:
@@ -296,7 +294,7 @@ class PluginTestFramework:
                 coverage_path = os.path.join(plugin_dir, "coverage.json")
                 if os.path.exists(coverage_path):
                     try:
-                        with open(coverage_path, "r") as f:
+                        with open(coverage_path) as f:
                             coverage_data = json.load(f)
 
                         result["coverage"] = {
@@ -314,7 +312,7 @@ class PluginTestFramework:
                         # Clean up coverage file
                         os.remove(coverage_path)
 
-                    except (json.JSONDecodeError, IOError):
+                    except (OSError, json.JSONDecodeError):
                         result["details"].append("Could not parse coverage report")
 
             if process_result.stderr:
@@ -386,7 +384,7 @@ class PluginTestFramework:
                 for coverage_path in coverage_paths:
                     if os.path.exists(coverage_path):
                         try:
-                            with open(coverage_path, "r") as f:
+                            with open(coverage_path) as f:
                                 coverage_data = json.load(f)
 
                             # Extract coverage info (format varies by tool)
@@ -409,11 +407,11 @@ class PluginTestFramework:
 
                             break
 
-                        except (json.JSONDecodeError, IOError):
+                        except (OSError, json.JSONDecodeError):
                             continue
 
         except FileNotFoundError:
-            result["details"].append(f"Package manager not found")
+            result["details"].append("Package manager not found")
         except Exception as e:
             result["details"].append(f"Error running Node.js tests: {e}")
 

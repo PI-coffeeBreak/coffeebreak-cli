@@ -2,10 +2,10 @@
 
 import os
 import subprocess
-import requests
 from pathlib import Path
-from typing import Dict, Any, List, Optional
-import yaml
+from typing import Any, Dict
+
+import requests
 
 from ..utils.errors import SecurityError
 
@@ -201,7 +201,7 @@ class SecurityValidator:
             if deployment_type == "docker":
                 # Check Docker secrets usage
                 if os.path.exists("docker-compose.yml"):
-                    with open("docker-compose.yml", "r") as f:
+                    with open("docker-compose.yml") as f:
                         compose_content = f.read()
 
                     if "secrets:" in compose_content:
@@ -260,7 +260,7 @@ class SecurityValidator:
 
             for env_file in env_files:
                 if os.path.exists(env_file):
-                    with open(env_file, "r") as f:
+                    with open(env_file) as f:
                         content = f.read()
 
                     # Look for hardcoded secrets
@@ -412,8 +412,8 @@ class SecurityValidator:
         }
 
         try:
-            import ssl
             import socket
+            import ssl
 
             # Test SSL connection
             context = ssl.create_default_context()
@@ -497,7 +497,7 @@ class SecurityValidator:
 
                 for service_file in service_files:
                     if os.path.exists(service_file):
-                        with open(service_file, "r") as f:
+                        with open(service_file) as f:
                             content = f.read()
 
                         # Check for security settings
@@ -526,7 +526,7 @@ class SecurityValidator:
             else:  # Docker deployment
                 # Check Docker security
                 if os.path.exists("docker-compose.yml"):
-                    with open("docker-compose.yml", "r") as f:
+                    with open("docker-compose.yml") as f:
                         compose_content = f.read()
 
                     # Check for security options
@@ -630,7 +630,7 @@ class SecurityValidator:
             # Check SSH configuration
             ssh_config_file = "/etc/ssh/sshd_config"
             if os.path.exists(ssh_config_file):
-                with open(ssh_config_file, "r") as f:
+                with open(ssh_config_file) as f:
                     ssh_config = f.read()
 
                 # Check for secure SSH settings
@@ -813,7 +813,7 @@ class SecurityValidator:
 
             for script in backup_scripts:
                 if os.path.exists(script):
-                    with open(script, "r") as f:
+                    with open(script) as f:
                         content = f.read()
 
                     if "encrypt" in content.lower() or "gpg" in content.lower():

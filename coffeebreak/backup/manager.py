@@ -2,16 +2,12 @@
 
 import os
 import subprocess
-import shutil
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, Any, List, Optional
-import yaml
-import json
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 from ..utils.errors import ConfigurationError
-from .scheduler import BackupScheduler
 from .recovery import RecoveryManager
+from .scheduler import BackupScheduler
 from .storage import BackupStorage
 
 
@@ -152,7 +148,7 @@ class BackupManager:
         try:
             if self.deployment_type == "standalone":
                 scripts_dir = "/opt/coffeebreak/bin"
-                backup_dir = f"/opt/coffeebreak/backups"
+                backup_dir = "/opt/coffeebreak/backups"
             else:
                 scripts_dir = "./scripts"
                 backup_dir = "./backups"

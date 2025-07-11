@@ -2,10 +2,9 @@
 
 import os
 import re
-from typing import Dict, Any, List, Optional, Tuple
 from pathlib import Path
+from typing import Any, Dict, List
 
-from ..utils.errors import PluginError, ValidationError
 from ..config.manager import ConfigManager
 from ..config.validator import ConfigValidator
 
@@ -279,7 +278,7 @@ class PluginValidator:
 
         for py_file in python_files:
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     source = f.read()
 
                 compile(source, str(py_file), "exec")
@@ -307,7 +306,7 @@ class PluginValidator:
             return  # Not required, but noted in structure validation
 
         try:
-            with open(requirements_file, "r", encoding="utf-8") as f:
+            with open(requirements_file, encoding="utf-8") as f:
                 lines = f.readlines()
 
             dependencies = []
@@ -405,7 +404,7 @@ class PluginValidator:
         # Check README
         if os.path.exists(readme_file):
             try:
-                with open(readme_file, "r", encoding="utf-8") as f:
+                with open(readme_file, encoding="utf-8") as f:
                     readme_content = f.read()
 
                 if len(readme_content.strip()) < 100:
@@ -447,7 +446,7 @@ class PluginValidator:
 
             for py_file in python_files:
                 try:
-                    with open(py_file, "r", encoding="utf-8") as f:
+                    with open(py_file, encoding="utf-8") as f:
                         content = f.read()
 
                     # Check for potential security issues

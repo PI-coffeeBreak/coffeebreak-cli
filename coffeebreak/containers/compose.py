@@ -1,13 +1,13 @@
 """Docker Compose orchestration for CoffeeBreak CLI."""
 
 import os
-import yaml
 import subprocess
-from typing import Dict, List, Optional, Any
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from ..utils.files import FileManager
+import yaml
+
 from ..utils.errors import DockerError
+from ..utils.files import FileManager
 
 
 class DockerComposeOrchestrator:

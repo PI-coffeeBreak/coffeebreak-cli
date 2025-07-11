@@ -1,16 +1,15 @@
 """Secret rotation automation for CoffeeBreak production deployments."""
 
-import os
 import json
+import os
 import time
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass
-from pathlib import Path
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional
 
 from ..utils.errors import SecurityError
-from .manager import SecretManager
 from .generator import SecretGenerator
+from .manager import SecretManager
 
 
 @dataclass
@@ -97,7 +96,7 @@ class SecretRotationManager:
         """Load rotation schedules from configuration file."""
         try:
             if os.path.exists(self.config_file):
-                with open(self.config_file, "r") as f:
+                with open(self.config_file) as f:
                     config_data = json.load(f)
 
                 schedules = {}

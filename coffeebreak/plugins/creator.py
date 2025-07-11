@@ -2,14 +2,14 @@
 
 import os
 import shutil
-import tempfile
-from typing import Dict, Any, List, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from jinja2 import Environment, FileSystemLoader
 
-from ..utils.files import FileManager
-from ..utils.errors import PluginError, CoffeeBreakError
 from ..config.manager import ConfigManager
+from ..utils.errors import CoffeeBreakError, PluginError
+from ..utils.files import FileManager
 
 
 class PluginCreator:
@@ -178,7 +178,7 @@ class PluginCreator:
     ) -> None:
         """Process a Jinja2 template file."""
         try:
-            with open(src_file, "r", encoding="utf-8") as f:
+            with open(src_file, encoding="utf-8") as f:
                 template_content = f.read()
 
             template = self.jinja_env.from_string(template_content)
@@ -456,7 +456,7 @@ This plugin can be configured through the `coffeebreak-plugin.yml` file.
             try:
                 import yaml
 
-                with open(info_file, "r", encoding="utf-8") as f:
+                with open(info_file, encoding="utf-8") as f:
                     template_info = yaml.safe_load(f)
                     info.update(template_info)
             except Exception:

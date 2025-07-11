@@ -2,8 +2,7 @@
 
 import os
 import stat
-from typing import Dict, List, Optional
-from jinja2 import Environment, FileSystemLoader, Template
+from typing import Dict, List
 
 
 class FileManager:
@@ -157,7 +156,7 @@ class FileManager:
 
         existing_content = ""
         if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 existing_content = f.read()
 
         # Check which entries are missing

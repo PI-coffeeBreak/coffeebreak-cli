@@ -1,22 +1,20 @@
 """Plugin development environment for CoffeeBreak CLI."""
 
 import os
-from typing import Dict, Any, Optional, List, TYPE_CHECKING
-
-from ..utils.errors import PluginEnvironmentError
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from ..config.manager import ConfigManager
-from .detector import EnvironmentDetector
-from ..plugins.creator import PluginCreator
 from ..plugins.builder import PluginBuilder
-from ..plugins.validator import PluginValidator
-from ..plugins.integration import PluginContainerIntegration
-from ..plugins.hotreload import PluginHotReloadManager, PluginDevelopmentWorkflow
+from ..plugins.creator import PluginCreator
 from ..plugins.dependencies import PluginDependencyManager
-from ..plugins.testing import PluginTestFramework
-from ..plugins.documentation import PluginDocumentationGenerator
 from ..plugins.devtools import PluginDeveloperTools
+from ..plugins.documentation import PluginDocumentationGenerator
+from ..plugins.hotreload import PluginDevelopmentWorkflow, PluginHotReloadManager
+from ..plugins.integration import PluginContainerIntegration
+from ..plugins.testing import PluginTestFramework
+from ..plugins.validator import PluginValidator
+from .detector import EnvironmentDetector
 
 
 class PluginEnvironment:
@@ -68,7 +66,7 @@ class PluginEnvironment:
             return plugin_dir
 
         except Exception as e:
-            raise EnvironmentError(f"Failed to create plugin: {e}")
+            raise OSError(f"Failed to create plugin: {e}")
 
     def initialize_plugin_dev(self, plugin_dir: str = ".") -> bool:
         """
@@ -94,7 +92,7 @@ class PluginEnvironment:
 
             # Validate directory is suitable for plugin development
             if not os.path.exists(plugin_dir):
-                raise EnvironmentError(f"Directory does not exist: {plugin_dir}")
+                raise OSError(f"Directory does not exist: {plugin_dir}")
 
             # Create basic plugin structure if missing
             self._ensure_plugin_structure(plugin_dir)
@@ -110,7 +108,7 @@ class PluginEnvironment:
             return True
 
         except Exception as e:
-            raise EnvironmentError(
+            raise OSError(
                 f"Failed to initialize plugin development environment: {e}"
             )
 
@@ -147,7 +145,7 @@ class PluginEnvironment:
             return pyz_path
 
         except Exception as e:
-            raise EnvironmentError(f"Failed to build plugin: {e}")
+            raise OSError(f"Failed to build plugin: {e}")
 
     def validate_plugin(self, plugin_dir: str = ".") -> Dict[str, Any]:
         """
@@ -177,7 +175,7 @@ class PluginEnvironment:
             return validation_result
 
         except Exception as e:
-            raise EnvironmentError(f"Failed to validate plugin: {e}")
+            raise OSError(f"Failed to validate plugin: {e}")
 
     def get_plugin_info(self, plugin_dir: str = ".") -> Dict[str, Any]:
         """
@@ -305,7 +303,7 @@ class PluginEnvironment:
             return workflow_result
 
         except Exception as e:
-            raise EnvironmentError(f"Failed to start development workflow: {e}")
+            raise OSError(f"Failed to start development workflow: {e}")
 
     def stop_development_workflow(self, plugin_name: str) -> bool:
         """
@@ -360,7 +358,7 @@ class PluginEnvironment:
         try:
             return self.dependency_manager.analyze_plugin_dependencies(plugin_dir)
         except Exception as e:
-            raise EnvironmentError(f"Failed to analyze dependencies: {e}")
+            raise OSError(f"Failed to analyze dependencies: {e}")
 
     def install_plugin_dependencies(
         self,
@@ -389,7 +387,7 @@ class PluginEnvironment:
                 start_services=start_services,
             )
         except Exception as e:
-            raise EnvironmentError(f"Failed to install dependencies: {e}")
+            raise OSError(f"Failed to install dependencies: {e}")
 
     def check_dependency_compatibility(
         self, plugin_dir: str = ".", target_environment: str = "development"
@@ -409,7 +407,7 @@ class PluginEnvironment:
                 plugin_dir, target_environment
             )
         except Exception as e:
-            raise EnvironmentError(f"Failed to check compatibility: {e}")
+            raise OSError(f"Failed to check compatibility: {e}")
 
     # Plugin Testing Framework
 
@@ -440,7 +438,7 @@ class PluginEnvironment:
                 fail_fast=fail_fast,
             )
         except Exception as e:
-            raise EnvironmentError(f"Failed to run plugin tests: {e}")
+            raise OSError(f"Failed to run plugin tests: {e}")
 
     def generate_test_report(
         self, test_results: Dict[str, Any], format: str = "text"
@@ -489,7 +487,7 @@ class PluginEnvironment:
                 include_examples=include_examples,
             )
         except Exception as e:
-            raise EnvironmentError(f"Failed to generate documentation: {e}")
+            raise OSError(f"Failed to generate documentation: {e}")
 
     # Plugin Developer Tools
 
@@ -520,7 +518,7 @@ class PluginEnvironment:
                 generate_report=generate_report,
             )
         except Exception as e:
-            raise EnvironmentError(f"Failed to run quality assurance: {e}")
+            raise OSError(f"Failed to run quality assurance: {e}")
 
     # Container Integration
 
@@ -542,7 +540,7 @@ class PluginEnvironment:
                 plugin_dir, core_container_name
             )
         except Exception as e:
-            raise EnvironmentError(f"Failed to mount plugin: {e}")
+            raise OSError(f"Failed to mount plugin: {e}")
 
     def unmount_plugin_from_development(
         self, plugin_name: str, core_container_name: str = "coffeebreak-core"
@@ -562,7 +560,7 @@ class PluginEnvironment:
                 plugin_name, core_container_name
             )
         except Exception as e:
-            raise EnvironmentError(f"Failed to unmount plugin: {e}")
+            raise OSError(f"Failed to unmount plugin: {e}")
 
     def list_mounted_plugins(
         self, core_container_name: str = "coffeebreak-core"
@@ -601,7 +599,7 @@ class PluginEnvironment:
         try:
             return self.hot_reload_manager.start_hot_reload(plugin_dir, core_container)
         except Exception as e:
-            raise EnvironmentError(f"Failed to start hot reload: {e}")
+            raise OSError(f"Failed to start hot reload: {e}")
 
     def stop_hot_reload(self, plugin_name: str) -> bool:
         """
@@ -750,11 +748,11 @@ class PluginEnvironment:
             return results
 
         except Exception as e:
-            raise EnvironmentError(f"Failed to run complete plugin workflow: {e}")
+            raise OSError(f"Failed to run complete plugin workflow: {e}")
 
     def _print_workflow_summary(self, results: Dict[str, Any]) -> None:
         """Print a summary of the complete workflow results."""
-        print(f"\n=== Plugin Workflow Summary ===")
+        print("\n=== Plugin Workflow Summary ===")
         print(f"Overall Success: {'✓' if results['overall_success'] else '✗'}")
         print(f"Plugin Directory: {results['plugin_dir']}")
 

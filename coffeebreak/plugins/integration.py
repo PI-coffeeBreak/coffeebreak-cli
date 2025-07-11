@@ -1,15 +1,14 @@
 """Plugin container integration for CoffeeBreak CLI."""
 
 import os
-import tempfile
 import shutil
-from typing import Dict, Any, List, Optional
-from pathlib import Path
+import tempfile
+from typing import Any, Dict, List
 
-from ..utils.errors import PluginError
-from ..containers.manager import ContainerManager
-from ..containers.compose import DockerComposeOrchestrator
 from ..config.manager import ConfigManager
+from ..containers.compose import DockerComposeOrchestrator
+from ..containers.manager import ContainerManager
+from ..utils.errors import PluginError
 
 
 class PluginContainerIntegration:

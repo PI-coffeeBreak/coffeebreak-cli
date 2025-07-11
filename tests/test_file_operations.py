@@ -2,8 +2,8 @@
 
 import os
 import tempfile
+
 import pytest
-from unittest.mock import patch, mock_open
 
 from coffeebreak.utils.files import FileManager
 
@@ -35,7 +35,7 @@ class TestFileManager:
         assert os.path.exists(output_path)
 
         # Verify file contents
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             content = f.read()
 
         assert "DATABASE_URL=postgresql://user:pass@localhost:5432/db" in content
@@ -53,7 +53,7 @@ class TestFileManager:
             include_secrets=True,
         )
 
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             content = f.read()
 
         # Should include development secrets
@@ -84,7 +84,7 @@ class TestFileManager:
         assert result_path == gitignore_path
         assert os.path.exists(gitignore_path)
 
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path) as f:
             content = f.read()
 
         assert ".env.local" in content
@@ -102,7 +102,7 @@ class TestFileManager:
 
         self.file_manager.create_gitignore(gitignore_path)
 
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path) as f:
             content = f.read()
 
         # Should preserve existing content and add new entries
@@ -134,7 +134,7 @@ class TestFileManager:
         helpers_path = os.path.join(self.temp_dir, "src", "utils", "helpers.py")
         assert os.path.isfile(helpers_path)
 
-        with open(helpers_path, "r") as f:
+        with open(helpers_path) as f:
             content = f.read()
         assert "def helper_function()" in content
 
@@ -177,7 +177,7 @@ class TestFileManager:
         assert backup_path.endswith(".backup")
 
         # Verify backup content
-        with open(backup_path, "r") as f:
+        with open(backup_path) as f:
             backup_content = f.read()
 
         assert backup_content == original_content

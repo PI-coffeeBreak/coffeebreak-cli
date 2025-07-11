@@ -2,9 +2,11 @@
 
 import os
 import shutil
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
+
 import git
 from git.exc import GitCommandError, InvalidGitRepositoryError
+
 from .validation import GitValidator
 
 

@@ -1,11 +1,13 @@
 """Configuration management for CoffeeBreak CLI."""
 
 import os
+from typing import Any, Dict, List, Optional
+
 import yaml
-from typing import Dict, Any, Optional, List
-from jinja2 import Environment, FileSystemLoader, Template
-from .validator import ConfigValidator, ConfigValidationError
+from jinja2 import Environment, FileSystemLoader
+
 from ..environments.detector import EnvironmentDetector, EnvironmentType
+from .validator import ConfigValidationError, ConfigValidator
 
 
 class ConfigManager:
@@ -64,7 +66,7 @@ class ConfigManager:
 
         # Load configuration
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 config = yaml.safe_load(f)
         except FileNotFoundError:
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
@@ -105,7 +107,7 @@ class ConfigManager:
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 config = yaml.safe_load(f) or {}
 
             if validate:

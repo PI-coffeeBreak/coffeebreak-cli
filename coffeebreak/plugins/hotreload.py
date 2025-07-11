@@ -1,19 +1,18 @@
 """Plugin hot reload system for CoffeeBreak CLI."""
 
 import os
-import time
-import threading
 import tempfile
-import shutil
-from typing import Dict, Any, List, Optional, Callable
-from pathlib import Path
-from watchdog.observers import Observer
+import threading
+import time
+from typing import Any, Callable, Dict, List
+
 from watchdog.events import (
-    FileSystemEventHandler,
-    FileModifiedEvent,
     FileCreatedEvent,
     FileDeletedEvent,
+    FileModifiedEvent,
+    FileSystemEventHandler,
 )
+from watchdog.observers import Observer
 
 from ..utils.errors import PluginError
 from .integration import PluginContainerIntegration

@@ -1,10 +1,11 @@
 """Dependency container management for CoffeeBreak CLI."""
 
 import time
-from typing import Dict, List, Optional, Any
-from .manager import ContainerManager, ContainerManagerError
-from .health import HealthChecker, HealthMonitor, HealthReporter
+from typing import Any, Dict, List, Optional
+
 from .compose import DockerComposeOrchestrator
+from .health import HealthChecker, HealthMonitor, HealthReporter
+from .manager import ContainerManager, ContainerManagerError
 
 
 class DependencyManagerError(Exception):

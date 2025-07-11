@@ -1,11 +1,12 @@
 """Container health checking for CoffeeBreak CLI."""
 
-import time
-import subprocess
 import threading
-from typing import Dict, Optional, Any, List, Callable
-from datetime import datetime, timedelta
-from docker.models.containers import Container
+import time
+from datetime import datetime
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+
+if TYPE_CHECKING:
+    from docker.models.containers import Container
 
 
 class HealthChecker:
@@ -22,7 +23,7 @@ class HealthChecker:
         self.timeout = timeout
         self.verbose = verbose
 
-    def check_container_health(self, container: Container) -> Dict[str, Any]:
+    def check_container_health(self, container: Any) -> Dict[str, Any]:
         """
         Check health of a container.
 
@@ -51,7 +52,7 @@ class HealthChecker:
         else:
             return self._check_generic_health(container)
 
-    def wait_for_healthy(self, container: Container, max_wait: int = 60) -> bool:
+    def wait_for_healthy(self, container: Any, max_wait: int = 60) -> bool:
         """
         Wait for container to become healthy.
 
@@ -76,7 +77,7 @@ class HealthChecker:
 
         return False
 
-    def _check_builtin_health(self, container: Container) -> Dict[str, Any]:
+    def _check_builtin_health(self, container: Any) -> Dict[str, Any]:
         """Check container's built-in health check."""
         try:
             # Reload container to get latest health status
@@ -104,7 +105,7 @@ class HealthChecker:
         except Exception as e:
             return {"status": "error", "method": "builtin", "error": str(e)}
 
-    def _check_postgres_health(self, container: Container) -> Dict[str, Any]:
+    def _check_postgres_health(self, container: Any) -> Dict[str, Any]:
         """Check PostgreSQL container health."""
         try:
             # Use pg_isready command
@@ -126,7 +127,7 @@ class HealthChecker:
         except Exception as e:
             return {"status": "error", "method": "pg_isready", "error": str(e)}
 
-    def _check_mongo_health(self, container: Container) -> Dict[str, Any]:
+    def _check_mongo_health(self, container: Any) -> Dict[str, Any]:
         """Check MongoDB container health."""
         try:
             # Use mongosh to ping
@@ -150,7 +151,7 @@ class HealthChecker:
         except Exception as e:
             return {"status": "error", "method": "mongosh_ping", "error": str(e)}
 
-    def _check_rabbitmq_health(self, container: Container) -> Dict[str, Any]:
+    def _check_rabbitmq_health(self, container: Any) -> Dict[str, Any]:
         """Check RabbitMQ container health."""
         try:
             # Use rabbitmq-diagnostics ping
@@ -176,7 +177,7 @@ class HealthChecker:
                 "error": str(e),
             }
 
-    def _check_keycloak_health(self, container: Container) -> Dict[str, Any]:
+    def _check_keycloak_health(self, container: Any) -> Dict[str, Any]:
         """Check Keycloak container health."""
         try:
             # Try to access health endpoint
@@ -213,7 +214,7 @@ class HealthChecker:
         except Exception as e:
             return {"status": "error", "method": "http_health_check", "error": str(e)}
 
-    def _check_generic_health(self, container: Container) -> Dict[str, Any]:
+    def _check_generic_health(self, container: Any) -> Dict[str, Any]:
         """Generic health check for containers without specific checks."""
         try:
             # Simple check if container is running
@@ -245,7 +246,7 @@ class HealthChecker:
         except Exception as e:
             return {"status": "error", "method": "generic_check", "error": str(e)}
 
-    def get_health_summary(self, containers: List[Container]) -> Dict[str, Any]:
+    def get_health_summary(self, containers: List[Any]) -> Dict[str, Any]:
         """Get health summary for multiple containers."""
         summary = {
             "total_containers": len(containers),
@@ -330,7 +331,7 @@ class HealthMonitor:
         self._health_history = []
         self._max_history = 100
 
-    def add_container(self, container: Container) -> None:
+    def add_container(self, container: Any) -> None:
         """Add container to monitoring."""
         if container not in self._containers:
             self._containers.append(container)
@@ -339,7 +340,7 @@ class HealthMonitor:
             if self.verbose:
                 print(f"Added container '{container.name}' to monitoring")
 
-    def remove_container(self, container: Container) -> None:
+    def remove_container(self, container: Any) -> None:
         """Remove container from monitoring."""
         if container in self._containers:
             self._containers.remove(container)

@@ -1,11 +1,9 @@
 """Tests for CLI commands."""
 
-import pytest
 import sys
-from unittest.mock import patch, MagicMock, mock_open
-from click.testing import CliRunner
+from unittest.mock import MagicMock, mock_open, patch
 
-import coffeebreak.environments.plugin
+from click.testing import CliRunner
 
 # Mock docker module for testing
 sys.modules["docker"] = MagicMock()

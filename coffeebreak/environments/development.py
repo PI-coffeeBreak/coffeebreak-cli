@@ -1,10 +1,11 @@
 """Development environment management."""
 
-import os
-import click
 from pathlib import Path
-from typing import Dict, List, Optional, TYPE_CHECKING
-from ..git.operations import GitOperations, GitOperationError
+from typing import TYPE_CHECKING, Dict, Optional
+
+import click
+
+from ..git.operations import GitOperationError, GitOperations
 from ..utils.errors import DevelopmentEnvironmentError
 from .detector import EnvironmentDetector
 
@@ -232,17 +233,17 @@ class DevelopmentEnvironment:
             # Generate Dockerfile
             self._generate_keycloak_dockerfile(keycloak_dir)
             if self.verbose:
-                click.echo(f"  ✓ Generated Dockerfile")
+                click.echo("  ✓ Generated Dockerfile")
 
             # Generate realm configuration
             self._generate_keycloak_realm(keycloak_dir)
             if self.verbose:
-                click.echo(f"  ✓ Generated realm configuration")
+                click.echo("  ✓ Generated realm configuration")
 
             # Generate theme files
             self._generate_keycloak_theme(keycloak_dir)
             if self.verbose:
-                click.echo(f"  ✓ Generated custom theme")
+                click.echo("  ✓ Generated custom theme")
 
             if self.verbose:
                 click.echo("✓ Keycloak configuration setup complete")
@@ -401,8 +402,8 @@ class DevelopmentEnvironment:
             env_info: Environment information from setup
         """
         try:
-            from .python_env import PythonEnvironmentManager
             from ..utils.npm import NPMManager
+            from .python_env import PythonEnvironmentManager
 
             python_env_manager = PythonEnvironmentManager(verbose=self.verbose)
             npm_manager = NPMManager(verbose=self.verbose)

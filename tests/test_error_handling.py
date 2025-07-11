@@ -1,16 +1,16 @@
 """Tests for error handling system."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 import click
 from click.testing import CliRunner
 
 from coffeebreak.utils.errors import (
-    ErrorHandler,
     CoffeeBreakError,
     ConfigurationError,
-    GitError,
     DockerError,
+    ErrorHandler,
+    GitError,
     create_error_suggestions,
     format_validation_errors,
     safe_operation,

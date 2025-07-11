@@ -10,12 +10,14 @@ with comprehensive help and error handling.
 
 import os
 import subprocess
-import click
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Union
+from typing import Any, Dict, List, Optional
+
+import click
+
 from coffeebreak import __version__
-from coffeebreak.utils.logging import setup_logging
 from coffeebreak.utils.errors import ErrorHandler
+from coffeebreak.utils.logging import setup_logging
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
@@ -121,7 +123,7 @@ def dev(
         env_identifier = venv if venv is not None else ".venv"  # Default to .venv
 
     if ctx.obj["dry_run"]:
-        click.echo(f"DRY RUN: Would initialize development environment")
+        click.echo("DRY RUN: Would initialize development environment")
         click.echo(f"DRY RUN: Organization: {organization}, Version: {version}")
         click.echo(f"DRY RUN: Environment: {env_type} ({env_identifier})")
         if python:
@@ -329,7 +331,7 @@ def production(
         output_dir: Output directory for production files
     """
     if ctx.obj["dry_run"]:
-        click.echo(f"DRY RUN: Would initialize production environment")
+        click.echo("DRY RUN: Would initialize production environment")
         click.echo(f"DRY RUN: Docker mode: {docker}")
         click.echo(f"DRY RUN: Domain: {domain}")
         click.echo(f"DRY RUN: Standalone: {standalone}")
@@ -351,7 +353,7 @@ def production(
 
         if not ssl_email:
             ssl_email = click.prompt(
-                f"Email for SSL certificates", default=f"admin@{domain}"
+                "Email for SSL certificates", default=f"admin@{domain}"
             )
 
         if standalone:
@@ -364,15 +366,15 @@ def production(
 
             if result["success"]:
                 click.echo("✓ Standalone production environment setup completed!")
-                click.echo(f"\nSetup summary:")
+                click.echo("\nSetup summary:")
                 click.echo(f"  Domain: {domain}")
                 click.echo(f"  SSL email: {ssl_email}")
                 click.echo(f"  Installation scripts: {result['scripts_dir']}")
 
-                click.echo(f"\nNext steps:")
+                click.echo("\nNext steps:")
                 click.echo(f"  1. Review configuration in {result['config_dir']}")
                 click.echo(f"  2. Run installation: sudo {result['install_script']}")
-                click.echo(f"  3. Configure domain DNS to point to this server")
+                click.echo("  3. Configure domain DNS to point to this server")
             else:
                 click.echo(
                     f"✗ Standalone setup failed: {result.get('error', 'Unknown error')}"
@@ -392,15 +394,15 @@ def production(
 
             if result["success"]:
                 click.echo("✓ Docker production project generated!")
-                click.echo(f"\nProject details:")
+                click.echo("\nProject details:")
                 click.echo(f"  Project directory: {result['project_dir']}")
                 click.echo(f"  Files created: {len(result['files_created'])}")
                 click.echo(f"  Secrets generated: {result['secrets_count']}")
 
-                click.echo(f"\nNext steps:")
+                click.echo("\nNext steps:")
                 click.echo(f"  1. cd {result['project_dir']}")
-                click.echo(f"  2. Review docker-compose.yml and configuration")
-                click.echo(f"  3. Deploy with: ./deploy.sh")
+                click.echo("  2. Review docker-compose.yml and configuration")
+                click.echo("  3. Deploy with: ./deploy.sh")
             else:
                 click.echo(
                     f"✗ Docker project generation failed: {result.get('error', 'Unknown error')}"
@@ -943,7 +945,7 @@ def build(
                 result = _build_docker_images(output, production, ctx.obj["verbose"])
 
                 if result["success"]:
-                    click.echo(f"✓ Docker images built successfully")
+                    click.echo("✓ Docker images built successfully")
                     if result.get("images"):
                         click.echo("Built images:")
                         for image in result["images"]:
@@ -1013,7 +1015,7 @@ def build(
                                 f"  {result['component']}/  ({len(result.get('artifacts', []))} files)"
                             )
 
-                    click.echo(f"\nTo see detailed artifacts, run with --verbose")
+                    click.echo("\nTo see detailed artifacts, run with --verbose")
                 else:
                     failed = total - successful
                     click.echo(
@@ -1048,10 +1050,6 @@ def _build_component(
         - error: Error message if build failed
     """
     try:
-        import os
-        import subprocess
-        import shutil
-        import json
         from pathlib import Path
 
         component_dir = Path(component)
@@ -1124,8 +1122,8 @@ def _build_frontend(
     Returns:
         List of generated artifact paths relative to the build directory
     """
-    import subprocess
     import shutil
+    import subprocess
 
     artifacts = []
 
@@ -1217,9 +1215,9 @@ def _build_backend(
     Returns:
         List of generated artifact paths relative to the build directory
     """
-    import subprocess
-    import shutil
     import os
+    import shutil
+    import subprocess
 
     artifacts = []
 
@@ -1361,8 +1359,8 @@ def _build_core(
     Returns:
         List of generated artifact paths relative to the build directory
     """
-    import shutil
     import json
+    import shutil
 
     artifacts = []
 
@@ -2099,8 +2097,8 @@ def create(ctx, name, template, description, author, version):
         return
 
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -2138,8 +2136,8 @@ def init_plugin(ctx, force):
         return
 
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -2178,8 +2176,8 @@ def build_plugin(ctx, name, output, include_native):
         return
 
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -2238,14 +2236,15 @@ def publish(ctx, name, validate, registry, token, tag, changelog, force, public)
         return
 
     try:
-        import os
-        import json
-        import tempfile
-        import tarfile
         import hashlib
+        import json
+        import os
+        import tarfile
+        import tempfile
         from datetime import datetime
-        from coffeebreak.environments.plugin import PluginEnvironment
+
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         # Initialize plugin environment
         config_manager = ConfigManager()
@@ -2444,10 +2443,10 @@ def publish(ctx, name, validate, registry, token, tag, changelog, force, public)
             click.echo(f"  Public: {'Yes' if public else 'No'}")
 
             # Installation instructions
-            click.echo(f"\nUsers can install with:")
+            click.echo("\nUsers can install with:")
             click.echo(f"  coffeebreak plugin install {name}")
             if not public:
-                click.echo(f"  (Note: Private plugin - users need access permissions)")
+                click.echo("  (Note: Private plugin - users need access permissions)")
 
             # Store registry info in config for future use
             try:
@@ -2549,8 +2548,8 @@ def rotate(ctx, service, secret_type, force, backup):
         return
 
     try:
-        from coffeebreak.secrets import SecretManager, SecretRotationManager
         from coffeebreak.environments.detector import EnvironmentDetector
+        from coffeebreak.secrets import SecretManager, SecretRotationManager
 
         # Detect environment
         env_detector = EnvironmentDetector()
@@ -2625,7 +2624,7 @@ def rotate(ctx, service, secret_type, force, backup):
             successful = sum(1 for r in results if r["success"])
             failed = sum(1 for r in results if not r["success"])
 
-            click.echo(f"\nRotation completed:")
+            click.echo("\nRotation completed:")
             click.echo(f"  ✓ Successful: {successful}")
             click.echo(f"  ✗ Failed: {failed}")
 
@@ -2677,8 +2676,8 @@ def show(ctx, masked, service, secret_type, format, export):
         return
 
     try:
-        from coffeebreak.secrets import SecretManager
         from coffeebreak.environments.detector import EnvironmentDetector
+        from coffeebreak.secrets import SecretManager
 
         # Detect environment
         env_detector = EnvironmentDetector()
@@ -2845,12 +2844,13 @@ def backup(ctx, output, encrypt, password, service, include_metadata, compressio
 
     try:
         import datetime
+        import json
         import os
         import tarfile
         import tempfile
-        import json
-        from coffeebreak.secrets import SecretManager
+
         from coffeebreak.environments.detector import EnvironmentDetector
+        from coffeebreak.secrets import SecretManager
 
         # Detect environment
         env_detector = EnvironmentDetector()
@@ -2952,10 +2952,11 @@ def backup(ctx, output, encrypt, password, service, include_metadata, compressio
                 )
 
             try:
+                import base64
+
                 from cryptography.fernet import Fernet
                 from cryptography.hazmat.primitives import hashes
                 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-                import base64
 
                 # Generate encryption key from password
                 salt = os.urandom(16)
@@ -3000,7 +3001,7 @@ def backup(ctx, output, encrypt, password, service, include_metadata, compressio
 
         # Show backup summary
         file_size = os.path.getsize(output)
-        click.echo(f"\nBackup Summary:")
+        click.echo("\nBackup Summary:")
         click.echo(f"  Secrets backed up: {len(secrets_data)}")
         click.echo(f"  File size: {file_size:,} bytes")
         click.echo(f"  Compression: {compression}")
@@ -3008,8 +3009,8 @@ def backup(ctx, output, encrypt, password, service, include_metadata, compressio
         if service:
             click.echo(f"  Service filter: {service}")
 
-        click.echo(f"\n⚠️  Store this backup securely!")
-        click.echo(f"⚠️  Remember the password for encrypted backups!")
+        click.echo("\n⚠️  Store this backup securely!")
+        click.echo("⚠️  Remember the password for encrypted backups!")
 
     except Exception as e:
         ctx.obj["error_handler"].exit_with_error(e, "Secret backup")
@@ -3029,8 +3030,8 @@ plugin.add_command(init_plugin, name="init")
 def validate(ctx, detailed):
     """Validate current plugin."""
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -3074,8 +3075,8 @@ def validate(ctx, detailed):
 def info(ctx):
     """Show plugin information."""
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -3106,7 +3107,7 @@ def info(ctx):
         # Build info
         build_info = plugin_info.get("build_info", {})
         if build_info:
-            click.echo(f"\nBuild Information:")
+            click.echo("\nBuild Information:")
             click.echo(
                 f"  Estimated size: {build_info.get('estimated_size', 'Unknown')}"
             )
@@ -3124,8 +3125,8 @@ def info(ctx):
 def templates(ctx):
     """List available plugin templates."""
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -3160,8 +3161,8 @@ def templates(ctx):
 def test(ctx, test_types, coverage, fail_fast, report_format):
     """Run plugin tests."""
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -3206,8 +3207,8 @@ def test(ctx, test_types, coverage, fail_fast, report_format):
 def docs(ctx, output_dir, formats, include_api, include_examples):
     """Generate plugin documentation."""
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -3248,8 +3249,8 @@ def docs(ctx, output_dir, formats, include_api, include_examples):
 def qa(ctx, tools, fix, no_report):
     """Run quality assurance checks."""
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -3299,8 +3300,8 @@ def qa(ctx, tools, fix, no_report):
 def workflow(ctx, no_tests, no_docs, no_qa, no_dev_env):
     """Run complete plugin development workflow."""
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -3344,8 +3345,8 @@ def workflow(ctx, no_tests, no_docs, no_qa, no_dev_env):
 def deps(ctx, analyze_only, no_python, no_node, no_services):
     """Manage plugin dependencies."""
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -3387,7 +3388,7 @@ def deps(ctx, analyze_only, no_python, no_node, no_services):
                     click.echo(f"  ⚠️  {conflict}")
 
             if analysis["recommendations"]:
-                click.echo(f"\nRecommendations:")
+                click.echo("\nRecommendations:")
                 for rec in analysis["recommendations"][:3]:
                     click.echo(f"  💡 {rec}")
         else:
@@ -3428,12 +3429,12 @@ def deps(ctx, analyze_only, no_python, no_node, no_services):
 
             # Show errors and warnings
             if results["errors"]:
-                click.echo(f"\nErrors:")
+                click.echo("\nErrors:")
                 for error in results["errors"]:
                     click.echo(f"  - {error}")
 
             if results.get("warnings"):
-                click.echo(f"\nWarnings:")
+                click.echo("\nWarnings:")
                 for warning in results["warnings"]:
                     click.echo(f"  - {warning}")
 
@@ -3448,8 +3449,8 @@ def deps(ctx, analyze_only, no_python, no_node, no_services):
 def dev_plugin(ctx, stop, status):
     """Manage plugin development environment."""
     try:
-        from coffeebreak.environments.plugin import PluginEnvironment
         from coffeebreak.config import ConfigManager
+        from coffeebreak.environments.plugin import PluginEnvironment
 
         config_manager = ConfigManager()
         plugin_env = PluginEnvironment(config_manager, verbose=ctx.obj["verbose"])
@@ -3591,7 +3592,7 @@ def generate(
         )
 
         if result["success"]:
-            click.echo(f"✓ Production project generated successfully!")
+            click.echo("✓ Production project generated successfully!")
             click.echo(f"Project directory: {result['project_dir']}")
             click.echo(f"Files created: {len(result['files_created'])}")
             click.echo(f"Secrets generated: {result['secrets_count']}")
@@ -3739,7 +3740,7 @@ def validate(ctx, domain, config_file, comprehensive):
 
             # Show detailed results if verbose
             if ctx.obj["verbose"]:
-                click.echo(f"\nDetailed Validation Results:")
+                click.echo("\nDetailed Validation Results:")
                 for category, details in validation_result[
                     "validation_details"
                 ].items():
@@ -3934,11 +3935,11 @@ def ssl_obtain(
 
                     ssl_manager = SSLManager(verbose=ctx.obj["verbose"])
 
-                    with open(result["cert_path"], "r") as f:
+                    with open(result["cert_path"]) as f:
                         cert_data = f.read()
-                    with open(result["key_path"], "r") as f:
+                    with open(result["key_path"]) as f:
                         key_data = f.read()
-                    with open(result["chain_path"], "r") as f:
+                    with open(result["chain_path"]) as f:
                         chain_data = f.read()
 
                     installed = ssl_manager.install_certificate(

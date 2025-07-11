@@ -1,6 +1,6 @@
 """SSL certificate management for CoffeeBreak production deployments."""
 
-from .manager import SSLManager
 from .letsencrypt import LetsEncryptManager
+from .manager import SSLManager
 
 __all__ = ["SSLManager", "LetsEncryptManager"]

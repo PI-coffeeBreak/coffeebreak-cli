@@ -1,11 +1,10 @@
 """NPM dependency management for CoffeeBreak CLI."""
 
 import json
-import os
-import subprocess
 import shutil
+import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class NPMManagerError(Exception):
@@ -68,7 +67,7 @@ class NPMManager:
             if not package_json_path.exists():
                 return True, "No package.json found, skipping Node.js version check"
 
-            with open(package_json_path, "r") as f:
+            with open(package_json_path) as f:
                 package_data = json.load(f)
 
             # Check if engines.node is specified
@@ -228,7 +227,7 @@ class NPMManager:
             if not package_json_path.exists():
                 return True, []
 
-            with open(package_json_path, "r") as f:
+            with open(package_json_path) as f:
                 package_data = json.load(f)
 
             dependencies = package_data.get("dependencies", {})
@@ -270,7 +269,7 @@ class NPMManager:
             if not package_json_path.exists():
                 return None
 
-            with open(package_json_path, "r") as f:
+            with open(package_json_path) as f:
                 package_data = json.load(f)
 
             return {

@@ -3,7 +3,6 @@
 import re
 import subprocess
 from typing import List, Optional
-from urllib.parse import urlparse
 
 
 class GitValidator:

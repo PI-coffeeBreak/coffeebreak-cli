@@ -1,13 +1,13 @@
 """Python environment management for CoffeeBreak CLI."""
 
+import hashlib
 import os
 import subprocess
 import sys
-import venv
-import hashlib
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, Optional
+
 import click
 
 
@@ -35,7 +35,7 @@ class EnvironmentActivator:
         try:
             import yaml
 
-            with open(self.config_path, "r") as f:
+            with open(self.config_path) as f:
                 self.config = yaml.safe_load(f)
             return self.config
         except FileNotFoundError:

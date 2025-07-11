@@ -1,7 +1,16 @@
 """Container management for CoffeeBreak CLI."""
 
-from .manager import ContainerManager
 from .dependencies import DependencyManager
-from .health import HealthChecker
+from .manager import ContainerManager
 
-__all__ = ["ContainerManager", "DependencyManager", "HealthChecker"]
+# Lazy import for health checker to avoid docker import issues
+def get_health_checker():
+    """Get HealthChecker class, importing it only when needed."""
+    try:
+        from .health import HealthChecker
+        return HealthChecker
+    except ImportError:
+        # Return None if docker is not available
+        return None
+
+__all__ = ["ContainerManager", "DependencyManager", "get_health_checker"]

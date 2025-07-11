@@ -2,15 +2,15 @@
 
 import os
 import subprocess
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, Optional
+
 from jinja2 import Environment, FileSystemLoader
 
 from ..utils.errors import ConfigurationError
-from .metrics import MetricsCollector
-from .logs import LogManager
 from .alerts import AlertManager
+from .logs import LogManager
+from .metrics import MetricsCollector
 
 
 class MonitoringManager:

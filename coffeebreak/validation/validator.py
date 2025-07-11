@@ -2,15 +2,14 @@
 
 import os
 import subprocess
-import requests
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 import yaml
 
-from ..utils.errors import ValidationError
 from ..secrets import SecretManager
 from ..ssl import SSLManager
+from ..utils.errors import ValidationError
 from .health import HealthChecker
 from .security import SecurityValidator
 
@@ -147,7 +146,7 @@ class ProductionValidator:
                     # Validate file content
                     if config_file.endswith(".yml") or config_file.endswith(".yaml"):
                         try:
-                            with open(config_file, "r") as f:
+                            with open(config_file) as f:
                                 yaml.safe_load(f)
                             validation["checks"].append(
                                 f"Valid YAML syntax: {config_file}"
@@ -171,7 +170,7 @@ class ProductionValidator:
                     required_vars = self._get_required_env_vars()
                     missing_vars = []
 
-                    with open(env_file, "r") as f:
+                    with open(env_file) as f:
                         content = f.read()
                         for var in required_vars:
                             if f"{var}=" not in content:
@@ -691,7 +690,7 @@ class ProductionValidator:
         locations = [
             f"/etc/letsencrypt/live/{domain}",
             f"/etc/ssl/certs/{domain}",
-            f"/opt/coffeebreak/ssl",
+            "/opt/coffeebreak/ssl",
             "./ssl/certs",
             "./ssl",
         ]

@@ -4,7 +4,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from ..config.manager import ConfigManager
 from ..containers.dependencies import DependencyManager
@@ -74,7 +74,7 @@ class DevEnvironmentAutomation:
         try:
             import json
 
-            with open(pids_file, "r") as f:
+            with open(pids_file) as f:
                 saved_pids = json.load(f)
 
             for service, info in saved_pids.items():
@@ -101,7 +101,7 @@ class DevEnvironmentAutomation:
 
             # Load existing PIDs
             if pids_file.exists():
-                with open(pids_file, "r") as f:
+                with open(pids_file) as f:
                     pids = json.load(f)
             else:
                 pids = {}
@@ -156,7 +156,7 @@ class DevEnvironmentAutomation:
             if not pids_file.exists():
                 return
 
-            with open(pids_file, "r") as f:
+            with open(pids_file) as f:
                 pids = json.load(f)
 
             # Filter out dead processes
@@ -620,7 +620,7 @@ class DevEnvironmentAutomation:
                     if self.verbose:
                         print(f"    Error: {result.stderr}")
                 elif self.verbose:
-                    print(f"     Command completed")
+                    print("     Command completed")
 
         except subprocess.TimeoutExpired:
             print(f"      Command timed out: {command}")

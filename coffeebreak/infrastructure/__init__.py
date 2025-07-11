@@ -1,9 +1,9 @@
 """Infrastructure automation and orchestration for CoffeeBreak deployments."""
 
-from .manager import InfrastructureManager
 from .deployment import DeploymentOrchestrator
-from .scaling import AutoScaler
 from .maintenance import MaintenanceManager
+from .manager import InfrastructureManager
+from .scaling import AutoScaler
 
 __all__ = [
     "InfrastructureManager",
